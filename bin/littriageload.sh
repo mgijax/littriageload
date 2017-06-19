@@ -62,11 +62,17 @@ echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG}
 cd ${PUBLISHEDDIR}
 for i in *
 do
-mv -f ${i}/*.pdf ${INPUTDIR}/${i} 2>&1 >> ${LOG}
+cp -f ${i}/*.pdf ${INPUTDIR}/${i} 2>> ${LOG}
 done
-ls -l ${INPUTDIR}/*
 STAT=$?
 checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py"
+
+# for testing
+echo "${PUBLISHEDDIR} listing..." | tee -a ${LOG}
+ls -l ${PUBLISHEDDIR}/*/* | tee -a ${LOG}
+echo "---------------------" | tee -a ${LOG}
+echo "${INPUTDIR} listing..." | tee -a ${LOG}
+ls -l ${INPUTDIR}/*/* | tee -a ${LOG}
 
 cd `dirname $0`/..
 
