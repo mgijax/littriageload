@@ -62,7 +62,7 @@ echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG}
 cd ${PUBLISHEDDIR}
 for i in *
 do
-cp -f ${i}/*.pdf ${INPUTDIR}/${i} 2>> ${LOG}
+mv -f ${i}/*.pdf ${INPUTDIR}/${i} 2>> ${LOG}
 done
 STAT=$?
 checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py"
