@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-# default configuration file
+# TR12250/Lit Triage
 #
 
 if [ "${MGICONFIG}" = "" ]
@@ -17,6 +17,14 @@ fi
 # published directory/maintained by curators
 PUBLISHEDDIR=/mgi/all/Triage/PDF_files/_New_Newcurrent
 export PUBLISHEDDIR
+
+# master triage directory/subdivied by 1000
+MASTERTRIAGEDIR=/data/littriage
+export MASTERTRIAGEDIR
+
+# failed triage directory/subdivided by curator
+FAILEDTRIAGEDIR=/data/littriagefailed
+export FAILEDTRIAGEDIR
 
 FILEDIR=${DATALOADSOUTPUT}/mgi/littriageload
 ARCHIVEDIR=${FILEDIR}/archive

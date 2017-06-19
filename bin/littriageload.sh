@@ -56,8 +56,8 @@ fi
 # sets "JOBKEY"
 preload ${OUTPUTDIR}
 
-echo "" >> ${LOG}
-date >> ${LOG}
+echo "" | tee -a ${LOG}
+date | tee -a ${LOG}
 echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG}
 cd ${PUBLISHEDDIR}
 for i in *
@@ -78,8 +78,8 @@ cd `dirname $0`/..
 #
 # run the load
 #
-#echo "" >> ${LOG}
-#date >> ${LOG}
+#echo "" | tee -a ${LOG}
+#date | tee -a ${LOG}
 #echo "Run littriageload.py"  | tee -a ${LOG}
 #${LITTRIAGELOAD}/bin/littriageload.py  
 #STAT=$?
@@ -90,27 +90,32 @@ cd `dirname $0`/..
 #
 
 # BCP delimiters
+#SCHEMA=mgd
 #COLDELIM="\t"
 #LINEDELIM="\n"
-#TABLE=BIB_Refs
+#for TABLE in BIB_Refs BIB_Books BIB_Workflow_Status
+#do
 #if [ -s "${OUTPUTDIR}/${TABLE}.bcp" ]
 #then
-#    echo "" >> ${LOG}
-#    date >> ${LOG}
-#    echo 'BCP in BIB_Refs'  >> ${LOG}
-#
-#    # Drop indexes
-#    ${MGD_DBSCHEMADIR}/index/${TABLE}_drop.object >> ${LOG}
-#
-#    # BCP new data
-#    ${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${TABLE} ${OUTPUTDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} ${SCHEMA} >> ${LOG}
-#
-#    # Create indexes
-#    ${MGD_DBSCHEMADIR}/index/${TABLE}_create.object >> ${LOG}
+#    echo "" | tee -a ${LOG}
+#    date | tee -a ${LOG}
+#    echo 'processing ', ${TABLE}  | tee -a ${LOG}
+#    ${MGD_DBSCHEMADIR}/index/${TABLE}_drop.object | tee -a ${LOG}
+#    ${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${TABLE} ${OUTPUTDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} ${SCHEMA} | tee -a ${LOG}
+#    ${MGD_DBSCHEMADIR}/index/${TABLE}_create.object | tee -a ${LOG}
 #fi
+#done
 
 STAT=$?
 checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py"
+
+#
+# run bibcitation cache
+#date | tee -a ${LOG}
+#echo "run bibcitation.csh"  | tee -a ${LOG}
+#${MGICACHELOAD}/bibcitation.csh | tee -a $LOG
+#date | tee -a ${LOG}
+#
 
 # run postload cleanup and email logs
 shutDown
