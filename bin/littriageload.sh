@@ -63,9 +63,8 @@ cd ${PUBLISHEDDIR}
 for i in *
 do
 mv -f ${i}/*.pdf ${INPUTDIR}/${i} 2>> ${LOG}
+mv -f ${i}/*.PDF ${INPUTDIR}/${i} 2>> ${LOG}
 done
-STAT=$?
-checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py"
 
 # for testing
 echo "${PUBLISHEDDIR} listing..." | tee -a ${LOG}
@@ -109,6 +108,9 @@ cd `dirname $0`/..
 #    # Create indexes
 #    ${MGD_DBSCHEMADIR}/index/${TABLE}_create.object >> ${LOG}
 #fi
+
+STAT=$?
+checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py"
 
 # run postload cleanup and email logs
 shutDown
