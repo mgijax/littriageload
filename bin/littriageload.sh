@@ -2,54 +2,41 @@
 
 #
 # This script is a wrapper around the process that loads 
-# Feature Relationships
-#
+#	TR12250/Literature Triage
 #
 #     littriageload.sh 
 #
+# 1. Move ${PUBLISHEDDIR} PDF files to ${INPUTDIR}
+# 2. Process PDF files in ${INPUTDIR}
+#
 
-cd `dirname $0`/..
-CONFIG_LOAD=`pwd`/littriageload.config
+cd `dirname $0` 
 
-cd `dirname $0`
-LOG=`pwd`/littriageload.log
+COMMON_CONFIG=${LITTRIAGELOAD}/littriageload.config
+
+USAGE="Usage: littriageload.sh"
+
+#
+# Make sure the common configuration file exists and source it. 
+#
+if [ -f ${COMMON_CONFIG} ]
+then
+    . ${COMMON_CONFIG}
+else
+    echo "Missing configuration file: ${COMMON_CONFIG}"
+    exit 1
+fi
+
+#
+# Initialize the log file.
+#
+LOG=${LOG_DIAG}
 rm -rf ${LOG}
-
-USAGE='Usage: littriageload.sh'
-SCHEMA='mgd'
+touch ${LOG}
 
 #
-#  Verify the argument(s) to the shell script.
+# Source the DLA library functions.
 #
-if [ $# -ne 0 ]
-then
-    echo ${USAGE} | tee -a ${LOG}
-    exit 1
-fi
-
-#
-# verify & source the configuration file
-#
-
-if [ ! -r ${CONFIG_LOAD} ]
-then
-    echo "Cannot read configuration file: ${CONFIG_LOAD}"
-    exit 1
-fi
-
-. ${CONFIG_LOAD}
-
-#
-# Just a verification of where we are at
-#
-
-echo "MGD_DBSERVER: ${MGD_DBSERVER}"
-echo "MGD_DBNAME: ${MGD_DBNAME}"
-
-#
-#  Source the DLA library functions.
-#
-
 if [ "${DLAJOBSTREAMFUNC}" != "" ]
 then
     if [ -r ${DLAJOBSTREAMFUNC} ]
@@ -65,105 +52,58 @@ else
 fi
 
 #
-# verify input file exists and is readable
-#
-
-if [ ! -r ${INPUT_FILE_DEFAULT} ]
-then
-    # set STAT for endJobStream.py
-    STAT=1
-    checkStatus ${STAT} "Cannot read from input file: ${INPUT_FILE_DEFAULT}"
-fi
-
-#
-# createArchive including OUTPUTDIR, startLog, getConfigEnv
+# createArchive including OUTPUTDIR, INPUTDIR, etc.
 # sets "JOBKEY"
-#
-
 preload ${OUTPUTDIR}
 
-#
-# rm all files/dirs from OUTPUTDIR
-#
+echo "" >> ${LOG}
+date >> ${LOG}
+echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG}
+cd ${PUBLISHEDDIR}
+for i in *
+do
+mv -f ${i}/*.pdf ${INPUTDIR}/${i} 2>&1 >> ${LOG}
+done
+ls -l ${INPUTDIR}/*
+STAT=$?
+checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py"
 
-cleanDir ${OUTPUTDIR}
-
-#echo "" >> ${LOG_DIAG}
-#date >> ${LOG_DIAG}
-#echo "Run sanity/QC checks"  | tee -a ${LOG_DIAG}
-#${LITTRIAGELOAD}/bin/fearQC.sh ${INPUT_FILE_DEFAULT} live
-#STAT=$?
-#if [ ${STAT} -eq 1 ]
-#then
-#    checkStatus ${STAT} "Sanity errors detected. See ${SANITY_RPT}. fearQC.sh"
-#    # run postload cleanup and email logs
-#    shutDown
-#fi
-
-#if [ ${STAT} -eq 2 ]
-#then
-#    checkStatus ${STAT} "An error occurred while generating the sanity/QC reports - See ${QC_LOGFILE}. fearQC.sh"
-#
-#    # run postload cleanup and email logs
-#    shutDown
-#fi
-
-#if [ ${STAT} -eq 3 ]
-#then
-#    checkStatus ${STAT} "QC errors detected. See ${QC_RPT}. fearQC.sh"
-#    
-#    # run postload cleanup and email logs
-#    shutDown
-#
-#fi
+cd `dirname $0`/..
 
 #
 # run the load
 #
-echo "" >> ${LOG_DIAG}
-date >> ${LOG_DIAG}
-echo "Run littriageload.py"  | tee -a ${LOG_DIAG}
-${LITTRIAGELOAD}/bin/littriageload.py  
-STAT=$?
-checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py"
+#echo "" >> ${LOG}
+#date >> ${LOG}
+#echo "Run littriageload.py"  | tee -a ${LOG}
+#${LITTRIAGELOAD}/bin/littriageload.py  
+#STAT=$?
+#checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py"
 
 #
-# Do BCP
+# run BCP
 #
 
 # BCP delimiters
-COLDELIM="\t"
-LINEDELIM="\n"
-
-TABLE=BIB_Refs
-
-if [ -s "${OUTPUTDIR}/${TABLE}.bcp" ]
-then
-    echo "" >> ${LOG_DIAG}
-    date >> ${LOG_DIAG}
-    echo 'BCP in BIB_Refs'  >> ${LOG_DIAG}
-
-    # Drop indexes
-    ${MGD_DBSCHEMADIR}/index/${TABLE}_drop.object >> ${LOG_DIAG}
-
-    # BCP new data
-    ${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${TABLE} ${OUTPUTDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} ${SCHEMA} >> ${LOG_DIAG}
-
-    # Create indexes
-    ${MGD_DBSCHEMADIR}/index/${TABLE}_create.object >> ${LOG_DIAG}
-fi
-
+#COLDELIM="\t"
+#LINEDELIM="\n"
+#TABLE=BIB_Refs
+#if [ -s "${OUTPUTDIR}/${TABLE}.bcp" ]
+#then
+#    echo "" >> ${LOG}
+#    date >> ${LOG}
+#    echo 'BCP in BIB_Refs'  >> ${LOG}
 #
-# Archive a copy of the input file, adding a timestamp suffix.
+#    # Drop indexes
+#    ${MGD_DBSCHEMADIR}/index/${TABLE}_drop.object >> ${LOG}
 #
-echo "" >> ${LOG_DIAG}
-date >> ${LOG_DIAG}
-echo "Archive input file" >> ${LOG_DIAG}
-TIMESTAMP=`date '+%Y%m%d.%H%M'`
-ARC_FILE=`basename ${INPUT_FILE_DEFAULT}`.${TIMESTAMP}
-cp -p ${INPUT_FILE_DEFAULT} ${ARCHIVEDIR}/${ARC_FILE}
+#    # BCP new data
+#    ${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${TABLE} ${OUTPUTDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} ${SCHEMA} >> ${LOG}
+#
+#    # Create indexes
+#    ${MGD_DBSCHEMADIR}/index/${TABLE}_create.object >> ${LOG}
+#fi
 
 # run postload cleanup and email logs
-
 shutDown
 

@@ -26,11 +26,6 @@ OUTPUTDIR=${FILEDIR}/output
 INPUTDIR=${FILEDIR}/input
 export FILEDIR ARCHIVEDIR LOGDIR RPTDIR OUTPUTDIR INPUTDIR
 
-# destination area for curator sanity checks
-DESTFILEDIR=/data/nomen
-DESTCURRENTDIR=${DESTFILEDIR}/current
-export DESTFILEDIR DESTCURRENTDIR
-
 # Complete path name of the littriageload log files
 LOG_FILE=${LOGDIR}/littriageload.log
 LOG_PROC=${LOGDIR}/littriageload.proc.log
@@ -41,6 +36,13 @@ LOG_ERROR=${LOGDIR}/littriageload.error.log
 
 export LOG_FILE LOG_PROC LOG_DIAG LOG_CUR LOG_VAL LOG_ERROR
 
+#  The name of the job stream for the load
+JOBSTREAM=littriageload
+export JOBSTREAM
+
+JNUMBER="J:232325"
+export JNUMBER
+
 ###########################################################################
 #
 #  MISCELLANEOUS SETTINGS
@@ -48,7 +50,7 @@ export LOG_FILE LOG_PROC LOG_DIAG LOG_CUR LOG_VAL LOG_ERROR
 ###########################################################################
 
 #  The name of the load for the subject of an email notification
-MAIL_LOADNAME="${LITTRIAGEMODE} : Literature Triage load"
+MAIL_LOADNAME="Literature Triage load"
 export MAIL_LOADNAME
 
 #  Recipient list for mailing the log files (comma-separated)
