@@ -1,0 +1,60 @@
+#!/bin/sh
+
+#
+# default configuration file
+#
+
+if [ "${MGICONFIG}" = "" ]
+then
+        MGICONFIG=/usr/local/mgi/live/mgiconfig
+	export MGICONFIG
+fi
+
+. ${MGICONFIG}/master.config.sh
+
+#  Path name of the archive, logs, reports and output directories
+
+# published directory/maintained by curators
+PUBLISHEDDIR=/mgi/all/Triage/PDF_files/_New_Newcurrent
+export PUBLISHEDDIR
+
+FILEDIR=${DATALOADSOUTPUT}/mgi/littriageload
+ARCHIVEDIR=${FILEDIR}/archive
+LOGDIR=${FILEDIR}/logs
+RPTDIR=${FILEDIR}/reports
+OUTPUTDIR=${FILEDIR}/output
+INPUTDIR=${FILEDIR}/input
+export FILEDIR ARCHIVEDIR LOGDIR RPTDIR OUTPUTDIR INPUTDIR
+
+# destination area for curator sanity checks
+DESTFILEDIR=/data/nomen
+DESTCURRENTDIR=${DESTFILEDIR}/current
+export DESTFILEDIR DESTCURRENTDIR
+
+# Complete path name of the littriageload log files
+LOG_FILE=${LOGDIR}/littriageload.log
+LOG_PROC=${LOGDIR}/littriageload.proc.log
+LOG_DIAG=${LOGDIR}/littriageload.diag.log
+LOG_CUR=${LOGDIR}/littriageload.cur.log
+LOG_VAL=${LOGDIR}/littriageload.val.log
+LOG_ERROR=${LOGDIR}/littriageload.error.log
+
+export LOG_FILE LOG_PROC LOG_DIAG LOG_CUR LOG_VAL LOG_ERROR
+
+###########################################################################
+#
+#  MISCELLANEOUS SETTINGS
+#
+###########################################################################
+
+#  The name of the load for the subject of an email notification
+MAIL_LOADNAME="${LITTRIAGEMODE} : Literature Triage load"
+export MAIL_LOADNAME
+
+#  Recipient list for mailing the log files (comma-separated)
+MAIL_LOG_PROC="${USER}"
+export MAIL_LOG_PROC
+
+INSTALLDIR=${LITTRIAGELOAD}
+export INSTALLDIR
+

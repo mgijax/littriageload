@@ -1,0 +1,86 @@
+#!/bin/sh
+#
+#  publishNomen
+###########################################################################
+#
+# A copy of this script is intended to reside in /usr/local/bin on all
+# servers to make it available in the common PATH.
+#
+# Its allows someone to publish a new nomen input file
+# to the directory where the nomen loader will look for it.
+#
+###########################################################################
+
+if [ -z ${MGICONFIG} ]
+then
+        MGICONFIG=/usr/local/mgi/live/mgiconfig
+        export MGICONFIG
+fi
+
+. ${MGICONFIG}/master.config.sh
+
+usage ()
+{
+    echo "Usage: publishNomen"
+    echo "       where"
+    echo "           input_file = name of the nomen input file"
+    exit 1
+}
+
+CONFIG=${NOMENLOAD}/nomenload.config
+INPUT_FILE=$1
+
+#
+# The nomenload product is not installed on all servers, so make sure
+# it exists on this one.
+#
+if [ ! -d ${NOMENLOAD} ]
+then
+    echo "The nomen load software does not exist on this server"
+    exit 1
+fi
+
+#
+# Make sure an input file was passed as an argument to the script.
+#
+if [ $# -eq 1 ]
+then
+    if [ ! -r $1 ]
+    then
+        echo "Input file does not exist: $1"
+        exit 1
+    fi
+else
+    usage
+fi
+
+#
+# Make sure the configuration file exists and source it.
+#
+if [ -f ${CONFIG} ]
+then
+    . ${CONFIG}
+else
+    echo "Missing configuration file: ${CONFIG}"
+    exit 1
+fi
+
+#
+# Copy the input file to the input directory where it will be picked up by the load.
+# make 2 copies: 
+# /data/nomen/current
+# /data/loads/mgi/nomenload/input (this copy will become part of the archive)
+#
+echo "Source File:      ${INPUT_FILE}"
+echo "Destination File: ${DESTCURRENTDIR}"
+cp -r ${INPUT_FILE} ${DESTCURRENTDIR}/${INPUT_FILE_NAME}
+cp -r ${INPUT_FILE} ${INPUTDIR}/${INPUT_FILE_NAME}
+if [ $? -eq 0 ]
+then
+    echo "Copy successful"
+    exit 0
+else
+    echo "Copy failed"
+    exit 1
+fi
+
