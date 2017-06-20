@@ -70,6 +70,7 @@ errorLogFile = ''
 
 inputDir = ''
 
+masterDir = ''
 failDir = ''
 
 #
@@ -93,11 +94,12 @@ def initialize():
     global litparser
     global errorLog
     global inputDir
-    global failDir
+    global masterDir, failDir
 
     litparser = os.getenv('LITPARSER')
     errorLog = os.getenv('LOG_ERROR')
     inputDir = os.getenv('INPUTDIR')
+    masterDir = os.getenv('MASTERTRIAGEDIR')
     failDir = os.getenv('FAILEDTRIAGEDIR')
 
     rc = 0
@@ -121,6 +123,13 @@ def initialize():
     #
     if not inputDir:
         print 'Environment variable not set: INPUTDIR'
+        rc = 1
+
+    #
+    # Make sure the required environment variables are set.
+    #
+    if not masterDir:
+        print 'Environment variable not set: MASTEREDTRIAGEDIR'
         rc = 1
 
     #
@@ -218,10 +227,11 @@ def processPDFs():
 		#break
 
 	pdfPath = inputDir + '/' + userPath + '/'
+	failPath = failDir + '/' + userPath + '/'
 
 	for pdfFile in userDict[userPath]:
 
-		print 'PdfParser.PdfParser: %s%s' % (pdfPath, pdfFile)
+		#print 'PdfParser.PdfParser: %s%s' % (pdfPath, pdfFile)
 
 		pdf = PdfParser.PdfParser(pdfPath + pdfFile)
 		doiid = ''
@@ -235,10 +245,23 @@ def processPDFs():
 		except:
 			print 'pdf.getFirstDoiID() : error reported : %s%s\n' % (pdfPath, pdfFile)
 			errorLogFile.write('cannot extract/find DOI ID (litparser): %s%s\n' % (pdfPath, pdfFile))
-			print 'moving %s%s to %s/%s/%s\n' % (pdfPath, pdfFile, failDir, pdfPath, pdfFile)
-			#os.rename(pdfPath + pdfFile, failDir + '/' + userPath + '/' + pdfFile)
+			print 'moving %s%s to %s\n' % (pdfPath, pdfFile, failPath)
+			os.rename(pdfPath + pdfFile, failPath)
 			continue
 	
+		# doiidDict should contain the "good" set
+
+		#
+		# generate BCP file
+		#
+
+		#
+		# create script to move pdf files from inputDir to masterPath
+		# call this from the wrapper script/*after* the BCP files are successfully loaded
+		#
+
+	#masterPath = masterDir + '/' + userPath + '/'
+
     #print userDict
     #print doiidDict
 
