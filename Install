@@ -69,6 +69,7 @@ fi
 
 #
 # Create curator subdirectories in input directory
+# Create curator subdirectories in failed directory
 # note: this will not remove old/obsolete input directories
 #	archive obsolete curator directories manually
 #
@@ -76,6 +77,7 @@ cd ${PUBLISHEDDIR}
 for i in *
 do
 mkdir -p ${INPUTDIR}/${i}
+mkdir -p ${FAILEDTRIAGEDIR}/${i}
 done
 ls -l ${INPUTDIR}
 

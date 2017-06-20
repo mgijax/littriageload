@@ -67,10 +67,11 @@ mv -f ${i}/*.PDF ${INPUTDIR}/${i} 2>> ${LOG}
 done
 
 # for testing
-echo "${PUBLISHEDDIR} listing..." | tee -a ${LOG}
+echo "---------------------" | tee -a ${LOG}
+echo "${PUBLISHEDDIR} listing : NOT MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
 ls -l ${PUBLISHEDDIR}/*/* | tee -a ${LOG}
 echo "---------------------" | tee -a ${LOG}
-echo "${INPUTDIR} listing..." | tee -a ${LOG}
+echo "${INPUTDIR} listing : MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
 ls -l ${INPUTDIR}/*/* | tee -a ${LOG}
 
 cd `dirname $0`/..
