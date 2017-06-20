@@ -79,7 +79,10 @@ do
 mkdir -p ${INPUTDIR}/${i}
 mkdir -p ${FAILEDTRIAGEDIR}/${i}
 done
+echo 'input directory'
 ls -l ${INPUTDIR}
+echo 'failed directory'
+ls -l ${FAILEDTRIAGEDIR}
 
 cd `dirname $0`
 
