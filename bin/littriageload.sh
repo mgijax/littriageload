@@ -56,35 +56,35 @@ fi
 # sets "JOBKEY"
 preload ${OUTPUTDIR}
 
-echo "" | tee -a ${LOG}
-date | tee -a ${LOG}
-echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG}
-cd ${PUBLISHEDDIR}
-for i in *
-do
-mv -f ${i}/*.pdf ${INPUTDIR}/${i} 2>> ${LOG}
-mv -f ${i}/*.PDF ${INPUTDIR}/${i} 2>> ${LOG}
-done
+#echo "" | tee -a ${LOG}
+#date | tee -a ${LOG}
+#echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG}
+#cd ${PUBLISHEDDIR}
+#for i in *
+#do
+#mv -f ${i}/*.pdf ${INPUTDIR}/${i} 2>> ${LOG}
+#mv -f ${i}/*.PDF ${INPUTDIR}/${i} 2>> ${LOG}
+#done
 
 # for testing
-echo "---------------------" | tee -a ${LOG}
-echo "${PUBLISHEDDIR} listing : NOT MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
-ls -l ${PUBLISHEDDIR}/*/* | tee -a ${LOG}
-echo "---------------------" | tee -a ${LOG}
-echo "${INPUTDIR} listing : MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
-ls -l ${INPUTDIR}/*/* | tee -a ${LOG}
+#echo "---------------------" | tee -a ${LOG}
+#echo "${PUBLISHEDDIR} listing : NOT MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
+#ls -l ${PUBLISHEDDIR}/*/* | tee -a ${LOG}
+#echo "---------------------" | tee -a ${LOG}
+#echo "${INPUTDIR} listing : MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
+#ls -l ${INPUTDIR}/*/* | tee -a ${LOG}
 
 cd `dirname $0`/..
 
 #
 # run the load
 #
-#echo "" | tee -a ${LOG}
-#date | tee -a ${LOG}
-#echo "Run littriageload.py"  | tee -a ${LOG}
-#${LITTRIAGELOAD}/bin/littriageload.py  
-#STAT=$?
-#checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py"
+echo "" | tee -a ${LOG}
+date | tee -a ${LOG}
+echo "Run littriageload.py"  | tee -a ${LOG}
+${LITTRIAGELOAD}/bin/littriageload.py | tee -a ${LOG}
+STAT=$?
+checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" | tee -a ${LOG}
 
 #
 # run BCP
@@ -106,9 +106,6 @@ cd `dirname $0`/..
 #    ${MGD_DBSCHEMADIR}/index/${TABLE}_create.object | tee -a ${LOG}
 #fi
 #done
-
-STAT=$?
-checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py"
 
 #
 # run bibcitation cache

@@ -15,7 +15,8 @@ fi
 #  Path name of the archive, logs, reports and output directories
 
 # published directory/maintained by curators
-PUBLISHEDDIR=/mgi/all/Triage/PDF_files/_New_Newcurrent
+#PUBLISHEDDIR=/mgi/all/Triage/PDF_files/_New_Newcurrent
+PUBLISHEDDIR=/data/loads/littriagetest
 export PUBLISHEDDIR
 
 # master triage directory/subdivied by 1000
@@ -25,6 +26,10 @@ export MASTERTRIAGEDIR
 # failed triage directory/subdivided by curator
 FAILEDTRIAGEDIR=/data/littriagefailed
 export FAILEDTRIAGEDIR
+
+# litparser needed with lib/python/PdfParser.py
+LITPARSER=${DATALOAD}/litparser
+export LITPARSER
 
 FILEDIR=${DATALOADSOUTPUT}/mgi/littriageload
 ARCHIVEDIR=${FILEDIR}/archive
