@@ -235,8 +235,8 @@ def processPDFs():
 		except:
 			print 'pdf.getFirstDoiID() : error reported : %s%s\n' % (pdfPath, pdfFile)
 			errorLogFile.write('cannot extract/find DOI ID (litparser): %s%s\n' % (pdfPath, pdfFile))
-			print 'moving %s%s to %s%s\n' % (pdfPath, pdfFile, failDir, pdfFile)
-			os.rename(pdfPath + pdfFile, failDir + '/' + pdfFile)
+			print 'moving %s%s to %s/%s/%s\n' % (pdfPath, pdfFile, failDir, pdfPath, pdfFile)
+			#os.rename(pdfPath + pdfFile, failDir + '/' + userPath + '/' + pdfFile)
 			continue
 	
     #print userDict

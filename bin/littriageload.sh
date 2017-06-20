@@ -54,17 +54,20 @@ fi
 #
 # createArchive including OUTPUTDIR, INPUTDIR, etc.
 # sets "JOBKEY"
-preload ${OUTPUTDIR}
+#preload ${OUTPUTDIR}
 
-#echo "" | tee -a ${LOG}
-#date | tee -a ${LOG}
-#echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG}
-#cd ${PUBLISHEDDIR}
-#for i in *
-#do
-#mv -f ${i}/*.pdf ${INPUTDIR}/${i} 2>> ${LOG}
-#mv -f ${i}/*.PDF ${INPUTDIR}/${i} 2>> ${LOG}
-#done
+echo "" | tee -a ${LOG}
+date | tee -a ${LOG}
+echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG}
+cd ${PUBLISHEDDIR}
+for i in *
+do
+for j in ${i}/*.pdf ${i}/*.PDF
+do
+#mv -f ${j} ${INPUTDIR}/${i} 2>> ${LOG}
+cp -f ${j} ${INPUTDIR}/${i} 2>> ${LOG}
+done
+done
 
 # for testing
 #echo "---------------------" | tee -a ${LOG}
@@ -83,8 +86,8 @@ echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
 echo "Run littriageload.py"  | tee -a ${LOG}
 ${LITTRIAGELOAD}/bin/littriageload.py | tee -a ${LOG}
-STAT=$?
-checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" | tee -a ${LOG}
+#STAT=$?
+#checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" | tee -a ${LOG}
 
 #
 # run BCP
@@ -116,5 +119,5 @@ checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" | tee -a ${LOG}
 #
 
 # run postload cleanup and email logs
-shutDown
+#shutDown
 
