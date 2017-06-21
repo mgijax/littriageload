@@ -24,7 +24,7 @@ MASTERTRIAGEDIR=/data/littriage
 export MASTERTRIAGEDIR
 
 # failed triage directory/subdivided by curator
-FAILEDTRIAGEDIR=/data/littriagefailed
+FAILEDTRIAGEDIR=${MASTERTRIAGEDIR}/failed
 export FAILEDTRIAGEDIR
 
 # litparser needed with lib/python/PdfParser.py

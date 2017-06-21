@@ -245,8 +245,8 @@ def processPDFs():
 		except:
 			print 'pdf.getFirstDoiID() : error reported : %s%s\n' % (pdfPath, pdfFile)
 			errorLogFile.write('cannot extract/find DOI ID (litparser): %s%s\n' % (pdfPath, pdfFile))
-			print 'moving %s%s to %s\n' % (pdfPath, pdfFile, failPath)
-			os.rename(pdfPath + pdfFile, failPath)
+			print 'moving %s%s to %s%s\n' % (pdfPath, pdfFile, failPath, pdfFile)
+			os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 	
 		# doiidDict should contain the "good" set
