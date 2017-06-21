@@ -240,7 +240,7 @@ def processPDFs():
 			    errorLogFile.write('cannot extract/find DOI ID: %s%s\n\n' % (pdfPath, pdfFile))
 			    os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		except:
-			errorLogFile.write('not in PDF format/cannot convert to text(: %s%s\n\n' % (pdfPath, pdfFile))
+			errorLogFile.write('not in PDF format/cannot convert to text: %s%s\n\n' % (pdfPath, pdfFile))
 			os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 	
