@@ -230,8 +230,6 @@ def processPDFs():
 
 	for pdfFile in userDict[userPath]:
 
-		debug('PdfParser.PdfParser: %s%s' % (pdfPath, pdfFile))
-
 		pdf = PdfParser.PdfParser(pdfPath + pdfFile)
 		doiid = ''
 
@@ -239,7 +237,7 @@ def processPDFs():
 			doiid = pdf.getFirstDoiID()
 		        if doiid not in doiidDict:
 			        doiidDict[doiid] = []
-		        doiidDict[doiid].append(pdfFile)
+		        doiidDict[(userPath, doiid].append(pdfFile)
 			debug('pdf.getFirstDoiID() : successful : %s%s\n' % (pdfPath, pdfFile))
 		except:
 			debug('pdf.getFirstDoiID() : error reported : %s%s\n' % (pdfPath, pdfFile))
