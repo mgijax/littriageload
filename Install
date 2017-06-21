@@ -68,6 +68,14 @@ then
 fi
 
 #
+# Create the master triage directory.
+#
+if [ ! -d ${MASTERTRIAGE} ]
+then
+    mkdir -p ${MASTERTRIAGE}
+fi
+
+#
 # Create curator subdirectories in input directory
 # Create curator subdirectories in failed directory
 # note: this will not remove old/obsolete input directories

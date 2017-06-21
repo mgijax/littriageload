@@ -64,7 +64,7 @@ for i in *
 do
 for j in ${i}/*.pdf ${i}/*.PDF
 do
-#mv -f ${j} ${INPUTDIR}/${i} 2>> ${LOG}
+##mv -f ${j} ${INPUTDIR}/${i} 2>> ${LOG}
 cp -f ${j} ${INPUTDIR}/${i} 2>> ${LOG}
 done
 done

@@ -5,7 +5,8 @@
 #
 #  Purpose:
 #
-#      This script will 
+#      This script will process Lit Triage PDF files
+#      for loading into BIB_Refs, etc. tables
 #
 #  Usage:
 #
@@ -30,15 +31,9 @@
 #
 #  Outputs:
 #
-#	OUTPUTDIR=${FILEDIR}/output
-#	FAILEDTRIAGEDIR=/data/littriagefailed/byCurator
-#
-#  Exit Codes:
-#
-#      0:  Successful completion
-#      1:  An exception occurred
-#
-#  Assumes:  Nothing
+#	OUTPUTDIR=${FILEDIR}/output : bcp files
+#	MASTERTRIAGEDIR : master pdf files
+#	FAILEDTRIAGEDIR : failed pdf files
 #
 #  Implementation:
 #
@@ -51,8 +46,6 @@
 #      5) If sanity check successful, create BCP files
 #      6) Close files.
 #
-#  Notes:  None
-#
 # lec	06/20/2017
 #       - TR12250/Lit Triage
 #
@@ -61,7 +54,10 @@
 import sys 
 import os
 import db
+import mgi_utils
 import PdfParser
+
+DEBUG = 1
 
 litparser = ''
 
@@ -84,11 +80,20 @@ userDict = {}
 doiidDict = {}
 
 #
+# Purpose: Print Debugging statements
+# Returns: 0
+#
+def debug(s):
+
+    if DEBUG:
+	print mgi_utils.date()
+    	print s
+
+    return 0
+
+#
 # Purpose: Initialization
 # Returns: 1 if file does not exist or is not readable, else 0
-# Assumes: Nothing
-# Effects: Nothing
-# Throws: Nothing
 #
 def initialize():
     global litparser
@@ -140,7 +145,6 @@ def initialize():
         rc = 1
 
     # must be initialized PdfParser.py
-    print litparser
     PdfParser.setLitParserDir(litparser)
 
     return rc
@@ -149,9 +153,6 @@ def initialize():
 #
 # Purpose: Open files.
 # Returns: 1 if file does not exist or is not readable, else 0
-# Assumes: Nothing
-# Effects: Nothing
-# Throws: Nothing
 #
 def openFiles():
     global errorLogFile
@@ -186,8 +187,6 @@ def closeFiles():
 #
 # Purpose: Bucketize the MGI/UniProt IDs from the association files.
 # Returns: 1 if file does not exist or is not readable, else 0
-# Assumes: Nothing
-# Effects: Nothing
 # Throws: Nothing
 #
 def processPDFs():
@@ -231,7 +230,7 @@ def processPDFs():
 
 	for pdfFile in userDict[userPath]:
 
-		#print 'PdfParser.PdfParser: %s%s' % (pdfPath, pdfFile)
+		debug('PdfParser.PdfParser: %s%s' % (pdfPath, pdfFile))
 
 		pdf = PdfParser.PdfParser(pdfPath + pdfFile)
 		doiid = ''
@@ -241,11 +240,11 @@ def processPDFs():
 		        if doiid not in doiidDict:
 			        doiidDict[doiid] = []
 		        doiidDict[doiid].append(pdfFile)
-			print 'pdf.getFirstDoiID() : successful : %s%s\n' % (pdfPath, pdfFile)
+			debug('pdf.getFirstDoiID() : successful : %s%s\n' % (pdfPath, pdfFile))
 		except:
-			print 'pdf.getFirstDoiID() : error reported : %s%s\n' % (pdfPath, pdfFile)
+			debug('pdf.getFirstDoiID() : error reported : %s%s\n' % (pdfPath, pdfFile))
 			errorLogFile.write('cannot extract/find DOI ID (litparser): %s%s\n' % (pdfPath, pdfFile))
-			print 'moving %s%s to %s%s\n' % (pdfPath, pdfFile, failPath, pdfFile)
+			debug('moving %s%s to %s%s\n' % (pdfPath, pdfFile, failPath, pdfFile))
 			os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 	

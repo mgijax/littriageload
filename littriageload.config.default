@@ -28,7 +28,7 @@ FAILEDTRIAGEDIR=${MASTERTRIAGEDIR}/failed
 export FAILEDTRIAGEDIR
 
 # litparser needed with lib/python/PdfParser.py
-LITPARSER=${DATALOAD}/litparser
+LITPARSER=${MGIUTILS}/litparser
 export LITPARSER
 
 FILEDIR=${DATALOADSOUTPUT}/mgi/littriageload
