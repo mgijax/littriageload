@@ -226,18 +226,22 @@ def processPDFs():
 
 		try:
 			doiid = pdf.getFirstDoiID()
-		        if (userPath, doiid) not in doiidByUser:
-			        doiidByUser[(userPath, doiid)] = []
-		        	doiidByUser[(userPath, doiid)].append(pdfFile)
-				debug('pdf.getFirstDoiID() : successful : %s%s\n' % (pdfPath, pdfFile))
+			if (doiid):
+		            if (userPath, doiid) not in doiidByUser:
+			            doiidByUser[(userPath, doiid)] = []
+		        	    doiidByUser[(userPath, doiid)].append(pdfFile)
+				    debug('pdf.getFirstDoiID() : successful : %s%s\n' % (pdfPath, pdfFile))
+			    else:
+				    errorLogFile.write('duplicate published refs (same DOI ID): %s, %s%s\n\n' \
+				    	% (doiid, pdfPath, pdfFile))
+			            os.rename(pdfPath + pdfFile, failPath + pdfFile)
+				    continue
 			else:
-				errorLogFile.write('duplicate DOI ID: %s, %s%s\n\n' % (doiid, pdfPath, pdfFile))
-				continue
+			    errorLogFile.write('cannot extract/find DOI ID: %s%s\n\n' % (pdfPath, pdfFile))
+			    os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		except:
-			debug('FAILED: pdf.getFirstDoiID() : error reported : %s%s\n' % (pdfPath, pdfFile))
-			debug('FAILED: moving %s%s to %s%s\n' % (pdfPath, pdfFile, failPath, pdfFile))
-			errorLogFile.write('cannot extract/find DOI ID (litparser): %s%s\n\n' % (pdfPath, pdfFile))
-			#os.rename(pdfPath + pdfFile, failPath + pdfFile)
+			errorLogFile.write('not in PDF format/cannot convert to text(: %s%s\n\n' % (pdfPath, pdfFile))
+			os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 	
 		# doiidByUser contains (userPath, doiid) = pdfFile
@@ -268,9 +272,9 @@ if initialize() != 0:
 if openFiles() != 0:
     sys.exit(1)
 
-#if processPDFs() != 0:
-#    closeFiles()
-#    sys.exit(1)
+if processPDFs() != 0:
+    closeFiles()
+    sys.exit(1)
 
 closeFiles()
 sys.exit(0)
