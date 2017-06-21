@@ -75,9 +75,9 @@ failDir = ''
 userDict = {}
 
 #
-# doiidDict = {'pdf file' : doiid}
-# {'28069793_ag.pdf': ['xxxxx']}
-doiidDict = {}
+# doiidByUser = {'pdf file' : doiid}
+# {('cms, '28069793_ag.pdf'): ['xxxxx']}
+doiidByUser = {}
 
 #
 # Purpose: Print Debugging statements
@@ -166,15 +166,16 @@ def openFiles():
         print 'Cannot open error log file: ' + errorLogFile
         return 1
 
+    errorLogFile.write('Literature Triage Errors\n\n')
+    errorLogFile.write(mgi_utils.date())
+    errorLogFile.write('\n\n')
+
     return 0
 
 
 #
 # Purpose: Close files.
 # Returns: 1 if file does not exist or is not readable, else 0
-# Assumes: Nothing
-# Effects: Nothing
-# Throws: Nothing
 #
 def closeFiles():
 
@@ -185,30 +186,23 @@ def closeFiles():
 
 
 #
-# Purpose: Bucketize the MGI/UniProt IDs from the association files.
-# Returns: 1 if file does not exist or is not readable, else 0
-# Throws: Nothing
+# Purpose: Process/Iterate thru PDFs
+# Returns: 0
+#
+# performs level 1 sanity checks
 #
 def processPDFs():
     global userDict
-    global doiidDict
-
-    #
-    # iterate thru PDFs
-    #
+    global doiidByUser
 
     #
     # level 1 sanity check
     #
-    # file not in PDF format
     # cannot extract/find DOI ID
     # PDF is duplicated in published directory (same DOI id)
     #
 
     for userPath in os.listdir(inputDir):
-
-	#if userPath != 'cms':
-	#	break
 
 	for pdfFile in os.listdir(inputDir + '/' + userPath):
 
@@ -222,9 +216,6 @@ def processPDFs():
 
     for userPath in userDict:
 
-	#if userPath != 'cms':
-		#break
-
 	pdfPath = inputDir + '/' + userPath + '/'
 	failPath = failDir + '/' + userPath + '/'
 
@@ -235,18 +226,21 @@ def processPDFs():
 
 		try:
 			doiid = pdf.getFirstDoiID()
-		        if (userPath, doiid) not in doiidDict:
-			        doiidDict[(userPath, doiid)] = []
-		        doiidDict[(userPath, doiid)].append(pdfFile)
-			debug('pdf.getFirstDoiID() : successful : %s%s\n' % (pdfPath, pdfFile))
+		        if (userPath, doiid) not in doiidByUser:
+			        doiidByUser[(userPath, doiid)] = []
+		        	doiidByUser[(userPath, doiid)].append(pdfFile)
+				debug('pdf.getFirstDoiID() : successful : %s%s\n' % (pdfPath, pdfFile))
+			else:
+				errorLogFile.write('duplicate DOI ID: %s, %s%s\n\n' % (doiid, pdfPath, pdfFile))
+				continue
 		except:
 			debug('FAILED: pdf.getFirstDoiID() : error reported : %s%s\n' % (pdfPath, pdfFile))
-			errorLogFile.write('cannot extract/find DOI ID (litparser): %s%s\n' % (pdfPath, pdfFile))
-			debug('FAILED: FALILURE: moving %s%s to %s%s\n' % (pdfPath, pdfFile, failPath, pdfFile))
-			os.rename(pdfPath + pdfFile, failPath + pdfFile)
+			debug('FAILED: moving %s%s to %s%s\n' % (pdfPath, pdfFile, failPath, pdfFile))
+			errorLogFile.write('cannot extract/find DOI ID (litparser): %s%s\n\n' % (pdfPath, pdfFile))
+			#os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 	
-		# doiidDict contains (userPath, doiid) = pdfFile
+		# doiidByUser contains (userPath, doiid) = pdfFile
 
 		#
 		# generate BCP file
@@ -260,7 +254,7 @@ def processPDFs():
 	#masterPath = masterDir + '/' + userPath + '/'
 
     #print userDict
-    #print doiidDict
+    #print doiidByUser
 
     return 0
 
@@ -274,9 +268,9 @@ if initialize() != 0:
 if openFiles() != 0:
     sys.exit(1)
 
-if processPDFs() != 0:
-    closeFiles()
-    sys.exit(1)
+#if processPDFs() != 0:
+#    closeFiles()
+#    sys.exit(1)
 
 closeFiles()
 sys.exit(0)
