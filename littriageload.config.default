@@ -16,7 +16,7 @@ fi
 
 # published directory/maintained by curators
 #PUBLISHEDDIR=/mgi/all/Triage/PDF_files/_New_Newcurrent
-PUBLISHEDDIR=/data/loads/littriagetest
+PUBLISHEDDIR=/data/loads/litpublishtest
 export PUBLISHEDDIR
 
 # master triage directory/subdivied by 1000

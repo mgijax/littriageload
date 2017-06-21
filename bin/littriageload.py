@@ -86,7 +86,7 @@ doiidDict = {}
 def debug(s):
 
     if DEBUG:
-	print mgi_utils.date()
+	print mgi_utils.date('%c')
     	print s
 
     return 0
@@ -235,18 +235,18 @@ def processPDFs():
 
 		try:
 			doiid = pdf.getFirstDoiID()
-		        if doiid not in doiidDict:
-			        doiidDict[doiid] = []
-		        doiidDict[(userPath, doiid].append(pdfFile)
+		        if (userPath, doiid) not in doiidDict:
+			        doiidDict[(userPath, doiid)] = []
+		        doiidDict[(userPath, doiid)].append(pdfFile)
 			debug('pdf.getFirstDoiID() : successful : %s%s\n' % (pdfPath, pdfFile))
 		except:
-			debug('pdf.getFirstDoiID() : error reported : %s%s\n' % (pdfPath, pdfFile))
+			debug('FAILED: pdf.getFirstDoiID() : error reported : %s%s\n' % (pdfPath, pdfFile))
 			errorLogFile.write('cannot extract/find DOI ID (litparser): %s%s\n' % (pdfPath, pdfFile))
-			debug('moving %s%s to %s%s\n' % (pdfPath, pdfFile, failPath, pdfFile))
+			debug('FAILED: FALILURE: moving %s%s to %s%s\n' % (pdfPath, pdfFile, failPath, pdfFile))
 			os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 	
-		# doiidDict should contain the "good" set
+		# doiidDict contains (userPath, doiid) = pdfFile
 
 		#
 		# generate BCP file
