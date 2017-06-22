@@ -289,7 +289,7 @@ def level1SanityChecks():
 	    # file in input directory does not end with pdf
 	    #
 	    if not pdfFile.lower().endswith('.pdf'):
-	        diagFile.write('file in input directory does not end with pdf: %s/%s\n' % (userPath, pdfFile)
+	        diagFile.write('file in input directory does not end with pdf: %s/%s\n') % (userPath, pdfFile)
 	        continue
 
 	    #
