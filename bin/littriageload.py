@@ -186,74 +186,92 @@ def closeFiles():
 
 
 #
-# Purpose: Process/Iterate thru PDFs
+# Purpose: Level 1 Sanity Checks
 # Returns: 0
 #
-# performs level 1 sanity checks
+# file does not end with pdf
+# not in PDF format
+# cannot extract/find DOI ID
+# duplicate published refs (same DOI ID)
 #
-def processPDFs():
+def level1SanityChecks():
     global userDict
     global doiidByUser
 
-    #
-    # level 1 sanity check
-    #
-    # cannot extract/find DOI ID
-    # PDF is duplicated in published directory (same DOI id)
-    #
-
     for userPath in os.listdir(inputDir):
+
+        if userPath != "mnk":
+	    continue
 
 	for pdfFile in os.listdir(inputDir + '/' + userPath):
 
-		if not pdfFile.lower().endswith('.pdf'):
-			errorLogFile.write('file does not end with pdf : %s/%s\n' % (userPath, pdfFile))
-			continue
+	    #origFile = pdfFile
 
-		if userPath not in userDict:
-			userDict[userPath] = []
-		userDict[userPath].append(pdfFile)
+	    #if pdfFile.find(' ') > 0 or pdfFile.endswith('.PDF'):
+                #pdfFile = pdfFile.replace(' ', '')
+                #pdfFile = pdfFile.replace('.PDF ', '.pdf')
+                #os.rename(pdfPath + origFile, pdfPath + pdfFile)
+
+	    if not pdfFile.lower().endswith('.pdf'):
+	        errorLogFile.write('file does not end with pdf : %s/%s\n' % (userPath, pdfFile))
+	        continue
+
+	    if userPath not in userDict:
+	        userDict[userPath] = []
+	    userDict[userPath].append(pdfFile)
 
     for userPath in userDict:
+
+	if userPath != "mnk":
+		continue
 
 	pdfPath = inputDir + '/' + userPath + '/'
 	failPath = failDir + '/' + userPath + '/'
 
 	for pdfFile in userDict[userPath]:
 
-		pdf = PdfParser.PdfParser(pdfPath + pdfFile)
-		doiid = ''
+	    pdf = PdfParser.PdfParser(pdfPath + pdfFile)
+	    doiid = ''
 
-		try:
-			doiid = pdf.getFirstDoiID()
-			if (doiid):
-		            if (userPath, doiid) not in doiidByUser:
-			            doiidByUser[(userPath, doiid)] = []
-		        	    doiidByUser[(userPath, doiid)].append(pdfFile)
-				    debug('pdf.getFirstDoiID() : successful : %s%s\n' % (pdfPath, pdfFile))
-			    else:
-				    errorLogFile.write('duplicate published refs (same DOI ID): %s, %s%s\n\n' \
-				    	% (doiid, pdfPath, pdfFile))
-			            os.rename(pdfPath + pdfFile, failPath + pdfFile)
-				    continue
-			else:
-			    errorLogFile.write('cannot extract/find DOI ID: %s%s\n\n' % (pdfPath, pdfFile))
-			    os.rename(pdfPath + pdfFile, failPath + pdfFile)
-		except:
-			errorLogFile.write('not in PDF format/cannot convert to text: %s%s\n\n' % (pdfPath, pdfFile))
+	    try:
+                doiid = pdf.getFirstDoiID()
+
+		if (doiid):
+		    if (userPath, doiid) not in doiidByUser:
+		        doiidByUser[(userPath, doiid)] = []
+		        doiidByUser[(userPath, doiid)].append(pdfFile)
+			debug('pdf.getFirstDoiID() : successful : %s%s\n' % (pdfPath, pdfFile))
+		    else:
+			errorLogFile.write('duplicate published refs (same DOI ID): %s, %s%s\n\n' \
+				% (doiid, pdfPath, pdfFile))
 			os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
+		else:
+		    errorLogFile.write('cannot extract/find DOI ID: %s%s\n\n' % (pdfPath, pdfFile))
+		    os.rename(pdfPath + pdfFile, failPath + pdfFile)
+            except:
+		errorLogFile.write('not in PDF format: %s%s\n\n' % (pdfPath, pdfFile))
+		os.rename(pdfPath + pdfFile, failPath + pdfFile)
+		continue
+
+    return 0
+
+#
+# Purpose: Process/Iterate thru PDFs
+# Returns: 0
+#
+def processPDFs():
 	
-		# doiidByUser contains (userPath, doiid) = pdfFile
+	# doiidByUser contains (userPath, doiid) = pdfFile
 
-		#
-		# generate BCP file
-		#
+	#
+	# generate BCP file
+	#
 
-		#
-		# create script to move pdf files from inputDir to masterPath
-		# call this from the wrapper script/*after* the BCP files are successfully loaded
-		#
+	#
+	# create script to move pdf files from inputDir to masterPath
+	# call this from the wrapper script/*after* the BCP files are successfully loaded
+	#
 
 	#masterPath = masterDir + '/' + userPath + '/'
 
@@ -272,9 +290,13 @@ if initialize() != 0:
 if openFiles() != 0:
     sys.exit(1)
 
-if processPDFs() != 0:
+if level1SanityChecks() != 0:
     closeFiles()
     sys.exit(1)
+
+#if processPDFs() != 0:
+#    closeFiles()
+#    sys.exit(1)
 
 closeFiles()
 sys.exit(0)
