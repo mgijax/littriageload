@@ -73,6 +73,12 @@ ls -l ${INPUTDIR}
 echo 'failed directory'
 ls -l ${FAILEDTRIAGEDIR}
 
+#
+# if DEV, use 'cp'
+# else use 'mv'
+#
+# cp/mv PUBLISHEDDIR/user pdf files to INPUTDIR/user
+#
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
 echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG}
@@ -81,18 +87,20 @@ for i in *
 do
 for j in "${i}/*.pdf" "${i}/*.PDF"
 do
-#mv -f ${j} ${INPUTDIR}/${i} 2>> ${LOG}
 cp -f ${j} ${INPUTDIR}/${i} 2>> ${LOG}
+else
+mv -f ${j} ${INPUTDIR}/${i} 2>> ${LOG}
+fi
 done
 done
 
-# for testing
-#echo "---------------------" | tee -a ${LOG}
-#echo "${PUBLISHEDDIR} listing : NOT MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
-#ls -l ${PUBLISHEDDIR}/*/* | tee -a ${LOG}
-#echo "---------------------" | tee -a ${LOG}
-#echo "${INPUTDIR} listing : MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
-#ls -l ${INPUTDIR}/*/* | tee -a ${LOG}
+# results of cp/mv
+echo "---------------------" | tee -a ${LOG}
+echo "${PUBLISHEDDIR} listing : NOT MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
+ls -l ${PUBLISHEDDIR}/*/* | tee -a ${LOG}
+echo "---------------------" | tee -a ${LOG}
+echo "${INPUTDIR} listing : MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
+ls -l ${INPUTDIR}/*/* | tee -a ${LOG}
 
 cd `dirname $0`/..
 
