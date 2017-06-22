@@ -265,7 +265,6 @@ def level1SanityChecks():
     error1 = '' 
     error2 = ''
     error3 = ''
-    error4 = ''
 
     # iterate thru input directory by user
     for userPath in os.listdir(inputDir):
@@ -287,10 +286,10 @@ def level1SanityChecks():
 		os.rename(pdfPath + origFile, pdfPath + pdfFile)
 
 	    #
-	    # 1:file in input directory does not end with pdf
+	    # file in input directory does not end with pdf
 	    #
 	    if not pdfFile.lower().endswith('.pdf'):
-	        error1 = error1 + '%s/%s\n' % (userPath, pdfFile)
+	        diagFile.write('file in input directory does not end with pdf: %s/%s\n' % (userPath, pdfFile)
 	        continue
 
 	    #
@@ -327,21 +326,20 @@ def level1SanityChecks():
 		        doiidByUser[(userPath, doiid)].append(pdfFile)
 			debug('pdf.getFirstDoiID() : successful : %s%s\n' % (pdfPath, pdfFile))
 		    else:
-			error4 = error4 + '%s, %s%s\n' % (doiid, pdfPath, pdfFile)
+			error3 = error3 + '%s, %s%s\n' % (doiid, pdfPath, pdfFile)
 			os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 		else:
-		    error3 = error3 + '%s%s\n' % (pdfPath, pdfFile)
+		    error2 = error2 + '%s%s\n' % (pdfPath, pdfFile)
 		    os.rename(pdfPath + pdfFile, failPath + pdfFile)
             except:
-		error2 = error2 + '%s%s\n' % (pdfPath, pdfFile)
+		error1 = error1 + '%s%s\n' % (pdfPath, pdfFile)
 		os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		continue
 
-    errorLogFile.write('1: file in input directory does not end with pdf\n\n' + error1 + '\n\n')
-    errorLogFile.write('2: not in PDF format\n\n' + error2 + '\n\n')
-    errorLogFile.write('3: cannot extract/find DOI ID\n\n' + error3 + '\n\n')
-    errorLogFile.write('4: duplicate published refs (same DOI ID)\n\n' + error4 + '\n\n')
+    errorLogFile.write('1: not in PDF format\n\n' + error1 + '\n\n')
+    errorLogFile.write('2: cannot extract/find DOI ID\n\n' + error2 + '\n\n')
+    errorLogFile.write('3: duplicate published refs (same DOI ID)\n\n' + error3 + '\n\n')
 
     return 0
 
