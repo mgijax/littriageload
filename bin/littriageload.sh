@@ -62,9 +62,9 @@ echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG}
 cd ${PUBLISHEDDIR}
 for i in *
 do
-for j in ${i}/*.pdf ${i}/*.PDF
+for j in "${i}/*.pdf" "${i}/*.PDF"
 do
-##mv -f ${j} ${INPUTDIR}/${i} 2>> ${LOG}
+#mv -f ${j} ${INPUTDIR}/${i} 2>> ${LOG}
 cp -f ${j} ${INPUTDIR}/${i} 2>> ${LOG}
 done
 done

@@ -200,17 +200,24 @@ def level1SanityChecks():
 
     for userPath in os.listdir(inputDir):
 
-        if userPath != "mnk":
-	    continue
+        #if userPath != "lec":
+	#    continue
 
-	for pdfFile in os.listdir(inputDir + '/' + userPath):
+	pdfPath = inputDir + '/' + userPath + '/'
 
-	    #origFile = pdfFile
+	for pdfFile in os.listdir(pdfPath):
 
-	    #if pdfFile.find(' ') > 0 or pdfFile.endswith('.PDF'):
-                #pdfFile = pdfFile.replace(' ', '')
-                #pdfFile = pdfFile.replace('.PDF ', '.pdf')
-                #os.rename(pdfPath + origFile, pdfPath + pdfFile)
+	    #
+	    # remove spaces
+	    # replace '.PDF' with '.pdf'
+	    #
+
+	    origFile = pdfFile
+
+	    if pdfFile.find(' ') > 0 or pdfFile.endswith('.PDF'):
+                pdfFile = pdfFile.replace(' ', '')
+                pdfFile = pdfFile.replace('.PDF ', '.pdf')
+		os.rename(pdfPath + origFile, pdfPath + pdfFile)
 
 	    if not pdfFile.lower().endswith('.pdf'):
 	        errorLogFile.write('file does not end with pdf : %s/%s\n' % (userPath, pdfFile))
@@ -222,8 +229,8 @@ def level1SanityChecks():
 
     for userPath in userDict:
 
-	if userPath != "mnk":
-		continue
+	#if userPath != "lec":
+		#continue
 
 	pdfPath = inputDir + '/' + userPath + '/'
 	failPath = failDir + '/' + userPath + '/'
