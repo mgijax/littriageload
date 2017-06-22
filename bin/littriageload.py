@@ -17,8 +17,13 @@
 #      The following environment variables are set by the configuration
 #      file that is sourced by the wrapper script:
 #
+#	LITPARSER
+#	INPUTDIR
+#	OUTPUTDIR
+#	LOG_ERROR
 #	MASTERTRIAGEDIR
 #	FAILEDTRIAGEDIR
+#	PG_DBUTILS
 #
 #  Inputs:
 #
