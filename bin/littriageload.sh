@@ -87,6 +87,8 @@ for i in *
 do
 for j in "${i}/*.pdf" "${i}/*.PDF"
 do
+if [ "${INSTALL_TYPE}" = "dev" ]
+then
 cp -f ${j} ${INPUTDIR}/${i} 2>> ${LOG}
 else
 mv -f ${j} ${INPUTDIR}/${i} 2>> ${LOG}
