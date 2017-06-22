@@ -65,9 +65,15 @@ errorLog = ''
 errorLogFile = ''
 
 inputDir = ''
+outputDir = ''
 
 masterDir = ''
 failDir = ''
+
+bcpScript = ''
+bibrefsTable = 'BIB_Refs'
+bibrefsFileName = ''
+
 
 #
 # userDict = {'user' : [pdf1, pdf2]}
@@ -98,14 +104,18 @@ def debug(s):
 def initialize():
     global litparser
     global errorLog
-    global inputDir
+    global inputDir, outputDir
     global masterDir, failDir
+    global bcpScript
+    global bibrefsFileName
 
     litparser = os.getenv('LITPARSER')
     errorLog = os.getenv('LOG_ERROR')
     inputDir = os.getenv('INPUTDIR')
+    outputDir = os.getenv('OUTPUTTDIR')
     masterDir = os.getenv('MASTERTRIAGEDIR')
     failDir = os.getenv('FAILEDTRIAGEDIR')
+    bcpScript = os.environ['PG_DBUTILS'] + '/bin/bcpin.csh'
 
     rc = 0
 
@@ -133,6 +143,13 @@ def initialize():
     #
     # Make sure the required environment variables are set.
     #
+    if not outputDir:
+        print 'Environment variable not set: OUTPUTDIR'
+        rc = 1
+
+    #
+    # Make sure the required environment variables are set.
+    #
     if not masterDir:
         print 'Environment variable not set: MASTEREDTRIAGEDIR'
         rc = 1
@@ -144,8 +161,17 @@ def initialize():
         print 'Environment variable not set: FAILEDTRIAGEDIR'
         rc = 1
 
+    #
+    # Make sure the required environment variables are set.
+    #
+    if not bcpScript:
+        print 'Environment variable not set: PG_DBUTILS'
+        rc = 1
+
     # must be initialized PdfParser.py
     PdfParser.setLitParserDir(litparser)
+
+    bibrefsFileName = outputDir + '/' + bibrefsTable + '.bcp'
 
     return rc
 
@@ -166,7 +192,7 @@ def openFiles():
         print 'Cannot open error log file: ' + errorLogFile
         return 1
 
-    errorLogFile.write('Literature Triage Errors\n\n')
+    errorLogFile.write('Literature Triage Errors\n')
     errorLogFile.write(mgi_utils.date())
     errorLogFile.write('\n\n')
 
@@ -268,22 +294,44 @@ def level1SanityChecks():
 # Returns: 0
 #
 def processPDFs():
-	
-	# doiidByUser contains (userPath, doiid) = pdfFile
 
-	#
-	# generate BCP file
-	#
+    #
+    # for all rows in doiidByUser
+    #	get info from pubmed API
+    #   generate BCP file
+    #
 
-	#
-	# create script to move pdf files from inputDir to masterPath
-	# call this from the wrapper script/*after* the BCP files are successfully loaded
-	#
+    # load BCP files
+    # bcpFiles()
+    
+    # move pdf files from inputDir to masterPath
+    # masterPath = masterDir + '/' + userPath + '/'
 
-	#masterPath = masterDir + '/' + userPath + '/'
+    return 0
 
-    #print userDict
-    #print doiidByUser
+#
+# Purpose:  BCPs the data into the database
+# Returns: 0
+#
+def bcpFiles():
+
+    bcpdelim = "|" 
+
+    if DEBUG or not bcpon:
+        return
+
+    closeFiles()
+
+    bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
+    bcpII = '"|" "\\n" mgd'
+
+    bcp1 = '%s %s "/" %s %s' % (bcpI, bibrefsTable, bibrefsFileName, bcpII)
+
+    db.commit()
+
+    for bcpCmd in [bcp1]
+        diagFile.write('%s\n' % bcpCmd)
+        os.system(bcpCmd)
 
     return 0
 

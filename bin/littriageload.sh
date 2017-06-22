@@ -89,35 +89,6 @@ ${LITTRIAGELOAD}/bin/littriageload.py | tee -a ${LOG}
 #STAT=$?
 #checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" | tee -a ${LOG}
 
-#
-# run BCP
-#
-
-# BCP delimiters
-#SCHEMA=mgd
-#COLDELIM="\t"
-#LINEDELIM="\n"
-#for TABLE in BIB_Refs BIB_Books BIB_Workflow_Status
-#do
-#if [ -s "${OUTPUTDIR}/${TABLE}.bcp" ]
-#then
-#    echo "" | tee -a ${LOG}
-#    date | tee -a ${LOG}
-#    echo 'processing ', ${TABLE}  | tee -a ${LOG}
-#    ${MGD_DBSCHEMADIR}/index/${TABLE}_drop.object | tee -a ${LOG}
-#    ${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${TABLE} ${OUTPUTDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} ${SCHEMA} | tee -a ${LOG}
-#    ${MGD_DBSCHEMADIR}/index/${TABLE}_create.object | tee -a ${LOG}
-#fi
-#done
-
-#
-# run bibcitation cache
-#date | tee -a ${LOG}
-#echo "run bibcitation.csh"  | tee -a ${LOG}
-#${MGICACHELOAD}/bibcitation.csh | tee -a $LOG
-#date | tee -a ${LOG}
-#
-
 # run postload cleanup and email logs
 #shutDown
 
