@@ -258,10 +258,10 @@ def level1SanityChecks():
     errorLogFile.write(mgi_utils.date())
     errorLogFile.write('\n\n')
     
-    eerrorLogFile.write('1:file does not end with pdf\n')
-    eerrorLogFile.write('2:not in PDF format\n')
-    eerrorLogFile.write('3:cannot extract/find DOI ID\n')
-    eerrorLogFile.write('4:duplicate published refs (same DOI ID)\n')
+    errorLogFile.write('1:file does not end with pdf\n')
+    errorLogFile.write('2:not in PDF format\n')
+    errorLogFile.write('3:cannot extract/find DOI ID\n')
+    errorLogFile.write('4:duplicate published refs (same DOI ID)\n')
     errorLogFile.write('\n\n')
 
     for userPath in os.listdir(inputDir):
