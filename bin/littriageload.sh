@@ -56,6 +56,23 @@ fi
 # sets "JOBKEY"
 #preload ${OUTPUTDIR}
 
+#
+# Create curator subdirectories in input directory
+# Create curator subdirectories in failed directory
+# note: this will not remove old/obsolete input directories
+#       archive obsolete curator directories manually
+#
+cd ${PUBLISHEDDIR}
+for i in *
+do
+mkdir -p ${INPUTDIR}/${i}
+mkdir -p ${FAILEDTRIAGEDIR}/${i}
+done
+echo 'input directory'
+ls -l ${INPUTDIR}
+echo 'failed directory'
+ls -l ${FAILEDTRIAGEDIR}
+
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
 echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG}

@@ -287,7 +287,7 @@ def level1SanityChecks():
 		os.rename(pdfPath + origFile, pdfPath + pdfFile)
 
 	    #
-	    # 1:file does not end with pdf
+	    # 1:file in input directory does not end with pdf
 	    #
 	    if not pdfFile.lower().endswith('.pdf'):
 	        error1 = error1 + '%s/%s\n' % (userPath, pdfFile)
@@ -338,7 +338,7 @@ def level1SanityChecks():
 		os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		continue
 
-    errorLogFile.write('1: file does not end with pdf\n\n' + error1 + '\n\n')
+    errorLogFile.write('1: file in input directory does not end with pdf\n\n' + error1 + '\n\n')
     errorLogFile.write('2: not in PDF format\n\n' + error2 + '\n\n')
     errorLogFile.write('3: cannot extract/find DOI ID\n\n' + error3 + '\n\n')
     errorLogFile.write('4: duplicate published refs (same DOI ID)\n\n' + error4 + '\n\n')
