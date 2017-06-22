@@ -179,6 +179,7 @@ def initialize():
     # must be initialized PdfParser.py
     PdfParser.setLitParserDir(litparser)
 
+    # bcp files
     bibrefsFileName = outputDir + '/' + bibrefsTable + '.bcp'
 
     return rc
@@ -200,10 +201,6 @@ def openFiles():
         print 'Cannot open error log file: ' + errorLogFile
         return 1
 
-    errorLogFile.write('Literature Triage Errors\n')
-    errorLogFile.write(mgi_utils.date())
-    errorLogFile.write('\n\n')
-
     return 0
 
 
@@ -218,19 +215,54 @@ def closeFiles():
 
     return 0
 
+#
+# Purpose: BCPs the data into the database
+# Returns: 0
+#
+def bcpFiles():
+
+    bcpdelim = "|" 
+
+    if DEBUG or not bcpon:
+        return
+
+    closeFiles()
+
+    bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
+    bcpII = '"|" "\\n" mgd'
+
+    bcp1 = '%s %s "/" %s %s' % (bcpI, bibrefsTable, bibrefsFileName, bcpII)
+
+    db.commit()
+
+    for bcpCmd in [bcp1]:
+        diagFile.write('%s\n' % bcpCmd)
+        os.system(bcpCmd)
+
+    return 0
 
 #
 # Purpose: Level 1 Sanity Checks
 # Returns: 0
 #
-# file does not end with pdf
-# not in PDF format
-# cannot extract/find DOI ID
-# duplicate published refs (same DOI ID)
+# 1) file does not end with pdf
+# 2) not in PDF format
+# 3) cannot extract/find DOI ID
+# 4) duplicate published refs (same DOI ID)
 #
 def level1SanityChecks():
     global userDict
     global doiidByUser
+
+    errorLogFile.write('Literature Triage Level 1 Errors\n')
+    errorLogFile.write(mgi_utils.date())
+    errorLogFile.write('\n\n')
+    
+    eerrorLogFile.write('1:file does not end with pdf\n')
+    eerrorLogFile.write('2:not in PDF format\n')
+    eerrorLogFile.write('3:cannot extract/find DOI ID\n')
+    eerrorLogFile.write('4:duplicate published refs (same DOI ID)\n')
+    errorLogFile.write('\n\n')
 
     for userPath in os.listdir(inputDir):
 
@@ -254,7 +286,7 @@ def level1SanityChecks():
 		os.rename(pdfPath + origFile, pdfPath + pdfFile)
 
 	    if not pdfFile.lower().endswith('.pdf'):
-	        errorLogFile.write('file does not end with pdf : %s/%s\n' % (userPath, pdfFile))
+	        errorLogFile.write('1:file does not end with pdf : %s/%s\n' % (userPath, pdfFile))
 	        continue
 
 	    if userPath not in userDict:
@@ -283,15 +315,15 @@ def level1SanityChecks():
 		        doiidByUser[(userPath, doiid)].append(pdfFile)
 			debug('pdf.getFirstDoiID() : successful : %s%s\n' % (pdfPath, pdfFile))
 		    else:
-			errorLogFile.write('duplicate published refs (same DOI ID): %s, %s%s\n\n' \
+			errorLogFile.write('4:duplicate published refs (same DOI ID): %s, %s%s\n\n' \
 				% (doiid, pdfPath, pdfFile))
 			os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 		else:
-		    errorLogFile.write('cannot extract/find DOI ID: %s%s\n\n' % (pdfPath, pdfFile))
+		    errorLogFile.write('3:cannot extract/find DOI ID: %s%s\n\n' % (pdfPath, pdfFile))
 		    os.rename(pdfPath + pdfFile, failPath + pdfFile)
             except:
-		errorLogFile.write('not in PDF format: %s%s\n\n' % (pdfPath, pdfFile))
+		errorLogFile.write('2:not in PDF format: %s%s\n\n' % (pdfPath, pdfFile))
 		os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		continue
 
@@ -314,32 +346,6 @@ def processPDFs():
     
     # move pdf files from inputDir to masterPath
     # masterPath = masterDir + '/' + userPath + '/'
-
-    return 0
-
-#
-# Purpose:  BCPs the data into the database
-# Returns: 0
-#
-def bcpFiles():
-
-    bcpdelim = "|" 
-
-    if DEBUG or not bcpon:
-        return
-
-    closeFiles()
-
-    bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
-    bcpII = '"|" "\\n" mgd'
-
-    bcp1 = '%s %s "/" %s %s' % (bcpI, bibrefsTable, bibrefsFileName, bcpII)
-
-    db.commit()
-
-    for bcpCmd in [bcp1]:
-        diagFile.write('%s\n' % bcpCmd)
-        os.system(bcpCmd)
 
     return 0
 
