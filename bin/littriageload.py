@@ -8,6 +8,8 @@
 #      This script will process Lit Triage PDF files
 #      for loading into BIB_Refs, etc. tables
 #
+#	see wiki page:  sw:Littriageload for more information
+#
 #  Usage:
 #
 #      littriageload.py
@@ -28,7 +30,7 @@
 #  Inputs:
 #
 #	INPUTDIR=${FILEDIR}/input
-#	there are subdirectories for each curator.
+#	there are subdirectories for each user
 #	for example:
 #		input/cms
 #		input/csmith
@@ -38,18 +40,17 @@
 #
 #	OUTPUTDIR=${FILEDIR}/output : bcp files
 #	MASTERTRIAGEDIR : master pdf files
-#	FAILEDTRIAGEDIR : failed pdf files
+#	FAILEDTRIAGEDIR : failed pdf files by user
 #
 #  Implementation:
 #
 #      This script will perform following steps:
 #
-#      1) Initialize variables.
-#      2) Open files.
-#      3) Read each PDF (input file)/sanity checks
-#      4) If sanity check fails, send PDF to FAILEDTRIAGEDIR
-#      5) If sanity check successful, create BCP files
-#      6) Close files.
+#      1) initialize()
+#      2) openFiles()
+#      3) level1SanityChecks(): Iterate thru PDF directories and run sanity check
+#      6) processPDFs():  Iterate thru PDFs that passed sanity check
+#      7) closeFiles()
 #
 # lec	06/20/2017
 #       - TR12250/Lit Triage
@@ -63,6 +64,7 @@ import mgi_utils
 import PdfParser
 
 DEBUG = 1
+bcpon = 1
 
 litparser = ''
 
@@ -78,7 +80,8 @@ failDir = ''
 bcpScript = ''
 bibrefsTable = 'BIB_Refs'
 bibrefsFileName = ''
-
+bibstatusTable = 'BIB_Workflow_Status'
+bibstatusFileName = ''
 
 #
 # userDict = {'user' : [pdf1, pdf2]}
@@ -86,7 +89,7 @@ bibrefsFileName = ''
 userDict = {}
 
 #
-# doiidByUser = {'pdf file' : doiid}
+# doiidByUser = {('user name', 'pdf file') : doiid}
 # {('cms, '28069793_ag.pdf'): ['xxxxx']}
 doiidByUser = {}
 
@@ -112,7 +115,7 @@ def initialize():
     global inputDir, outputDir
     global masterDir, failDir
     global bcpScript
-    global bibrefsFileName
+    global bibrefsFileName, bibstatusFileName
 
     litparser = os.getenv('LITPARSER')
     errorLog = os.getenv('LOG_ERROR')
@@ -181,6 +184,7 @@ def initialize():
 
     # bcp files
     bibrefsFileName = outputDir + '/' + bibrefsTable + '.bcp'
+    bibstatusFileName = outputDir + '/' + bibstatusTable + '.bcp'
 
     return rc
 
@@ -206,7 +210,7 @@ def openFiles():
 
 #
 # Purpose: Close files.
-# Returns: 1 if file does not exist or is not readable, else 0
+# Returns: 0
 #
 def closeFiles():
 
@@ -223,19 +227,24 @@ def bcpFiles():
 
     bcpdelim = "|" 
 
+    # close bcp files
+    if bibrefsFileName:
+        bibrefsFileName.close()
+    if bibstatusFileName:
+        bibstatusFileName.close()
+
     if DEBUG or not bcpon:
         return
-
-    closeFiles()
 
     bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
     bcpII = '"|" "\\n" mgd'
 
     bcp1 = '%s %s "/" %s %s' % (bcpI, bibrefsTable, bibrefsFileName, bcpII)
+    bcp2 = '%s %s "/" %s %s' % (bcpI, bibstatusTable, bibstatusFileName, bcpII)
 
     db.commit()
 
-    for bcpCmd in [bcp1]:
+    for bcpCmd in [bcp1, bcp2]:
         diagFile.write('%s\n' % bcpCmd)
         os.system(bcpCmd)
 
@@ -244,11 +253,6 @@ def bcpFiles():
 #
 # Purpose: Level 1 Sanity Checks
 # Returns: 0
-#
-# 1) file does not end with pdf
-# 2) not in PDF format
-# 3) cannot extract/find DOI ID
-# 4) duplicate published refs (same DOI ID)
 #
 def level1SanityChecks():
     global userDict
@@ -266,10 +270,8 @@ def level1SanityChecks():
     errorLogFile.write('4:duplicate published refs (same DOI ID)\n')
     errorLogFile.write('\n##########\n\n')
 
+    # iterate thru input directory by user
     for userPath in os.listdir(inputDir):
-
-        #if userPath != "lec":
-	#    continue
 
 	pdfPath = inputDir + '/' + userPath + '/'
 
@@ -287,22 +289,33 @@ def level1SanityChecks():
                 pdfFile = pdfFile.replace('.PDF ', '.pdf')
 		os.rename(pdfPath + origFile, pdfPath + pdfFile)
 
+	    #
+	    # 1:file does not end with pdf
+	    #
 	    if not pdfFile.lower().endswith('.pdf'):
 	        errorLogFile.write('1:file does not end with pdf : %s/%s\n' % (userPath, pdfFile))
 	        continue
 
+	    #
+	    # userDict of all pdfFiles by user
+	    #
 	    if userPath not in userDict:
 	        userDict[userPath] = []
 	    userDict[userPath].append(pdfFile)
 
+    #
+    # iterate thru userDict
+    #
     for userPath in userDict:
-
-	#if userPath != "lec":
-		#continue
 
 	pdfPath = inputDir + '/' + userPath + '/'
 	failPath = failDir + '/' + userPath + '/'
 
+	#
+	# for each pdfFile
+	# if doi id can be found, store in doiidByUser dictionary
+	# else, report error, move pdf to failed directory
+	#
 	for pdfFile in userDict[userPath]:
 
 	    pdf = PdfParser.PdfParser(pdfPath + pdfFile)
