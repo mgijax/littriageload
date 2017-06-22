@@ -329,7 +329,7 @@ def bcpFiles():
 
     db.commit()
 
-    for bcpCmd in [bcp1]
+    for bcpCmd in [bcp1]:
         diagFile.write('%s\n' % bcpCmd)
         os.system(bcpCmd)
 
