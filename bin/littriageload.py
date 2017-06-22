@@ -262,13 +262,10 @@ def level1SanityChecks():
     errorLogFile.write(mgi_utils.date())
     errorLogFile.write('\n\n')
 
-    errorLogFile.write('Errors are reported here: %s\n\n' % (FAILEDTRIAGEDIR)
-    
-    errorLogFile.write('1:file does not end with pdf\n')
-    errorLogFile.write('2:not in PDF format\n')
-    errorLogFile.write('3:cannot extract/find DOI ID\n')
-    errorLogFile.write('4:duplicate published refs (same DOI ID)\n')
-    errorLogFile.write('\n##########\n\n')
+    error1 = '' 
+    error2 = ''
+    error3 = ''
+    error4 = ''
 
     # iterate thru input directory by user
     for userPath in os.listdir(inputDir):
@@ -293,7 +290,7 @@ def level1SanityChecks():
 	    # 1:file does not end with pdf
 	    #
 	    if not pdfFile.lower().endswith('.pdf'):
-	        errorLogFile.write('1:file does not end with pdf : %s/%s\n' % (userPath, pdfFile))
+	        error1 = error1 + '%s/%s\n' % (userPath, pdfFile)
 	        continue
 
 	    #
@@ -330,17 +327,21 @@ def level1SanityChecks():
 		        doiidByUser[(userPath, doiid)].append(pdfFile)
 			debug('pdf.getFirstDoiID() : successful : %s%s\n' % (pdfPath, pdfFile))
 		    else:
-			errorLogFile.write('4:duplicate published refs (same DOI ID): %s, %s%s\n\n' \
-				% (doiid, pdfPath, pdfFile))
+			error4 = error4 + '%s, %s%s\n' % (doiid, pdfPath, pdfFile)
 			os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 		else:
-		    errorLogFile.write('3:cannot extract/find DOI ID: %s%s\n\n' % (pdfPath, pdfFile))
+		    error3 = error3 + '%s%s\n' % (pdfPath, pdfFile)
 		    os.rename(pdfPath + pdfFile, failPath + pdfFile)
             except:
-		errorLogFile.write('2:not in PDF format: %s%s\n\n' % (pdfPath, pdfFile))
+		error2 = error2 + '%s%s\n' % (pdfPath, pdfFile)
 		os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		continue
+
+    errorLogFile.write('1: file does not end with pdf\n\n' + error1 + '\n\n')
+    errorLogFile.write('2: not in PDF format\n\n' + error2 + '\n\n')
+    errorLogFile.write('3: cannot extract/find DOI ID\n\n' + error3 + '\n\n')
+    errorLogFile.write('4: duplicate published refs (same DOI ID)\n\n' + error4 + '\n\n')
 
     return 0
 
@@ -352,7 +353,7 @@ def processPDFs():
 
     #
     # for all rows in doiidByUser
-    #	get info from pubmed API
+    #	get infr from pubmed API
     #   generate BCP file
     #
 
