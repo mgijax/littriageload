@@ -112,7 +112,7 @@ def initialize():
     litparser = os.getenv('LITPARSER')
     errorLog = os.getenv('LOG_ERROR')
     inputDir = os.getenv('INPUTDIR')
-    outputDir = os.getenv('OUTPUTTDIR')
+    outputDir = os.getenv('OUTPUTDIR')
     masterDir = os.getenv('MASTERTRIAGEDIR')
     failDir = os.getenv('FAILEDTRIAGEDIR')
     bcpScript = os.environ['PG_DBUTILS'] + '/bin/bcpin.csh'
@@ -167,6 +167,9 @@ def initialize():
     if not bcpScript:
         print 'Environment variable not set: PG_DBUTILS'
         rc = 1
+
+    if rc:
+        return rc
 
     # must be initialized PdfParser.py
     PdfParser.setLitParserDir(litparser)
