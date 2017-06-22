@@ -257,12 +257,14 @@ def level1SanityChecks():
     errorLogFile.write('Literature Triage Level 1 Errors\n')
     errorLogFile.write(mgi_utils.date())
     errorLogFile.write('\n\n')
+
+    errorLogFile.write('Errors are reported here: %s\n\n' % (FAILEDTRIAGEDIR)
     
     errorLogFile.write('1:file does not end with pdf\n')
     errorLogFile.write('2:not in PDF format\n')
     errorLogFile.write('3:cannot extract/find DOI ID\n')
     errorLogFile.write('4:duplicate published refs (same DOI ID)\n')
-    errorLogFile.write('\n\n')
+    errorLogFile.write('\n##########\n\n')
 
     for userPath in os.listdir(inputDir):
 
