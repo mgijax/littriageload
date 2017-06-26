@@ -257,7 +257,7 @@ def level1SanityChecks():
     errorLogFile.write('Literature Triage Level 1 Errors\n')
     errorLogFile.write(mgi_utils.date())
     errorLogFile.write('\n\n')
-    errorLogFile.write('All PDFs have been moved to the %s directory of the given user' % (FAILEDTRIAGEDIR))
+    errorLogFile.write('All PDFs have been moved to the %s directory of the given user' % (failDir))
     errorLogFile.write('\n\n')
 
     error1 = '' 
