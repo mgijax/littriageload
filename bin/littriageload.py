@@ -285,7 +285,10 @@ def level1SanityChecks():
 		    os.remove(pdfPath + pdfFile)
 		except:
 		    pass
-		os.rename(pdfPath + origFile, pdfPath + pdfFile)
+		try:
+		    os.rename(pdfPath + origFile, pdfPath + pdfFile)
+		except:
+		    pass
 
 	    #
 	    # file in input directory does not end with pdf
