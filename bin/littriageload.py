@@ -281,6 +281,8 @@ def level1SanityChecks():
 	    if pdfFile.find(' ') > 0 or pdfFile.endswith('.PDF'):
                 pdfFile = pdfFile.replace(' ', '')
                 pdfFile = pdfFile.replace('.PDF ', '.pdf')
+		if os.path.exists(pdfPath + pdfFile):
+		    os.remove(pdfPath + pdfFile)
 		os.rename(pdfPath + origFile, pdfPath + pdfFile)
 
 	    #
