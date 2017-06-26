@@ -133,61 +133,54 @@ def initialize():
     #
     # Make sure the required environment variables are set.
     #
+
     if not litparser:
         print 'Environment variable not set: LITPARSER'
         rc = 1
 
-    #
-    # Make sure the required environment variables are set.
-    #
     if not errorLog:
         print 'Environment variable not set: LOG_ERROR'
         rc = 1
 
-    #
-    # Make sure the required environment variables are set.
-    #
     if not inputDir:
         print 'Environment variable not set: INPUTDIR'
         rc = 1
 
-    #
-    # Make sure the required environment variables are set.
-    #
     if not outputDir:
         print 'Environment variable not set: OUTPUTDIR'
         rc = 1
 
-    #
-    # Make sure the required environment variables are set.
-    #
     if not masterDir:
         print 'Environment variable not set: MASTEREDTRIAGEDIR'
         rc = 1
 
-    #
-    # Make sure the required environment variables are set.
-    #
     if not failDir:
         print 'Environment variable not set: FAILEDTRIAGEDIR'
         rc = 1
 
-    #
-    # Make sure the required environment variables are set.
-    #
     if not bcpScript:
         print 'Environment variable not set: PG_DBUTILS'
         rc = 1
 
-    if rc:
-        return rc
-
-    # must be initialized PdfParser.py
-    PdfParser.setLitParserDir(litparser)
-
     # bcp files
-    bibrefsFileName = outputDir + '/' + bibrefsTable + '.bcp'
-    bibstatusFileName = outputDir + '/' + bibstatusTable + '.bcp'
+    try:
+        bibrefsFileName = outputDir + '/' + bibrefsTable + '.bcp'
+    except:
+        print 'Cannot create file: ' + outputDir + '/' + bibrefsTable + '.bcp''
+        rc = 1
+
+    try:
+        bibstatusFileName = outputDir + '/' + bibstatusTable + '.bcp'
+    except:
+        print 'Cannot create file: ' + outputDir + '/' + bibstatusTable + '.bcp''
+        rc = 1
+
+    # initialized PdfParser.py
+    try:
+        PdfParser.setLitParserDir(litparser)
+    except:
+        print 'PdfParser.setLitParserDir(litparser) failed'
+        rc = 1
 
     return rc
 
@@ -359,15 +352,16 @@ def processPDFs():
 
     #
     # for all rows in doiidByUser
-    #	get infr from pubmed API
+    #	get info from pubmed API
     #   generate BCP file
+    #   track pdf -> MGI numeric ####
     #
 
     # load BCP files
     # bcpFiles()
     
-    # move pdf files from inputDir to masterPath
-    # masterPath = masterDir + '/' + userPath + '/'
+    # move pdf files from inputDir to masterPath, using new MGI numeric ####
+    # masterPath = masterDir + '/' : determine path based on MGI numeric ####
 
     return 0
 
