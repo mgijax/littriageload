@@ -97,12 +97,12 @@ done
 done
 
 # results of cp/mv
-echo "---------------------" | tee -a ${LOG}
-echo "${PUBLISHEDDIR} listing : NOT MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
-ls -l ${PUBLISHEDDIR}/*/* | tee -a ${LOG}
-echo "---------------------" | tee -a ${LOG}
-echo "${INPUTDIR} listing : MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
-ls -l ${INPUTDIR}/*/* | tee -a ${LOG}
+#echo "---------------------" | tee -a ${LOG}
+#echo "${PUBLISHEDDIR} listing : NOT MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
+#ls -l ${PUBLISHEDDIR}/*/* | tee -a ${LOG}
+#echo "---------------------" | tee -a ${LOG}
+#echo "${INPUTDIR} listing : MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
+#ls -l ${INPUTDIR}/*/* | tee -a ${LOG}
 
 cd `dirname $0`/..
 
