@@ -268,20 +268,22 @@ def level1SanityChecks():
     for userPath in os.listdir(inputDir):
 
 	pdfPath = inputDir + '/' + userPath + '/'
+	print inputDir + '/' + userPath + '/'
+	print pdfPath
 
 	for pdfFile in os.listdir(pdfPath):
 
 	    #
 	    # remove spaces
-	    # replace '.PDF' with '.pdf'
+	    # rename '.PDF' with '.pdf'
 	    #
 
 	    origFile = pdfFile
 
-	    if pdfFile.find(' ') > 0 or pdfFile.endswith('.PDF'):
+	    if pdfFile.find(' ') > 0 or pdfFile.find('.PDF') > 0:
                 pdfFile = pdfFile.replace(' ', '')
-                pdfFile = pdfFile.replace('.PDF ', '.pdf')
-                os.rename(pdfPath + origFile, pdfPath + pdfFile)
+                pdfFile = pdfFile.replace('.PDF', '.pdf')
+		os.rename(pdfPath + origFile, pdfPath + pdfFile)
 
 	    #
 	    # file in input directory does not end with pdf
