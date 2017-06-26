@@ -281,14 +281,7 @@ def level1SanityChecks():
 	    if pdfFile.find(' ') or pdfFile.endswith('.PDF'):
                 pdfFile = pdfFile.replace(' ', '')
                 pdfFile = pdfFile.replace('.PDF ', '.pdf')
-		try:
-		    os.remove(pdfPath + pdfFile)
-		except:
-		    pass
-		try:
-		    os.rename(pdfPath + origFile, pdfPath + pdfFile)
-		except:
-		    pass
+                os.rename(pdfPath + origFile, pdfPath + pdfFile)
 
 	    #
 	    # file in input directory does not end with pdf
