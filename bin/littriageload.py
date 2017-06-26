@@ -320,7 +320,7 @@ def level1SanityChecks():
 		    if doiid not in doiidById:
 		        doiidById[doiid] = []
 		        doiidById[doiid].append(pdfFile)
-			debug('pdf.getFirstDoiID() : successful : %s%s\n' % (pdfPath, pdfFile))
+			debug('pdf.getFirstDoiID() : successful : %s%s : %s\n' % (pdfPath, pdfFile, doiid))
 		    else:
 			error3 = error3 + '%s, %s%s\n' % (doiid, pdfPath, pdfFile)
 			os.rename(pdfPath + pdfFile, failPath + pdfFile)
