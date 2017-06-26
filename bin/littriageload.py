@@ -279,6 +279,7 @@ def level1SanityChecks():
 	    origFile = pdfFile
 
 	    if pdfFile.find(' ') or pdfFile.endswith('.PDF'):
+                pdfFile = pdfFile.replace(' ', '')
                 pdfFile = pdfFile.replace('.PDF ', '.pdf')
 		try:
 		    os.remove(pdfPath + pdfFile)
