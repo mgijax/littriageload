@@ -257,6 +257,8 @@ def level1SanityChecks():
     errorLogFile.write('Literature Triage Level 1 Errors\n')
     errorLogFile.write(mgi_utils.date())
     errorLogFile.write('\n\n')
+    errorLogFile.write('All PDFs have been moved to the %s directory' % (failPath))
+    errorLogFile.write('\n\n')
 
     error1 = '' 
     error2 = ''
@@ -322,14 +324,14 @@ def level1SanityChecks():
 		        doiidById[doiid].append(pdfFile)
 			debug('pdf.getFirstDoiID() : successful : %s%s : %s\n' % (pdfPath, pdfFile, doiid))
 		    else:
-			error3 = error3 + '%s, %s%s\n' % (doiid, pdfPath, pdfFile)
+			error3 = error3 + '%s, %s%s\n' % (doiid, failPath, pdfFile)
 			os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 		else:
-		    error2 = error2 + '%s%s\n' % (pdfPath, pdfFile)
+		    error2 = error2 + '%s%s\n' % (failPath, pdfFile)
 		    os.rename(pdfPath + pdfFile, failPath + pdfFile)
             except:
-		error1 = error1 + '%s%s\n' % (pdfPath, pdfFile)
+		error1 = error1 + '%s%s\n' % (failPath, pdfFile)
 		os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		continue
 
