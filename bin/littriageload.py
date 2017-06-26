@@ -92,6 +92,9 @@ userDict = {}
 # doiidByUser = {('user name', 'pdf file') : doiid}
 # {('cms, '28069793_ag.pdf'): ['xxxxx']}
 doiidByUser = {}
+#
+# doiidById = {'pdf file' : doiid}
+doiidById = {}
 
 #
 # Purpose: Print Debugging statements
@@ -256,7 +259,7 @@ def bcpFiles():
 #
 def level1SanityChecks():
     global userDict
-    global doiidByUser
+    global doiidByUser, doiidById
 
     errorLogFile.write('Literature Triage Level 1 Errors\n')
     errorLogFile.write(mgi_utils.date())
@@ -321,9 +324,9 @@ def level1SanityChecks():
                 doiid = pdf.getFirstDoiID()
 
 		if (doiid):
-		    if (userPath, doiid) not in doiidByUser:
-		        doiidByUser[(userPath, doiid)] = []
-		        doiidByUser[(userPath, doiid)].append(pdfFile)
+		    if doiid not in doiidById:
+		        doiidById[doiid] = []
+		        doiidById[doiid].append(pdfFile)
 			debug('pdf.getFirstDoiID() : successful : %s%s\n' % (pdfPath, pdfFile))
 		    else:
 			error3 = error3 + '%s, %s%s\n' % (doiid, pdfPath, pdfFile)
@@ -336,6 +339,11 @@ def level1SanityChecks():
 		error1 = error1 + '%s%s\n' % (pdfPath, pdfFile)
 		os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		continue
+
+	    # store by User as well 
+	    if (userPath, doiid) not in doiidByUser:
+	        doiidByUser[(userPath, doiid)] = []
+	        doiidByUser[(userPath, doiid)].append(pdfFile)
 
     errorLogFile.write('1: not in PDF format\n\n' + error1 + '\n\n')
     errorLogFile.write('2: cannot extract/find DOI ID\n\n' + error2 + '\n\n')
