@@ -166,13 +166,13 @@ def initialize():
     try:
         bibrefsFileName = outputDir + '/' + bibrefsTable + '.bcp'
     except:
-        print 'Cannot create file: ' + outputDir + '/' + bibrefsTable + '.bcp''
+        print 'Cannot create file: ' + outputDir + '/' + bibrefsTable + '.bcp'
         rc = 1
 
     try:
         bibstatusFileName = outputDir + '/' + bibstatusTable + '.bcp'
     except:
-        print 'Cannot create file: ' + outputDir + '/' + bibstatusTable + '.bcp''
+        print 'Cannot create file: ' + outputDir + '/' + bibstatusTable + '.bcp'
         rc = 1
 
     # initialized PdfParser.py
