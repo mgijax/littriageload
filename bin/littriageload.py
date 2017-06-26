@@ -268,8 +268,6 @@ def level1SanityChecks():
     for userPath in os.listdir(inputDir):
 
 	pdfPath = inputDir + '/' + userPath + '/'
-	print inputDir + '/' + userPath + '/'
-	print pdfPath
 
 	for pdfFile in os.listdir(pdfPath):
 
