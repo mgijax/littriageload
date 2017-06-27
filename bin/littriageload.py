@@ -6,7 +6,7 @@
 #  Purpose:
 #
 #      This script will process Lit Triage PDF files
-#      for loading into BIB_Refs, etc. tables
+#      for loading into BIB_Refs, BIB_Workflow_Status
 #
 #	see wiki page:  sw:Littriageload for more information
 #
@@ -68,8 +68,8 @@ bcpon = 1
 
 litparser = ''
 
-errorLog = ''
-errorLogFile = ''
+error = ''
+errorFile = ''
 
 inputDir = ''
 outputDir = ''
@@ -78,10 +78,17 @@ masterDir = ''
 failDir = ''
 
 bcpScript = ''
-bibrefsTable = 'BIB_Refs'
-bibrefsFileName = ''
-bibstatusTable = 'BIB_Workflow_Status'
-bibstatusFileName = ''
+
+accFile = ''
+accFileName = ''
+refFile = ''
+refFileName = ''
+statusFile = ''
+statusFileName = ''
+
+accTable = 'ACC_Accession'
+refTable = 'BIB_Refs'
+statusTable = 'BIB_Workflow_Status'
 
 #
 # userDict = {'user' : [pdf1, pdf2]}
@@ -97,109 +104,124 @@ doiidByUser = {}
 doiidById = {}
 
 #
-# Purpose: Print Debugging statements
-# Returns: 0
+# Purpose: prints error message and exits
+# Return: sys.exit()
 #
-def debug(s):
+def exit(
+    status,          # numeric exitstatus (integer)
+    message = None   # exitmessage (string)
+    ):
 
-    if DEBUG:
-	print mgi_utils.date('%c')
-    	print s
+    if message is not None:
+        sys.stderr.write('\n' + str(message) + '\n')
 
-    return 0
+    try:
+        diagFile.write('\n\nEnd Date/Time: %s\n' % (mgi_utils.date()))
+        errorFile.write('\n\nEnd Date/Time: %s\n' % (mgi_utils.date()))
+        diagFile.close()
+        errorFile.close()
+    except:
+        pass
+
+    db.useOneConnection(0)
+    sys.exit(status)
 
 #
 # Purpose: Initialization
-# Returns: 1 if file does not exist or is not readable, else 0
+# Returns: 0
 #
 def initialize():
     global litparser
-    global errorLog
+    global diag, diagFile
+    global error, errorFile
     global inputDir, outputDir
     global masterDir, failDir
     global bcpScript
-    global bibrefsFileName, bibstatusFileName
+    global accFileName, refFileName, statusFileName
+    global accFile, refFile, statusFile
 
     litparser = os.getenv('LITPARSER')
-    errorLog = os.getenv('LOG_ERROR')
+    diag = os.getenv('LOG_DIAG')
+    error = os.getenv('LOG_ERROR')
     inputDir = os.getenv('INPUTDIR')
     outputDir = os.getenv('OUTPUTDIR')
     masterDir = os.getenv('MASTERTRIAGEDIR')
     failDir = os.getenv('FAILEDTRIAGEDIR')
     bcpScript = os.environ['PG_DBUTILS'] + '/bin/bcpin.csh'
 
-    rc = 0
-
     #
     # Make sure the required environment variables are set.
     #
 
     if not litparser:
-        print 'Environment variable not set: LITPARSER'
-        rc = 1
+        exit(1, 'Environment variable not set: LITPARSER')
 
-    if not errorLog:
-        print 'Environment variable not set: LOG_ERROR'
-        rc = 1
+    if not diag:
+        exit(1, 'Environment variable not set: LOG_DIAG')
+
+    if not error:
+        exit(1, 'Environment variable not set: LOG_ERROR')
 
     if not inputDir:
-        print 'Environment variable not set: INPUTDIR'
-        rc = 1
+        exit(1, 'Environment variable not set: INPUTDIR')
 
     if not outputDir:
-        print 'Environment variable not set: OUTPUTDIR'
-        rc = 1
+        exit(1, 'Environment variable not set: OUTPUTDIR')
 
     if not masterDir:
-        print 'Environment variable not set: MASTEREDTRIAGEDIR'
-        rc = 1
+        exit(1, 'Environment variable not set: MASTEREDTRIAGEDIR')
 
     if not failDir:
-        print 'Environment variable not set: FAILEDTRIAGEDIR'
-        rc = 1
+        exit(1, 'Environment variable not set: FAILEDTRIAGEDIR')
 
     if not bcpScript:
-        print 'Environment variable not set: PG_DBUTILS'
-        rc = 1
-
-    # bcp files
-    try:
-        bibrefsFileName = outputDir + '/' + bibrefsTable + '.bcp'
-    except:
-        print 'Cannot create file: ' + outputDir + '/' + bibrefsTable + '.bcp'
-        rc = 1
+        exit(1, 'Environment variable not set: PG_DBUTILS')
 
     try:
-        bibstatusFileName = outputDir + '/' + bibstatusTable + '.bcp'
+        diagFile = open(diag, 'a')
     except:
-        print 'Cannot create file: ' + outputDir + '/' + bibstatusTable + '.bcp'
-        rc = 1
+        exist(1,  'Cannot open diagnostic log file: ' + diagFile)
+
+    try:
+        errorFile = open(error, 'w')
+    except:
+        exist(1,  'Cannot open error log file: ' + errorFile)
+
+    try:
+        accFileName = outputDir + '/' + accTable + '.bcp'
+    except:
+        exit(1, 'Cannot create file: ' + outputDir + '/' + accTable + '.bcp')
+
+    try:
+        refFileName = outputDir + '/' + refTable + '.bcp'
+    except:
+        exit(1, 'Cannot create file: ' + outputDir + '/' + refTable + '.bcp')
+
+    try:
+        statusFileName = outputDir + '/' + statusTable + '.bcp'
+    except:
+        exit(1, 'Cannot create file: ' + outputDir + '/' + statusTable + '.bcp')
+
+    try:
+        accFile = open(accFileName, 'w')
+    except:
+        exit(1, 'Could not open file %s\n' % accFileName)
+
+    try:
+        refFile = open(refFileName, 'w')
+    except:
+        exit(1, 'Could not open file %s\n' % refFileName)
+
+    try:
+        statusFile = open(statusFileName, 'w')
+    except:
+        exit(1, 'Could not open file %s\n' % statusFileName)
 
     # initialized PdfParser.py
     try:
         PdfParser.setLitParserDir(litparser)
     except:
-        print 'PdfParser.setLitParserDir(litparser) failed'
-        rc = 1
-
-    return rc
-
-
-#
-# Purpose: Open files.
-# Returns: 1 if file does not exist or is not readable, else 0
-#
-def openFiles():
-    global errorLogFile
-
-    #
-    # Open the error log file.
-    #
-    try:
-        errorLogFile = open(errorLog, 'w')
-    except:
-        print 'Cannot open error log file: ' + errorLogFile
-        return 1
+        exit(1, 'PdfParser.setLitParserDir(litparser) failed')
 
     return 0
 
@@ -210,8 +232,29 @@ def openFiles():
 #
 def closeFiles():
 
-    if errorLogFile:
-        errorLogFile.close()
+    diagFile.close()
+    errorFile.close()
+    accFile.close()
+    refFile.close()
+    statusFile.close()
+    return 0
+
+#
+# Purpose:  sets global primary key variables
+# Returns: 0
+#
+def setPrimaryKeys():
+
+    global accKey, refKey, statusKey
+
+    results = db.sql('select max(_Refs_key) + 1 as maxKey from BIB_Refs', 'auto')
+    refKey = results[0]['maxKey']
+
+    results = db.sql('select max(_Accession_key) + 1 as maxKey from ACC_Accession', 'auto')
+    accKey = results[0]['maxKey']
+
+    results = db.sql('select max(_Assoc_key) + 1 as maxKey from BIB_Workflow_Status', 'auto')
+    statusKey = results[0]['maxKey']
 
     return 0
 
@@ -224,10 +267,12 @@ def bcpFiles():
     bcpdelim = "|" 
 
     # close bcp files
-    if bibrefsFileName:
-        bibrefsFileName.close()
-    if bibstatusFileName:
-        bibstatusFileName.close()
+    if accFileName:
+        accFileName.close()
+    if refFileName:
+        refFileName.close()
+    if statusFileName:
+        statusFileName.close()
 
     if DEBUG or not bcpon:
         return
@@ -235,8 +280,8 @@ def bcpFiles():
     bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
     bcpII = '"|" "\\n" mgd'
 
-    bcp1 = '%s %s "/" %s %s' % (bcpI, bibrefsTable, bibrefsFileName, bcpII)
-    bcp2 = '%s %s "/" %s %s' % (bcpI, bibstatusTable, bibstatusFileName, bcpII)
+    bcp1 = '%s %s "/" %s %s' % (bcpI, refTable, refFileName, bcpII)
+    bcp2 = '%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII)
 
     db.commit()
 
@@ -254,11 +299,10 @@ def level1SanityChecks():
     global userDict
     global doiidByUser, doiidById
 
-    errorLogFile.write('Literature Triage Level 1 Errors\n')
-    errorLogFile.write(mgi_utils.date())
-    errorLogFile.write('\n\n')
-    errorLogFile.write('All PDFs have been moved to the %s directory of the given user' % (failDir))
-    errorLogFile.write('\n\n')
+    errorFile.write('<H4>Literature Triage Level 1 Errors</H4>\n')
+    errorFile.write('<H4>' + mgi_utils.date() + '</H4>\n')
+
+    linkIt = '<A HREF="%s%s">%s%s</A><P>' 
 
     error1 = '' 
     error2 = ''
@@ -322,16 +366,18 @@ def level1SanityChecks():
 		    if doiid not in doiidById:
 		        doiidById[doiid] = []
 		        doiidById[doiid].append(pdfFile)
-			debug('pdf.getFirstDoiID() : successful : %s%s : %s\n' % (pdfPath, pdfFile, doiid))
+	                if DEBUG:
+			    diagFile.write('pdf.getFirstDoiID() : successful : %s%s : %s\n' % (pdfPath, pdfFile, doiid))
+			    diagFile.flush()
 		    else:
-			error3 = error3 + '%s, %s%s\n' % (doiid, failPath, pdfFile)
+		        error3 = error3 + linkIt % (failPath, pdfFile, failPath, pdfFile)
 			os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 		else:
-		    error2 = error2 + '%s%s\n' % (failPath, pdfFile)
+		    error2 = error2 + linkIt % (failPath, pdfFile, failPath, pdfFile)
 		    os.rename(pdfPath + pdfFile, failPath + pdfFile)
             except:
-		error1 = error1 + '%s%s\n' % (failPath, pdfFile)
+		error1 = error1 + linkIt % (failPath, pdfFile, failPath, pdfFile)
 		os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		continue
 
@@ -340,9 +386,9 @@ def level1SanityChecks():
 	        doiidByUser[(userPath, doiid)] = []
 	        doiidByUser[(userPath, doiid)].append(pdfFile)
 
-    errorLogFile.write('1: not in PDF format\n\n' + error1 + '\n\n')
-    errorLogFile.write('2: cannot extract/find DOI ID\n\n' + error2 + '\n\n')
-    errorLogFile.write('3: duplicate published refs (same DOI ID)\n\n' + error3 + '\n\n')
+    errorFile.write('<H4>1: not in PDF format</H4>\n\n' + error1 + '\n\n')
+    errorFile.write('<H4>2: cannot extract/find DOI ID</H4>\n\n' + error2 + '\n\n')
+    errorFile.write('<H4>3: duplicate published refs (same DOI ID)</H4>\n\n' + error3 + '\n\n')
 
     return 0
 
@@ -359,6 +405,9 @@ def processPDFs():
     #   track pdf -> MGI numeric ####
     #
 
+    for (userPath, doiid) in doiidByUser:
+        print userPath, doiid
+
     # load BCP files
     # bcpFiles()
     
@@ -374,12 +423,12 @@ def processPDFs():
 if initialize() != 0:
     sys.exit(1)
 
-if openFiles() != 0:
-    sys.exit(1)
-
 if level1SanityChecks() != 0:
     closeFiles()
     sys.exit(1)
+
+#if setPrimaryKeys() != 0:
+#    sys.exit(1)
 
 #if processPDFs() != 0:
 #    closeFiles()
@@ -387,3 +436,4 @@ if level1SanityChecks() != 0:
 
 closeFiles()
 sys.exit(0)
+

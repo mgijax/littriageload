@@ -25,6 +25,7 @@ export MASTERTRIAGEDIR
 
 # failed triage directory/subdivided by curator
 FAILEDTRIAGEDIR=${MASTERTRIAGEDIR}/failed
+#FAILEDTRIAGEDIR=${DATALOADSOUTPUT}/mgi/littriageload/failed
 export FAILEDTRIAGEDIR
 
 # litparser needed with lib/python/PdfParser.py
@@ -45,7 +46,7 @@ LOG_PROC=${LOGDIR}/littriageload.proc.log
 LOG_DIAG=${LOGDIR}/littriageload.diag.log
 LOG_CUR=${LOGDIR}/littriageload.cur.log
 LOG_VAL=${LOGDIR}/littriageload.val.log
-LOG_ERROR=${LOGDIR}/littriageload.error.log
+LOG_ERROR=${LOGDIR}/littriageload.error.shtml
 
 export LOG_FILE LOG_PROC LOG_DIAG LOG_CUR LOG_VAL LOG_ERROR
 
