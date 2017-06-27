@@ -22,6 +22,8 @@
 #	LITPARSER
 #	INPUTDIR
 #	OUTPUTDIR
+#	LOG_DIAG
+#	LOG_CUR
 #	LOG_ERROR
 #	MASTERTRIAGEDIR
 #	FAILEDTRIAGEDIR
@@ -68,6 +70,10 @@ bcpon = 1
 
 litparser = ''
 
+diag = ''
+diagFile = ''
+curator = ''
+curatorFile = ''
 error = ''
 errorFile = ''
 
@@ -118,8 +124,10 @@ def exit(
     try:
         diagFile.write('\n\nEnd Date/Time: %s\n' % (mgi_utils.date()))
         errorFile.write('\n\nEnd Date/Time: %s\n' % (mgi_utils.date()))
+        curatorFile.write('\n\nEnd Date/Time: %s\n' % (mgi_utils.date()))
         diagFile.close()
         errorFile.close()
+        curatorFile.close()
     except:
         pass
 
@@ -134,6 +142,7 @@ def initialize():
     global litparser
     global diag, diagFile
     global error, errorFile
+    global curator, curatorFile
     global inputDir, outputDir
     global masterDir, failDir
     global bcpScript
@@ -143,6 +152,7 @@ def initialize():
     litparser = os.getenv('LITPARSER')
     diag = os.getenv('LOG_DIAG')
     error = os.getenv('LOG_ERROR')
+    curator = os.getenv('LOG_CUR')
     inputDir = os.getenv('INPUTDIR')
     outputDir = os.getenv('OUTPUTDIR')
     masterDir = os.getenv('MASTERTRIAGEDIR')
@@ -161,6 +171,9 @@ def initialize():
 
     if not error:
         exit(1, 'Environment variable not set: LOG_ERROR')
+
+    if not curator:
+        exit(1, 'Environment variable not set: LOG_CUR')
 
     if not inputDir:
         exit(1, 'Environment variable not set: INPUTDIR')
@@ -186,6 +199,11 @@ def initialize():
         errorFile = open(error, 'w')
     except:
         exist(1,  'Cannot open error log file: ' + errorFile)
+
+    try:
+        curatorFile = open(error, 'w')
+    except:
+        exist(1,  'Cannot open curator log file: ' + curatorFile)
 
     try:
         accFileName = outputDir + '/' + accTable + '.bcp'
@@ -234,6 +252,7 @@ def closeFiles():
 
     diagFile.close()
     errorFile.close()
+    curatorFile.close()
     accFile.close()
     refFile.close()
     statusFile.close()
@@ -300,13 +319,18 @@ def level1SanityChecks():
     global doiidByUser, doiidById
 
     errorFile.write('<H4>Literature Triage Level 1 Errors</H4>\n')
-    errorFile.write('<H4>' + mgi_utils.date() + '</H4>\n')
+    errorFile.write('<H4>' + mgi_utils.date() + '</H4>\n\n')
+    curatorFile.write('Literature Triage Level 1 Errors\n')
+    curatorFile.write(mgi_utils.date() + '\n\n')
 
-    linkIt = '<A HREF="%s%s">%s%s</A><P>' 
+    linkIt = '<A HREF="%s%s">%s%s</A><BR>\n' 
 
     error1 = '' 
     error2 = ''
     error3 = ''
+    curator1 = '' 
+    curator2 = ''
+    curator3 = ''
 
     # iterate thru input directory by user
     for userPath in os.listdir(inputDir):
@@ -339,7 +363,8 @@ def level1SanityChecks():
 	    #
 	    if userPath not in userDict:
 	        userDict[userPath] = []
-	    userDict[userPath].append(pdfFile)
+	    if pdfFile not in userDict[userPath]:
+	        userDict[userPath].append(pdfFile)
 
     #
     # iterate thru userDict
@@ -371,13 +396,16 @@ def level1SanityChecks():
 			    diagFile.flush()
 		    else:
 		        error3 = error3 + linkIt % (failPath, pdfFile, failPath, pdfFile)
+		        curator3 = curator3 + failPath + pdfFile + '\n'
 			os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 		else:
 		    error2 = error2 + linkIt % (failPath, pdfFile, failPath, pdfFile)
+		    curator2 = curator2 + failPath + pdfFile + '\n'
 		    os.rename(pdfPath + pdfFile, failPath + pdfFile)
             except:
 		error1 = error1 + linkIt % (failPath, pdfFile, failPath, pdfFile)
+		curator1 = curator1 + failPath + pdfFile + '\n'
 		os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		continue
 
@@ -389,6 +417,9 @@ def level1SanityChecks():
     errorFile.write('<H4>1: not in PDF format</H4>\n\n' + error1 + '\n\n')
     errorFile.write('<H4>2: cannot extract/find DOI ID</H4>\n\n' + error2 + '\n\n')
     errorFile.write('<H4>3: duplicate published refs (same DOI ID)</H4>\n\n' + error3 + '\n\n')
+    curatorFile.write('1: not in PDF format\n\n' + curator1 + '\n\n')
+    curatorFile.write('2: cannot extract/find DOI ID\n\n' + curator2 + '\n\n')
+    curatorFile.write('3: duplicate published refs (same DOI ID)\n\n' + curator3 + '\n\n')
 
     return 0
 

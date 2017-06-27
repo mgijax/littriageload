@@ -54,7 +54,7 @@ fi
 #
 # createArchive including OUTPUTDIR, INPUTDIR, etc.
 # sets "JOBKEY"
-#preload ${OUTPUTDIR}
+preload ${OUTPUTDIR}
 
 #
 # Create curator subdirectories in input directory
@@ -113,9 +113,9 @@ echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
 echo "Run littriageload.py"  | tee -a ${LOG}
 ${LITTRIAGELOAD}/bin/littriageload.py | tee -a ${LOG}
-#STAT=$?
-#checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" | tee -a ${LOG}
+STAT=$?
+checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" | tee -a ${LOG}
 
 # run postload cleanup and email logs
-#shutDown
+shutDown
 
