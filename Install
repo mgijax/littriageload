@@ -76,6 +76,11 @@ then
 fi
 
 #
+# Create symlink to New_New
+#
+ln -s ${PUBLISHEDDIR} New_New
+
+#
 # Create curator subdirectories in input directory
 # Create curator subdirectories in failed directory
 # note: this will not remove old/obsolete input directories
@@ -92,6 +97,6 @@ ls -l ${INPUTDIR}
 echo 'failed directory'
 ls -l ${FAILEDTRIAGEDIR}
 
-cd `dirname $0`
+cd ${LITTRIAGELOAD}
 
 exit 0
