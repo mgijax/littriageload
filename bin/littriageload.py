@@ -201,7 +201,7 @@ def initialize():
         exist(1,  'Cannot open error log file: ' + errorFile)
 
     try:
-        curatorFile = open(error, 'w')
+        curatorFile = open(curator, 'a')
     except:
         exist(1,  'Cannot open curator log file: ' + curatorFile)
 
@@ -296,6 +296,8 @@ def bcpFiles():
     if DEBUG or not bcpon:
         return
 
+    db.useOneConnection(1)
+
     bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
     bcpII = '"|" "\\n" mgd'
 
@@ -318,10 +320,9 @@ def level1SanityChecks():
     global userDict
     global doiidByUser, doiidById
 
-    errorFile.write('<H4>Literature Triage Level 1 Errors</H4>\n')
-    errorFile.write('<H4>' + mgi_utils.date() + '</H4>\n\n')
-    curatorFile.write('Literature Triage Level 1 Errors\n')
-    curatorFile.write(mgi_utils.date() + '\n\n')
+    errorFile.write('Start Log: ' + mgi_utils.date() + '<BR>')
+    errorFile.write('Literature Triage Level 1 Errors<BR><BR>')
+    curatorFile.write('\nLiterature Triage Level 1 Errors\n\n')
 
     linkIt = '<A HREF="%s%s">%s%s</A><BR>\n' 
 
@@ -397,16 +398,16 @@ def level1SanityChecks():
 		    else:
 		        error3 = error3 + linkIt % (failPath, pdfFile, failPath, pdfFile)
 		        curator3 = curator3 + failPath + pdfFile + '\n'
-			os.rename(pdfPath + pdfFile, failPath + pdfFile)
+			#os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 		else:
 		    error2 = error2 + linkIt % (failPath, pdfFile, failPath, pdfFile)
 		    curator2 = curator2 + failPath + pdfFile + '\n'
-		    os.rename(pdfPath + pdfFile, failPath + pdfFile)
+		    #os.rename(pdfPath + pdfFile, failPath + pdfFile)
             except:
 		error1 = error1 + linkIt % (failPath, pdfFile, failPath, pdfFile)
 		curator1 = curator1 + failPath + pdfFile + '\n'
-		os.rename(pdfPath + pdfFile, failPath + pdfFile)
+		#os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		continue
 
 	    # store by User as well 
@@ -414,9 +415,9 @@ def level1SanityChecks():
 	        doiidByUser[(userPath, doiid)] = []
 	        doiidByUser[(userPath, doiid)].append(pdfFile)
 
-    errorFile.write('<H4>1: not in PDF format</H4>\n\n' + error1 + '\n\n')
-    errorFile.write('<H4>2: cannot extract/find DOI ID</H4>\n\n' + error2 + '\n\n')
-    errorFile.write('<H4>3: duplicate published refs (same DOI ID)</H4>\n\n' + error3 + '\n\n')
+    errorFile.write('1: not in PDF format<BR><BR>' + error1 + '<BR>')
+    errorFile.write('2: cannot extract/find DOI ID<BR><BR>' + error2 + '<BR>')
+    errorFile.write('3: duplicate published refs (same DOI ID)<BR><BR>' + error3 + '<BR>')
     curatorFile.write('1: not in PDF format\n\n' + curator1 + '\n\n')
     curatorFile.write('2: cannot extract/find DOI ID\n\n' + curator2 + '\n\n')
     curatorFile.write('3: duplicate published refs (same DOI ID)\n\n' + curator3 + '\n\n')

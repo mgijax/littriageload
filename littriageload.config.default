@@ -71,13 +71,8 @@ export MAIL_LOADNAME
 MAIL_LOG_PROC="${USER}"
 export MAIL_LOG_PROC
 
-# Curator/Error log
-if [ "${INSTALL_TYPE}" = "dev" ]
-then
-MAIL_LOG_CUR="${USER},jacqueline.finger@jax.org,richard.baldarili@jax.org"
-else
-MAIL_LOG_CUR="${USER}"
-fi
+# Curator log is emailed
+MAIL_LOG_CUR="${USER} jacqueline.finger@jax.org richard.baldarili@jax.org"
 export MAIL_LOG_CUR
 
 INSTALLDIR=${LITTRIAGELOAD}
