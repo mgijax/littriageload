@@ -398,16 +398,16 @@ def level1SanityChecks():
 		    else:
 		        error3 = error3 + linkIt % (failPath, pdfFile, failPath, pdfFile)
 		        curator3 = curator3 + failPath + pdfFile + '\n'
-			#os.rename(pdfPath + pdfFile, failPath + pdfFile)
+			os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 		else:
 		    error2 = error2 + linkIt % (failPath, pdfFile, failPath, pdfFile)
 		    curator2 = curator2 + failPath + pdfFile + '\n'
-		    #os.rename(pdfPath + pdfFile, failPath + pdfFile)
+		    os.rename(pdfPath + pdfFile, failPath + pdfFile)
             except:
 		error1 = error1 + linkIt % (failPath, pdfFile, failPath, pdfFile)
 		curator1 = curator1 + failPath + pdfFile + '\n'
-		#os.rename(pdfPath + pdfFile, failPath + pdfFile)
+		os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		continue
 
 	    # store by User as well 
