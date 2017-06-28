@@ -106,7 +106,7 @@ userDict = {}
 # {('cms, '28069793_ag.pdf'): ['xxxxx']}
 doiidByUser = {}
 #
-# doiidById = {'pdf file' : doiid}
+# doiidById = {'doiid' : 'pdf file'}
 doiidById = {}
 
 #
@@ -325,7 +325,7 @@ def level1SanityChecks():
     curatorFile.write('\nLiterature Triage Level 1 Errors\n\n')
     curatorFile.write('Error log with links: ' + error + '\n\n')
 
-    linkIt = '<A HREF="%s%s">%s%s</A><BR>\n' 
+    linkIt = '<A HREF="%s">%s</A>' 
 
     error1 = '' 
     error2 = ''
@@ -397,16 +397,18 @@ def level1SanityChecks():
 			    diagFile.write('pdf.getFirstDoiID() : successful : %s%s : %s\n' % (pdfPath, pdfFile, doiid))
 			    diagFile.flush()
 		    else:
-		        error3 = error3 + linkIt % (failPath, pdfFile, failPath, pdfFile)
-		        curator3 = curator3 + failPath + pdfFile + '\n'
+		        error3 = error3 + doiid + '<BR>\n' + linkIt % (failPath + pdfFile, failPath + pdfFile) + \
+				'<BR>\nduplicate of ' + \
+				linkIt % (pdfPath + doiidById[doiid][0], pdfPath + doiidById[doiid][0]) + '<BR><BR>\n\n'
+		        curator3 = curator3 + doiid + '\n' + failPath + pdfFile + '\nduplicate of ' + doiidById[doiid][0] + '\n\n'
 			os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 		else:
-		    error2 = error2 + linkIt % (failPath, pdfFile, failPath, pdfFile)
+		    error2 = error2 + linkIt % (failPath + pdfFile, failPath + pdfFile) + '<BR>\n'
 		    curator2 = curator2 + failPath + pdfFile + '\n'
 		    os.rename(pdfPath + pdfFile, failPath + pdfFile)
             except:
-		error1 = error1 + linkIt % (failPath, pdfFile, failPath, pdfFile)
+		error1 = error1 + linkIt % (failPath + pdfFile, failPath + pdfFile) + '<BR>\n'
 		curator1 = curator1 + failPath + pdfFile + '\n'
 		os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		continue
@@ -416,12 +418,12 @@ def level1SanityChecks():
 	        doiidByUser[(userPath, doiid)] = []
 	        doiidByUser[(userPath, doiid)].append(pdfFile)
 
-    errorFile.write('1: not in PDF format<BR><BR>' + error1 + '<BR>')
-    errorFile.write('2: cannot extract/find DOI ID<BR><BR>' + error2 + '<BR>')
-    errorFile.write('3: duplicate published refs (same DOI ID)<BR><BR>' + error3 + '<BR>')
+    errorFile.write('1: not in PDF format<BR><BR>\n' + error1 + '<BR>\n\n')
+    errorFile.write('2: cannot extract/find DOI ID<BR><BR>\n' + error2 + '<BR>\n\n')
+    errorFile.write('3: duplicate published refs (same DOI ID) : DOI ID | duplicate | duplicate of<BR><BR>\n' + error3 + '<BR>\n\n')
     curatorFile.write('1: not in PDF format\n\n' + curator1 + '\n\n')
     curatorFile.write('2: cannot extract/find DOI ID\n\n' + curator2 + '\n\n')
-    curatorFile.write('3: duplicate published refs (same DOI ID)\n\n' + curator3 + '\n\n')
+    curatorFile.write('3: duplicate published refs (same DOI ID) : DOI ID | duplicate | duplicate of\n\n' + curator3 + '\n\n')
 
     return 0
 
