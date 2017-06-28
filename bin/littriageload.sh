@@ -121,7 +121,7 @@ ls -l ${PUBLISHEDDIR}/*/* | tee -a ${LOG_DIAG}
 #echo "${INPUTDIR} listing : MOVED TO INPUT DIRECTORY" | tee -a ${LOG_DIAG}
 #ls -l ${INPUTDIR}/*/* | tee -a ${LOG_DIAG}
 
-cd `dirname $0`/..
+cd ${LITTRIAGELOAD}
 
 #
 # run the load
