@@ -52,15 +52,15 @@ else
 fi
 
 #
-# Archive the ${LOGDIR}
-#
-mv ${LOGDIR} ${LOGDIR}.`date '+%Y%m%d.%H%M'`
-mkdir ${LOGDIR}
-
-#
 # createArchive including OUTPUTDIR, INPUTDIR, etc.
 # sets "JOBKEY"
 preload ${OUTPUTDIR}
+
+#
+# after preload/archive, mv the ${LOGDIR} to a separate archive
+#
+mv ${LOGDIR} ${LOGDIR}.`date '+%Y%m%d.%H%M'`
+mkdir ${LOGDIR}
 
 #
 # Create curator subdirectories in input directory
