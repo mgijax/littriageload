@@ -64,6 +64,12 @@ find ${FILEDIR} -type f -mtime +30 | grep "logs." | sort | sed 's/^/rm -f /' | t
 cp -r ${LOGDIR} ${LOGDIR}.`date '+%Y%m%d.%H%M'` | tee -a ${LOG}
 
 #
+# createArchive including OUTPUTDIR, INPUTDIR, etc.
+# sets "JOBKEY"
+# preload will create the LOG_DIAG, LOG_ERROR, etc. files
+preload ${OUTPUTDIR}
+
+#
 # Create curator subdirectories in input directory
 # Create curator subdirectories in failed directory
 # note: this will not remove old/obsolete input directories
@@ -75,15 +81,13 @@ do
 mkdir -p ${INPUTDIR}/${i}
 mkdir -p ${FAILEDTRIAGEDIR}/${i}
 done
-echo 'input directory'
-ls -l ${INPUTDIR}
-echo 'failed directory'
-ls -l ${FAILEDTRIAGEDIR}
-
-#
-# createArchive including OUTPUTDIR, INPUTDIR, etc.
-# sets "JOBKEY"
-preload ${OUTPUTDIR}
+date | tee -a ${LOG_DIAG}
+echo "---------------------" | tee -a ${LOG_DIAG}
+echo "input directory" | tee -a ${LOG_DIAG}
+ls -l ${INPUTDIR_DIAG} | tee -a ${LOG_DIAG}
+echo "---------------------" | tee -a ${LOG_DIAG}
+echo "failed directory"| tee -a ${LOG_DIAG}
+ls -l ${FAILEDTRIAGEDIR} | tee -a ${LOG_DIAG}
 
 #
 # if DEV, use 'cp'
@@ -91,8 +95,8 @@ preload ${OUTPUTDIR}
 #
 # cp/mv PUBLISHEDDIR/user pdf files to INPUTDIR/user
 #
-echo "" | tee -a ${LOG_DIAG}
 date | tee -a ${LOG_DIAG}
+echo "---------------------" | tee -a ${LOG_DIAG}
 echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG_DIAG}
 cd ${PUBLISHEDDIR}
 for i in *
@@ -109,6 +113,7 @@ done
 done
 
 # results of cp/mv
+date | tee -a ${LOG_DIAG}
 echo "---------------------" | tee -a ${LOG_DIAG}
 echo "${PUBLISHEDDIR} listing : NOT MOVED TO INPUT DIRECTORY" | tee -a ${LOG_DIAG}
 ls -l ${PUBLISHEDDIR}/*/* | tee -a ${LOG_DIAG}
@@ -121,8 +126,8 @@ cd `dirname $0`/..
 #
 # run the load
 #
-echo "" | tee -a ${LOG_DIAG}
 date | tee -a ${LOG_DIAG}
+echo "---------------------" | tee -a ${LOG_DIAG}
 echo "Run littriageload.py"  | tee -a ${LOG_DIAG}
 ${LITTRIAGELOAD}/bin/littriageload.py | tee -a ${LOG_DIAG}
 STAT=$?
