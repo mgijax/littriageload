@@ -28,6 +28,12 @@ else
 fi
 
 #
+# copy the ${LOGDIR} to a separate archive
+# make sure this happens *before* next step
+#
+cp -r ${LOGDIR} ${LOGDIR}.`date '+%Y%m%d.%H%M'`
+
+#
 # Initialize the log file.
 #
 LOG=${LOG_DIAG}
@@ -52,9 +58,10 @@ else
 fi
 
 #
-# copy the ${LOGDIR} to a separate archive
+# clean out arhicve and logs.* after 30 days
 #
-cp -r ${LOGDIR} ${LOGDIR}.`date '+%Y%m%d.%H%M'`
+find ${FILEDIR} -type f -mtime +30 | grep "archive" | sort | sed 's/^/rm -f /' | tee -a ${LOG}
+find ${FILEDIR} -type f -mtime +30 | grep "logs." | sort | sed 's/^/rm -f /' | tee -a ${LOG}
 
 #
 # createArchive including OUTPUTDIR, INPUTDIR, etc.
