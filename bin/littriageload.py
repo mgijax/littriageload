@@ -323,6 +323,7 @@ def level1SanityChecks():
     errorFile.write('Start Log: ' + mgi_utils.date() + '<BR>')
     errorFile.write('Literature Triage Level 1 Errors<BR><BR>')
     curatorFile.write('\nLiterature Triage Level 1 Errors\n\n')
+    curatorFile.write('Error log with links: ' + error + '\n\n'))
 
     linkIt = '<A HREF="%s%s">%s%s</A><BR>\n' 
 
