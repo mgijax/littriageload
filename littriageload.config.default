@@ -72,7 +72,7 @@ MAIL_LOG_PROC="${USER}"
 export MAIL_LOG_PROC
 
 # Curator log is emailed
-#MAIL_LOG_CUR="${USER},jacqueline.finger@jax.org,richard.baldarilli@jax.org,debbie.krupke@jax.org"
+#MAIL_LOG_CUR="${USER},jacqueline.finger@jax.org,richard.baldarelli@jax.org,debbie.krupke@jax.org"
 MAIL_LOG_CUR="${USER},janice.ormsby@jax.org,nancy.butler@jax.org,richard.baldarilli@jax.org"
 export MAIL_LOG_CUR
 
