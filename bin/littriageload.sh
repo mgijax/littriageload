@@ -28,15 +28,9 @@ else
 fi
 
 #
-# copy the ${LOGDIR} to a separate archive
-# make sure this happens *before* next step
-#
-cp -r ${LOGDIR} ${LOGDIR}.`date '+%Y%m%d.%H%M'`
-
-#
 # Initialize the log file.
 #
-LOG=${LOG_DIAG}
+LOG=littriageload.log
 rm -rf ${LOG}
 touch ${LOG}
 
@@ -64,9 +58,10 @@ find ${FILEDIR} -type f -mtime +30 | grep "archive" | sort | sed 's/^/rm -f /' |
 find ${FILEDIR} -type f -mtime +30 | grep "logs." | sort | sed 's/^/rm -f /' | tee -a ${LOG}
 
 #
-# createArchive including OUTPUTDIR, INPUTDIR, etc.
-# sets "JOBKEY"
-preload ${OUTPUTDIR}
+# copy the ${LOGDIR} to a separate archive
+# make sure this happens *before* next step
+#
+cp -r ${LOGDIR} ${LOGDIR}.`date '+%Y%m%d.%H%M'` | tee -a ${LOG}
 
 #
 # Create curator subdirectories in input directory
@@ -86,14 +81,19 @@ echo 'failed directory'
 ls -l ${FAILEDTRIAGEDIR}
 
 #
+# createArchive including OUTPUTDIR, INPUTDIR, etc.
+# sets "JOBKEY"
+preload ${OUTPUTDIR}
+
+#
 # if DEV, use 'cp'
 # else use 'mv'
 #
 # cp/mv PUBLISHEDDIR/user pdf files to INPUTDIR/user
 #
-echo "" | tee -a ${LOG}
-date | tee -a ${LOG}
-echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG}
+echo "" | tee -a ${LOG_DIAG}
+date | tee -a ${LOG_DIAG}
+echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG_DIAG}
 cd ${PUBLISHEDDIR}
 for i in *
 do
@@ -101,32 +101,32 @@ for j in "${i}/*.pdf" "${i}/*.PDF"
 do
 if [ "${INSTALL_TYPE}" = "dev" ]
 then
-cp -f ${j} ${INPUTDIR}/${i} 2>> ${LOG}
+cp -f ${j} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
 else
-mv -f ${j} ${INPUTDIR}/${i} 2>> ${LOG}
+mv -f ${j} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
 fi
 done
 done
 
 # results of cp/mv
-echo "---------------------" | tee -a ${LOG}
-echo "${PUBLISHEDDIR} listing : NOT MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
-ls -l ${PUBLISHEDDIR}/*/* | tee -a ${LOG}
-#echo "---------------------" | tee -a ${LOG}
-#echo "${INPUTDIR} listing : MOVED TO INPUT DIRECTORY" | tee -a ${LOG}
-#ls -l ${INPUTDIR}/*/* | tee -a ${LOG}
+echo "---------------------" | tee -a ${LOG_DIAG}
+echo "${PUBLISHEDDIR} listing : NOT MOVED TO INPUT DIRECTORY" | tee -a ${LOG_DIAG}
+ls -l ${PUBLISHEDDIR}/*/* | tee -a ${LOG_DIAG}
+#echo "---------------------" | tee -a ${LOG_DIAG}
+#echo "${INPUTDIR} listing : MOVED TO INPUT DIRECTORY" | tee -a ${LOG_DIAG}
+#ls -l ${INPUTDIR}/*/* | tee -a ${LOG_DIAG}
 
 cd `dirname $0`/..
 
 #
 # run the load
 #
-echo "" | tee -a ${LOG}
-date | tee -a ${LOG}
-echo "Run littriageload.py"  | tee -a ${LOG}
-${LITTRIAGELOAD}/bin/littriageload.py | tee -a ${LOG}
+echo "" | tee -a ${LOG_DIAG}
+date | tee -a ${LOG_DIAG}
+echo "Run littriageload.py"  | tee -a ${LOG_DIAG}
+${LITTRIAGELOAD}/bin/littriageload.py | tee -a ${LOG_DIAG}
 STAT=$?
-checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" | tee -a ${LOG}
+checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" | tee -a ${LOG_DIAG}
 
 # run postload cleanup and email logs
 shutDown
