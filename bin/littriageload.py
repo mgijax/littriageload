@@ -19,6 +19,7 @@
 #      The following environment variables are set by the configuration
 #      file that is sourced by the wrapper script:
 #
+#	PUBLISHEDDIR
 #	LITPARSER
 #	INPUTDIR
 #	OUTPUTDIR
@@ -31,12 +32,17 @@
 #
 #  Inputs:
 #
+#	PUBLISHEDDIR=/mgi/all/Triage/PDF_files/_New_Newcurrent
 #	INPUTDIR=${FILEDIR}/input
-#	there are subdirectories for each user
+#
+#	these directories contain subdirectories for each user
+#	PUBLISHEDDIR is where the curator's place their "published" pdf files
+#	PUBLISHEDDIR/curator/*pdf files are moved to INPUTDIR/curator
+#
 #	for example:
-#		input/cms
-#		input/csmith
-#		input/terryh
+#		${PUBLISHEDDIR}/cms moved to ${INPUTDIR}/cms
+#		${PUBLISHEDDIR}/csmith moved to ${INPUTDIR}/csmith
+#		${PUBLISHEDDIR}/mnk moved to ${INPUTDIR}/mnk
 #
 #  Outputs:
 #
@@ -63,6 +69,8 @@ import sys
 import os
 import db
 import mgi_utils
+import accessionlib
+import loadlib
 import PdfParser
 
 DEBUG = 1
@@ -96,6 +104,25 @@ accTable = 'ACC_Accession'
 refTable = 'BIB_Refs'
 statusTable = 'BIB_Workflow_Status'
 
+# load date
+loaddate = loadlib.loaddate
+
+# MGI Accession ID for the reference
+mgiPrefix = 'MGI:'
+
+# _accession_key, accid, prefixpart, numericpart, _logicaldb_key, _objectkey, _mgitype_key, private, prefereed
+# _createdby_key, _modifiedby_key, creation_date, modification_date
+accInsertVal = '%s|%s%d|%s|%s|1|%d|1|0|1|%s|%s|%s|%s\n'
+
+# _refs_key, _referencetype_key, authors, _primary, title, journal
+# vol, issue, date, year, pgs, abstract, isReviewArticle
+# _createdby_key, _modifiedby_key, creation_date, modification_date
+refInsertVal = '%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n')
+
+# _assoc_key, _refs_key, _group_key, _status_key = 31576669 ('Not Routed'), isCurrent = 1 ('true')
+# _createdby_key, _modifiedby_key, creation_date, modification_date
+statusInsertVal = '%s|%s|%s|31576669|1|%s|%s|%s|%s\n')
+
 #
 # userDict = {'user' : [pdf1, pdf2]}
 # {'cms': ['28069793_ag.pdf', '28069794_ag.pdf', '28069795_ag.pdf']}
@@ -105,8 +132,9 @@ userDict = {}
 # doiidByUser = {('user name', 'pdf file') : doiid}
 # {('cms, '28069793_ag.pdf'): ['xxxxx']}
 doiidByUser = {}
+
 #
-# doiidById = {'doiid' : 'pdf file'}
+# doiidById = {'doiid' : ['pdf file']}
 doiidById = {}
 
 #
@@ -266,11 +294,11 @@ def setPrimaryKeys():
 
     global accKey, refKey, statusKey
 
-    results = db.sql('select max(_Refs_key) + 1 as maxKey from BIB_Refs', 'auto')
-    refKey = results[0]['maxKey']
-
     results = db.sql('select max(_Accession_key) + 1 as maxKey from ACC_Accession', 'auto')
     accKey = results[0]['maxKey']
+
+    results = db.sql('select max(_Refs_key) + 1 as maxKey from BIB_Refs', 'auto')
+    refKey = results[0]['maxKey']
 
     results = db.sql('select max(_Assoc_key) + 1 as maxKey from BIB_Workflow_Status', 'auto')
     statusKey = results[0]['maxKey']
@@ -442,12 +470,14 @@ def processPDFs():
 
     for (userPath, doiid) in doiidByUser:
         print userPath, doiid
+	userKey = loadlib.verifyUser(userPath, 0, diagFile)
+	doiidKey = accessionlib.get_Object_key(doiid, 'Reference')
 
     # load BCP files
     # bcpFiles()
     
     # move pdf files from inputDir to masterPath, using new MGI numeric ####
-    # masterPath = masterDir + '/' : determine path based on MGI numeric ####
+    # masterPath = masterDir + '/' : determine bin path based on MGI numeric ####
 
     return 0
 
