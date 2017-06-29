@@ -117,11 +117,11 @@ accInsertVal = '%s|%s%d|%s|%s|1|%d|1|0|1|%s|%s|%s|%s\n'
 # _refs_key, _referencetype_key, authors, _primary, title, journal
 # vol, issue, date, year, pgs, abstract, isReviewArticle
 # _createdby_key, _modifiedby_key, creation_date, modification_date
-refInsertVal = '%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n')
+refInsertVal = '%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n'
 
 # _assoc_key, _refs_key, _group_key, _status_key = 31576669 ('Not Routed'), isCurrent = 1 ('true')
 # _createdby_key, _modifiedby_key, creation_date, modification_date
-statusInsertVal = '%s|%s|%s|31576669|1|%s|%s|%s|%s\n')
+statusInsertVal = '%s|%s|%s|31576669|1|%s|%s|%s|%s\n'
 
 #
 # userDict = {'user' : [pdf1, pdf2]}
