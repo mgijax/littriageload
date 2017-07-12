@@ -72,6 +72,7 @@ import mgi_utils
 import accessionlib
 import loadlib
 import PdfParser
+import PubMedAgent
 
 DEBUG = 1
 bcpon = 1
@@ -129,8 +130,8 @@ statusInsertVal = '%s|%s|%s|31576669|1|%s|%s|%s|%s\n'
 userDict = {}
 
 #
-# doiidByUser = {('user name', 'pdf file') : doiid}
-# {('cms, '28069793_ag.pdf'): ['xxxxx']}
+# doiidByUser = {('user name', 'doiid') : 'pdfFile'}
+# {('cms,  'xxxxx'): '28069793_ag.pdf'}
 doiidByUser = {}
 
 #
@@ -409,6 +410,7 @@ def level1SanityChecks():
 	# if doi id can be found, store in doiidByUser dictionary
 	# else, report error, move pdf to failed directory
 	#
+
 	for pdfFile in userDict[userPath]:
 
 	    pdf = PdfParser.PdfParser(pdfPath + pdfFile)
@@ -435,16 +437,17 @@ def level1SanityChecks():
 		    error2 = error2 + linkIt % (failPath + pdfFile, failPath + pdfFile) + '<BR>\n'
 		    curator2 = curator2 + failPath + pdfFile + '\n'
 		    os.rename(pdfPath + pdfFile, failPath + pdfFile)
+		    continue
             except:
 		error1 = error1 + linkIt % (failPath + pdfFile, failPath + pdfFile) + '<BR>\n'
 		curator1 = curator1 + failPath + pdfFile + '\n'
 		os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		continue
 
-	    # store by User as well 
+	    # if no error - store by User as well 
 	    if (userPath, doiid) not in doiidByUser:
 	        doiidByUser[(userPath, doiid)] = []
-	        doiidByUser[(userPath, doiid)].append(pdfFile)
+	    doiidByUser[(userPath, doiid)].append(pdfFile)
 
     errorFile.write('1: not in PDF format<BR><BR>\n' + error1 + '<BR>\n\n')
     errorFile.write('2: cannot extract/find DOI ID<BR><BR>\n' + error2 + '<BR>\n\n')
@@ -455,6 +458,53 @@ def level1SanityChecks():
 
     return 0
 
+#
+# Purpose: Level 2 Sanity Checks
+# Returns: 0
+#
+def level2SanityChecks(doiId, refList, userPath, pdfFile): 
+    print 'doiId: %s refList: %s userPath: %s pdfFile: %s ' % (doiId, refList, userPath, pdfFile)
+    # DOI ID maps to multiple pubmed IDs
+    if len(refList) > 1:
+        print 'DOI ID %s maps to multiple pubmed IDs: ' % doiId
+	for ref in refList:
+	    if ref == None:
+		print 'None'
+	    else:
+		print ref.getPubMedID()
+	return 1
+    # record (for DOI ID) not found in pubmed
+    # record found, but missing a required NLM field
+    print 'level2SanityChecks: iterating through refList'
+    for ref in refList: # at this point there is only one in the list
+	if ref == None:
+	    print 'record (for DOI ID) not found in pubmed'
+	    return 1
+	elif not ref.isValid():
+	    print 'Error getting medline record: %s' % ref.getErrorMessage()
+	    return 1
+	else: #  check for required NLM fields
+	    print 'checking for required NLM files'
+	    # PMID - PubMed unique identifier
+	    # TI - title of article
+	    # TA - journal
+	    # DP - date
+	    # YR - year
+	    requiredDict = {}
+	    missingList = []
+	    requiredDict['pmId'] = ref.getPubMedID()
+	    requiredDict['title'] = ref.getTitle()
+	    requiredDict['journal'] = ref.getJournal()
+	    requiredDict['date'] = ref.getDate()
+	    requiredDict['year'] = ref.getYear()
+	    print requiredDict
+	    for reqLabel in requiredDict:
+		if requiredDict[reqLabel] == None:
+		    missingList.append(reqLabel)
+	    if len(missingList):
+		return 1
+		print 'Missing data from required field for doiId %s: %s' % (doiId, ','.join(missingList))
+	    return 0
 #
 # Purpose: Process/Iterate thru PDFs
 # Returns: 0
@@ -467,11 +517,26 @@ def processPDFs():
     #   generate BCP file
     #   track pdf -> MGI numeric ####
     #
+    pma = PubMedAgent.PubMedAgentMedline()
 
-    for (userPath, doiid) in doiidByUser:
-        print userPath, doiid
+    
+    for key in doiidByUser: # doiidByUser = {('user name', 'doiid') : 'pdffile'}
+	print '\nNEW DOIID\n'
+	print key
+	userPath = key[0]
+	doiId = key[1]
+	print 'userPath: %s' % userPath
+	print 'doiId: %s' % doiId
+	pdfFile = doiidByUser[key]
+	mapping = pma.getReferences([doiId])
+	#print 'mapping: %s' % mapping
+	refList = mapping[doiId]
+	rc = level2SanityChecks(doiId, refList, userPath, pdfFile)
+	if rc == 0: # load it
+	    print 'load it'
 	userKey = loadlib.verifyUser(userPath, 0, diagFile)
-	doiidKey = accessionlib.get_Object_key(doiid, 'Reference')
+	doiidKey = accessionlib.get_Object_key(doiId, 'Reference')
+
 
     # load BCP files
     # bcpFiles()
@@ -495,9 +560,9 @@ if level1SanityChecks() != 0:
 #if setPrimaryKeys() != 0:
 #    sys.exit(1)
 
-#if processPDFs() != 0:
-#    closeFiles()
-#    sys.exit(1)
+if processPDFs() != 0:
+    closeFiles()
+    sys.exit(1)
 
 closeFiles()
 sys.exit(0)
