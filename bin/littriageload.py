@@ -583,7 +583,7 @@ def processPDFs():
 	if ref == 1:
 	   if DEBUG:
 	       diagFile.write('level2SanityChecks() : failed : %s, %s, %s, %s\n' % (doiId, userPath, pdfFile, str(ref)))
-	   #os.rename(pdfPath + pdfFile, failPath + pdfFile)
+	   os.rename(pdfPath + pdfFile, failPath + pdfFile)
            continue
 
 	if DEBUG:
