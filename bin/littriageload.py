@@ -577,6 +577,8 @@ def processPDFs():
 	pdfFile = doiidByUser[key][0]
 	userPath = key[0]
 	doiId = key[1]
+        pdfPath = inputDir + '/' + userPath + '/'
+        failPath = failDir + '/' + userPath + '/'
 
 	ref = level2SanityChecks(userPath, doiId, pdfFile)
 
