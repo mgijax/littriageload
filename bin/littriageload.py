@@ -580,7 +580,7 @@ def processPDFs():
 
 	ref = level2SanityChecks(userPath, doiId, pdfFile)
 
-	if ref == 0:
+	if ref == 1:
 	   if DEBUG:
 	       diagFile.write('level2SanityChecks() : failed : %s, %s, %s, %s\n' % (doiId, userPath, pdfFile, str(ref)))
 	   #os.rename(pdfPath + pdfFile, failPath + pdfFile)
