@@ -61,11 +61,11 @@
 
 import sys 
 import os
+import re
 import db
 import mgi_utils
 import PdfParser
 import PubMedAgent
-import db
 
 DEBUG = 1
 bcpon = 1
@@ -346,7 +346,7 @@ def level1SanityChecks():
     global doiidByUser, doiidById
     global error1, error2, error3, error4
 
-    errorStart = 'Start Log: ' + mgi_utils.date() + '<BR>\n\nLiterature Triage Level 1 Errors<BR><BR>\n'
+    errorStart = 'Start Log: ' + mgi_utils.date() + '<BR><BR>\n\nLiterature Triage Level 1 Errors<BR><BR>\n'
     error1 = '' 
     error2 = ''
     error3 = ''
@@ -439,28 +439,13 @@ def level1SanityChecks():
     #
     level1error1 = '1: not in PDF format<BR><BR>\n' + error1 + '<BR>\n\n'
     level1error2 = '2: cannot extract/find DOI ID<BR><BR>\n' + error2 + '<BR>\n\n'
-    level1error3 = '3: duplicate published refs (same DOI ID)\n' + error3 + '<BR>\n\n'
+    level1error3 = '3: duplicate published refs (same DOI ID)<BR><BR>\n' + error3 + '<BR>\n\n'
     errorFile.write(errorStart)
     errorFile.write(level1error1)
-    errorFile.write(error1)
     errorFile.write(level1error2)
-    errorFile.write(error2)
     errorFile.write(level1error3)
-    errorFile.write(error3)
-    errorStart = errorStart.replace('<BR>', '')
-    level1error1 = level1error1.replace('<BR>', '')
-    level1error2 = level1error2.replace('<BR>', '')
-    level1error3 = level1error3.replace('<BR>', '')
-    error1 = error1.replace('<BR>', '')
-    error2 = error2.replace('<BR>', '')
-    error3 = error3.replace('<BR>', '')
-    curatorFile.write(errorStart)
-    curatorFile.write(level1error1)
-    curatorFile.write(error1)
-    curatorFile.write(level1error2)
-    curatorFile.write(error2)
-    curatorFile.write(level1error3)
-    curatorFile.write(error3)
+    for l in (errorStart, level1error1, level1error2, level1error3, error1, error2, error3):
+	curatorFile.write(re.sub('<.*?>', '', l))
 
     return 0
 
@@ -690,30 +675,12 @@ def processPDFs():
     level2error4 = '4: missing data from required field for DOI ID<BR><BR>\n' + error4 + '<BR>\n\n'
     errorFile.write(errorStart)
     errorFile.write(level2error1)
-    errorFile.write(error1)
     errorFile.write(level2error2)
-    errorFile.write(error3)
     errorFile.write(level2error3)
-    errorFile.write(error2)
     errorFile.write(level2error4)
-    errorFile.write(error4)
     errorFile.write(errorEnd)
-    errorStart = errorStart.replace('<BR>', '')
-    errorEnd = errorEnd.replace('<BR>', '')
-    level2error1 = level2error1.replace('<BR>', '')
-    level2error2 = level2error2.replace('<BR>', '')
-    level2error3 = level2error3.replace('<BR>', '')
-    level2error4 = level2error4.replace('<BR>', '')
-    curatorFile.write(errorStart)
-    curatorFile.write(level2error1)
-    curatorFile.write(error2)
-    curatorFile.write(level2error2)
-    curatorFile.write(error4)
-    curatorFile.write(level2error3)
-    curatorFile.write(error2)
-    curatorFile.write(level2error4)
-    curatorFile.write(error4)
-    curatorFile.write(errorEnd)
+    for l in (errorStart, errorEnd, level2error1, level2error2, level2error3, level2error4, error1, error2, error3, error4):
+	curatorFile.write(re.sub('<.*?>', '', l))
 
     return 0
 
