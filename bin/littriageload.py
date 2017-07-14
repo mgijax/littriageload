@@ -449,7 +449,7 @@ def level1SanityChecks():
 # Purpose: Level 2 Sanity Checks : parse PubMed IDs from PubMed API
 # Returns: ref object if successful, else returns 1
 #
-#  1: DOI ID maps to multiple pubmed IDs or None
+#  1: DOI ID maps to multiple pubmed IDs
 #  2: record (for DOI ID) not found in pubmed
 #  3: error getting medline record
 #  4: missing data from required field for DOI ID
@@ -464,7 +464,7 @@ def level2SanityChecks(userPath, doiId, pdfFile, pdfPath, failPath):
     mapping = pma.getReferences([doiId])
     refList = mapping[doiId]
 
-    #  1: DOI ID maps to multiple pubmed IDs or None
+    #  1: DOI ID maps to multiple pubmed IDs
     if len(refList) > 1:
         for ref in refList:
 	    error1 = error1 + doiId + ',' + str(ref.getPubMedID()) + '<BR>\n' + \
@@ -664,7 +664,7 @@ def processPDFs():
     #
     # write out level2 errors to both error log and curator log
     #
-    level2error1 = '1: DOI ID maps to multiple pubmed IDs or None<BR><BR>\n' + error1 + '<BR>\n\n'
+    level2error1 = '1: DOI ID maps to multiple pubmed IDs<BR><BR>\n' + error1 + '<BR>\n\n'
     level2error2 = '2: record (for DOI ID) not found in pubmed<BR><BR>\n' + error2 + '<BR>\n\n'
     level2error3 = '3: error getting medline record<BR><BR>\n' + error3 + '<BR>\n\n'
     level2error4 = '4: missing data from required field for DOI ID<BR><BR>\n' + error4 + '<BR>\n\n'
@@ -673,7 +673,7 @@ def processPDFs():
 
     # copy all errors to error log, remove html and copy to curator log
     errorFile.write(allErrors)
-    curatorFile.write(re.sub('<.*?>', '', allerrors))
+    curatorFile.write(re.sub('<.*?>', '', allErrors))
 
     return 0
 
