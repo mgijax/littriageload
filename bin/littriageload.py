@@ -115,6 +115,7 @@ doiidById = {}
 # linkOut : link URL
 linkOut = '<A HREF="%s">%s</A>' 
 
+allErrors = ''
 error1 = '' 
 error2 = ''
 error3 = ''
@@ -344,7 +345,7 @@ def bcpFiles():
 def level1SanityChecks():
     global userDict
     global doiidByUser, doiidById
-    global error1, error2, error3, error4
+    global allErrors, error1, error2, error3, error4
 
     errorStart = 'Start Log: ' + mgi_utils.date() + '<BR><BR>\n\nLiterature Triage Level 1 Errors<BR><BR>\n'
     error1 = '' 
@@ -440,14 +441,7 @@ def level1SanityChecks():
     level1error1 = '1: not in PDF format<BR><BR>\n' + error1 + '<BR>\n\n'
     level1error2 = '2: cannot extract/find DOI ID<BR><BR>\n' + error2 + '<BR>\n\n'
     level1error3 = '3: duplicate published refs (same DOI ID)<BR><BR>\n' + error3 + '<BR>\n\n'
-    errorFile.write(errorStart)
-    errorFile.write(level1error1)
-    errorFile.write(level1error2)
-    errorFile.write(level1error3)
-    curatorFile.write(re.sub('<.*?>', '', errorStart))
-    curatorFile.write(re.sub('<.*?>', '', level1error1))
-    curatorFile.write(re.sub('<.*?>', '', level1error2))
-    curatorFile.write(re.sub('<.*?>', '', level1error3))
+    allErrors = allErrors + errorStart + level1error1 + level1error2 + level1error3
 
     return 0
 
@@ -579,7 +573,7 @@ def level3SanityChecks(userPath, doiId, pdfFile, pdfPath, failPath, ref):
 # Returns: 0
 #
 def processPDFs():
-    global error1, error2, error3, error4
+    global allErrors, error1, error2, error3, error4
 
     #
     # assumes the level1SanityChecks have passed
@@ -670,23 +664,16 @@ def processPDFs():
     #
     # write out level2 errors to both error log and curator log
     #
-    errorEnd = 'End Log: ' + mgi_utils.date() + '<BR>\n\n'
     level2error1 = '1: DOI ID maps to multiple pubmed IDs or None<BR><BR>\n' + error1 + '<BR>\n\n'
     level2error2 = '2: record (for DOI ID) not found in pubmed<BR><BR>\n' + error2 + '<BR>\n\n'
     level2error3 = '3: error getting medline record<BR><BR>\n' + error3 + '<BR>\n\n'
     level2error4 = '4: missing data from required field for DOI ID<BR><BR>\n' + error4 + '<BR>\n\n'
-    errorFile.write(errorStart)
-    errorFile.write(level2error1)
-    errorFile.write(level2error2)
-    errorFile.write(level2error3)
-    errorFile.write(level2error4)
-    errorFile.write(errorEnd)
-    curatorFile.write(re.sub('<.*?>', '', errorStart))
-    curatorFile.write(re.sub('<.*?>', '', level2error1))
-    curatorFile.write(re.sub('<.*?>', '', level2error2))
-    curatorFile.write(re.sub('<.*?>', '', level2error3))
-    curatorFile.write(re.sub('<.*?>', '', level2error4))
-    curatorFile.write(re.sub('<.*?>', '', errorEnd))
+    errorEnd = 'End Log: ' + mgi_utils.date() + '<BR>\n\n'
+    allErrors = allErrors + errorStart + level2error1 + level2error2 + level2error3 + level2error4 + errorEnd
+
+    # copy all errors to error log, remove html and copy to curator log
+    errorFile.write(allErrors)
+    curatorFile.write(re.sub('<.*?>', '', allerrors))
 
     return 0
 
