@@ -444,8 +444,10 @@ def level1SanityChecks():
     errorFile.write(level1error1)
     errorFile.write(level1error2)
     errorFile.write(level1error3)
-    for l in (errorStart, level1error1, level1error2, level1error3, error1, error2, error3):
-	curatorFile.write(re.sub('<.*?>', '', l))
+    curatorFile.write(re.sub('<.*?>', '', errorStart))
+    curatorFile.write(re.sub('<.*?>', '', level1error1))
+    curatorFile.write(re.sub('<.*?>', '', level1error2))
+    curatorFile.write(re.sub('<.*?>', '', level1error3))
 
     return 0
 
@@ -679,8 +681,12 @@ def processPDFs():
     errorFile.write(level2error3)
     errorFile.write(level2error4)
     errorFile.write(errorEnd)
-    for l in (errorStart, errorEnd, level2error1, level2error2, level2error3, level2error4, error1, error2, error3, error4):
-	curatorFile.write(re.sub('<.*?>', '', l))
+    curatorFile.write(re.sub('<.*?>', '', errorStart))
+    curatorFile.write(re.sub('<.*?>', '', level2error1))
+    curatorFile.write(re.sub('<.*?>', '', level2error2))
+    curatorFile.write(re.sub('<.*?>', '', level2error3))
+    curatorFile.write(re.sub('<.*?>', '', level2error4))
+    curatorFile.write(re.sub('<.*?>', '', errorEnd))
 
     return 0
 
