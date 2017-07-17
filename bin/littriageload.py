@@ -115,11 +115,25 @@ doiidById = {}
 # linkOut : link URL
 linkOut = '<A HREF="%s">%s</A>' 
 
-allErrors = ''
-error1 = '' 
-error2 = ''
-error3 = ''
-error4 = ''
+# error logs for level1, level2, level3
+
+allErrors = 'Start Log: ' + mgi_utils.date() + '<BR><BR>\n\n'
+level1errorStart = 'Literature Triage Level 1 Errors : parse DOI ID from PDF files<BR><BR>\n'
+level2errorStart = 'Literature Triage Level 2 Errors : parse PubMed IDs from PubMed API<BR><BR>\n\n'
+level3errorStart = 'Literature Triage Level 3 Errors<BR><BR>\n\n'
+
+level1error1 = '' 
+level1error2 = ''
+level1error3 = ''
+level1error4 = ''
+
+level2error1 = '' 
+level2error2 = ''
+level2error3 = ''
+level2error4 = ''
+
+level3error1 = '' 
+level3error2 = ''
 
 #
 # Purpose: prints error message and exits
@@ -345,12 +359,7 @@ def bcpFiles():
 def level1SanityChecks():
     global userDict
     global doiidByUser, doiidById
-    global allErrors, error1, error2, error3, error4
-
-    errorStart = 'Start Log: ' + mgi_utils.date() + '<BR><BR>\n\nLiterature Triage Level 1 Errors<BR><BR>\n'
-    error1 = '' 
-    error2 = ''
-    error3 = ''
+    global allErrors, level1error1, level1error2, level1error3
 
     # iterate thru input directory by user
     for userPath in os.listdir(inputDir):
@@ -416,17 +425,17 @@ def level1SanityChecks():
 			    diagFile.write('pdf.getFirstDoiID() : successful : %s%s : %s\n' % (pdfPath, pdfFile, doiid))
 			    diagFile.flush()
 		    else:
-		        error3 = error3 + doiid + '<BR>\n' + linkOut % (failPath + pdfFile, failPath + pdfFile) + \
+		        level1error3 = level1error3 + doiid + '<BR>\n' + linkOut % (failPath + pdfFile, failPath + pdfFile) + \
 				'<BR>\nduplicate of ' + \
 				linkOut % (pdfPath + doiidById[doiid][0], pdfPath + doiidById[doiid][0]) + '<BR><BR>\n\n'
 			os.rename(pdfPath + pdfFile, failPath + pdfFile)
 			continue
 		else:
-		    error2 = error2 + linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR>\n'
+		    level1error2 = level1error2 + linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR>\n'
 		    os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		    continue
             except:
-		error1 = error1 + linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR>\n'
+		level1error1 = level1error1 + linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR>\n'
 		os.rename(pdfPath + pdfFile, failPath + pdfFile)
 		continue
 
@@ -438,10 +447,10 @@ def level1SanityChecks():
     #
     # write out level1 errors to both error log and curator log
     #
-    level1error1 = '1: not in PDF format<BR><BR>\n' + error1 + '<BR>\n\n'
-    level1error2 = '2: cannot extract/find DOI ID<BR><BR>\n' + error2 + '<BR>\n\n'
-    level1error3 = '3: duplicate published refs (same DOI ID)<BR><BR>\n' + error3 + '<BR>\n\n'
-    allErrors = allErrors + errorStart + level1error1 + level1error2 + level1error3
+    level1error1 = '1: not in PDF format<BR><BR>\n' + level1error1 + '<BR>\n\n'
+    level1error2 = '2: cannot extract/find DOI ID<BR><BR>\n' + leve1error2 + '<BR>\n\n'
+    level1level1error3 = '3: duplicate published refs (same DOI ID)<BR><BR>\n' + leve1error3 + '<BR>\n\n'
+    allErrors = allErrors + level1errorStart + level1error1 + level1error2 + level1error3
 
     return 0
 
@@ -454,27 +463,27 @@ def level1SanityChecks():
 #  3: error getting medline record
 #  4: missing data from required field for DOI ID
 #
-def level2SanityChecks(userPath, doiId, pdfFile, pdfPath, failPath):
-    global error1, error2, error3, error4
+def level2SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath):
+    global level2error1, level2error2, level2error3, level2error4
 
     if DEBUG:
-        diagFile.write('level2SanityChecks: %s, %s, %s\n' % (userPath, doiId, pdfFile))
+        diagFile.write('level2SanityChecks: %s, %s, %s\n' % (userPath, doiID, pdfFile))
 
-    # mapping of doiId to pubmedId, return list of references
-    mapping = pma.getReferences([doiId])
-    refList = mapping[doiId]
+    # mapping of doiID to pubmedId, return list of references
+    mapping = pma.getReferences([doiID])
+    refList = mapping[doiID]
 
     #  1: DOI ID maps to multiple pubmed IDs
     if len(refList) > 1:
         for ref in refList:
-	    error1 = error1 + doiId + ',' + str(ref.getPubMedID()) + '<BR>\n' + \
+	    level2error1 = level2error1 + doiID + ',' + str(ref.getPubMedID()) + '<BR>\n' + \
 	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
 	return 1
 
     #  2: record (for DOI ID) not found in pubmed
     for ref in refList:
         if ref == None:
-	    error2 = error2 + doiId + '<BR>\n' + \
+	    level2error2 = level2error2 + doiID + '<BR>\n' + \
 		    linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
 	    return 1
 
@@ -485,7 +494,7 @@ def level2SanityChecks(userPath, doiId, pdfFile, pdfPath, failPath):
 
         #  3: error getting medline record
 	if not ref.isValid():
-	    error3 = error3 + doiId + ',' + pubmedID + '<BR>\n' + \
+	    level2error3 = level2error3 + doiID + ',' + pubmedID + '<BR>\n' + \
 	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
 	    return 1
 
@@ -515,7 +524,7 @@ def level2SanityChecks(userPath, doiId, pdfFile, pdfPath, failPath):
 		if requiredDict[reqLabel] == None:
 		    missingList.append(reqLabel)
 	    if len(missingList):
-	        error4 = error4 + doiId + ',' + pubmedID + '<BR>\n' + \
+	        level2error4 = level2error4 + doiID + ',' + pubmedID + '<BR>\n' + \
 			linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
 		return 1
 
@@ -527,42 +536,57 @@ def level2SanityChecks(userPath, doiId, pdfFile, pdfPath, failPath):
 # Purpose: Level 3 Sanity Checks : check MGI for errors
 # Returns: returns 0 if successful, 1 if errors are found
 #
-#  1: input PMID or DOI ID exists in MGI (i.e. duplicate)
-#  2: input PMID or DOI ID associated with different MGI references
-#  3: input PMID exists in MGI but missing DOI ID -> add DOI ID in MGI
-#  4: input DOI ID exists in MGI but missing PMID -> add PMID in MGI
+#  1a: duplicate : input PMID or DOI ID exists in MGI
+#  1b: duplicate : input PMID or DOI ID associated with different MGI references
+#  2a: input PMID exists in MGI but missing DOI ID -> add DOI ID in MGI
+#  2b: input DOI ID exists in MGI but missing PMID -> add PMID in MGI
 #
-def level3SanityChecks(userPath, doiId, pdfFile, pdfPath, failPath, ref):
-    global error1, error2
+def level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, ref):
+    global level3error1, level3error2
+
+    # return 0 : will add as new reference
+    # return 1 : will skip/move to 'failed'
+    # return 2 : will add new Accession ids
 
     if DEBUG:
-        diagFile.write('level3SanityChecks: %s, %s, %s\n' % (userPath, doiId, pdfFile))
+        diagFile.write('level3SanityChecks: %s, %s, %s\n' % (userPath, doiID, pdfFile))
 
     pubmedID = ref.getPubMedID()
 
     results = db.sql('''
 	select _Refs_key, mgiID, pubmedID, doiID from BIB_Citation_Cache where pubmedID = '%s' or doiID = '%s'
-    	''' % (pubmedID, doiId), 'auto')
+    	''' % (pubmedID, doiID), 'auto')
 
-    #  2: input PMID or DOI ID associated with different MGI references
+    #  1a: duplicate : input PMID or DOI ID associated with different MGI references
     if len(results) > 1:
-        diagFile.write('> 1 reference exists in MGI: ' + str(results) + '\n')
+        diagFile.write('1b: duplicate : input PMID or DOI ID associated with different MGI references: ' \
+		+ doiID + ',' + pubmedID + '\n')
+	level3error1 = level3error1 + doiID + ',' + pubMedID + '<BR>\n' + \
+	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
+	#os.rename(pdfPath + pdfFile, failPath + pdfFile)
 	return 1, results
 
-    #  1: input PMID or DOI ID exists in MGI (i.e. duplicate)
-    #  3: input PMID exists in MGI but missing DOI ID -> add DOI ID in MGI
-    #  4: input DOI ID exists in MGI but missing PMID -> add PMID in MGI
     elif len(results) == 1:
+
+        #  2: input PMID exists in MGI but missing DOI ID -> add DOI ID in MGI
 	if results[0]['pubmedID'] == None:
-	    diagFile.write('2: pubmedID is missing in MGI\n')
+	    diagFile.write('2a: pubmedID is missing in MGI: ' + doiID + ',' + pubmedID + '\n')
+	    #level3error2 = level3error1 + doiID + ',' + pubMedID + '<BR>\n' + \
+	    #	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
 	    return 2, results
 
+        #  2: input DOI ID exists in MGI but missing PMID -> add PMID in MGI
 	if results[0]['doiID'] == None:
-	    diagFile.write('2: doiid is missing in MGI\n')
+	    diagFile.write('2b: doiid is missing in MGI:' + doiID + ',' + pubmedID + '\n')
+	    #level3error2 = level3error1 + doiID + ',' + pubmedID + '<BR>\n' + \
+	    #	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
 	    return 2, results
 
-	# skip it
-        diagFile.write('1: reference already exists in MGI\n')
+        #  1b: duplicate : input PMID or DOI ID exists in MGI
+	diagFile.write('1a: duplidate 1 : input PMID or DOI ID exists in MGI: ' + doiID + ',' + pubmedID + '\n')
+	#level3error1 = level3error1 + doiID + ',' + str(ref.getPubMedID()) + '<BR>\n' + \
+	#    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
+	#os.rename(pdfPath + pdfFile, failPath + pdfFile)
         return 1, results
 
     else:
@@ -573,7 +597,9 @@ def level3SanityChecks(userPath, doiId, pdfFile, pdfPath, failPath, ref):
 # Returns: 0
 #
 def processPDFs():
-    global allErrors, error1, error2, error3, error4
+    global allErrors
+    global level2error1, level2error2, level2error3, level2error4
+    global level3error1, level3error2
 
     #
     # assumes the level1SanityChecks have passed
@@ -587,12 +613,6 @@ def processPDFs():
     if DEBUG:
         diagFile.write('\nprocessPDFs()\n')
 
-    errorStart = 'Literature Triage Level 2 Errors<BR><BR>\n\n'
-    error1 = '' 
-    error2 = ''
-    error3 = ''
-    error4 = ''
-
     # doiidByUser = {('user name', 'doiid') : 'pdffile'}
 
     for key in doiidByUser:
@@ -602,7 +622,7 @@ def processPDFs():
 
 	pdfFile = doiidByUser[key][0]
 	userPath = key[0]
-	doiId = key[1]
+	doiID = key[1]
         pdfPath = inputDir + '/' + userPath + '/'
         failPath = failDir + '/' + userPath + '/'
 
@@ -610,50 +630,54 @@ def processPDFs():
 	# level2SanityChecks()
 	# parse PubMed IDs from PubMed API
 	#
-	ref = level2SanityChecks(userPath, doiId, pdfFile, pdfPath, failPath)
+	ref = level2SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath)
 
 	if ref == 1:
 	   if DEBUG:
-	       diagFile.write('level2SanityChecks() : failed : %s, %s, %s, %s\n' % (doiId, userPath, pdfFile, str(ref)))
-	   #os.rename(pdfPath + pdfFile, failPath + pdfFile)
+	       diagFile.write('level2SanityChecks() : failed : %s, %s, %s, %s\n' % (doiID, userPath, pdfFile, str(ref)))
+	   os.rename(pdfPath + pdfFile, failPath + pdfFile)
            continue
 
 	pubmedId = ref.getPubMedID()
 
 	if DEBUG:
-	    diagFile.write('level2SanityChecks() : successful : %s, %s, %s, %s\n' % (doiId, userPath, pdfFile, pubmedId))
+	    diagFile.write('level2SanityChecks() : successful : %s, %s, %s, %s\n' % (doiID, userPath, pdfFile, pubmedId))
 
 	#
 	# level3SanityChecks()
 	# check MGI for errors
 	#
-	#rc, results = level3SanityChecks(userPath, doiId, pdfFile, pdfPath, failPath, ref)
+        # return 0 : will add as new reference
+        # return 1 : will skip/move to 'failed'
+        # return 2 : will add new Accession ids
+	#
+	rc, results = level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, ref)
 
-	#if rc == 1:
-	    #if DEBUG:
-                #diagFile.write('level3SanityChecks() : failed : %s, %s, %s, %s\n' \
-			#% (doiId, userPath, pdfFile, pubmedId))
-	    #continue
+	if rc == 1:
+	    if DEBUG:
+                diagFile.write('level3SanityChecks() : failed : %s, %s, %s, %s\n' \
+			% (doiID, userPath, pdfFile, pubmedId))
+	    continue
 
 	#
 	# add accession ids to existing MGI reference
 	#
-	#if rc == 2:
-            #diagFile.write('level3SanityChecks() : successful : add PMID or DOI ID : %s, %s, %s, %s\n' \
-	    	#% (doiId, userPath, pdfFile, pubmedId))
+	if rc == 2:
+            diagFile.write('level3SanityChecks() : successful : add PMID or DOI ID : %s, %s, %s, %s\n' \
+	    	% (doiID, userPath, pdfFile, pubmedId))
 
 	#
 	# add new MGI reference
 	#
-	#if rc == 0:
-            #diagFile.write('level3SanityChecks() : successful : add new : %s, %s, %s, %s\n' \
-	    	#% (doiId, userPath, pdfFile, pubmedId))
+	if rc == 0:
+            diagFile.write('level3SanityChecks() : successful : add new : %s, %s, %s, %s\n' \
+	    	% (doiID, userPath, pdfFile, pubmedId))
 
 	#
 	# build bcp files
 	#
 	#userKey = loadlib.verifyUser(userPath, 0, diagFile)
-	#doiidKey = accessionlib.get_Object_key(doiId, 'Reference')
+	#doiidKey = accessionlib.get_Object_key(doiID, 'Reference')
 
     # load BCP files
     # bcpFiles()
@@ -664,14 +688,18 @@ def processPDFs():
     #
     # write out level2 errors to both error log and curator log
     #
-    level2error1 = '1: DOI ID maps to multiple pubmed IDs<BR><BR>\n' + error1 + '<BR>\n\n'
-    level2error2 = '2: record (for DOI ID) not found in pubmed<BR><BR>\n' + error2 + '<BR>\n\n'
-    level2error3 = '3: error getting medline record<BR><BR>\n' + error3 + '<BR>\n\n'
-    level2error4 = '4: missing data from required field for DOI ID<BR><BR>\n' + error4 + '<BR>\n\n'
-    errorEnd = 'End Log: ' + mgi_utils.date() + '<BR>\n\n'
-    allErrors = allErrors + errorStart + level2error1 + level2error2 + level2error3 + level2error4 + errorEnd
+    level2error1 = '1: DOI ID maps to multiple pubmed IDs<BR><BR>\n' + level2error1 + '<BR>\n\n'
+    level2error2 = '2: record (for DOI ID) not found in pubmed<BR><BR>\n' + level2error2 + '<BR>\n\n'
+    level2error3 = '3: error getting medline record<BR><BR>\n' + level2error3 + '<BR>\n\n'
+    level2error4 = '4: missing data from required field for DOI ID<BR><BR>\n' + level2error4 + '<BR>\n\n'
+    allErrors = allErrors + level2errorStart + level2error1 + level2error2 + level2error3 + level2error4
+
+    level3error1 = '1:' + level3error1 + '<BR>\n\n'
+    level3error2 = '2:' + level3error2 + '<BR>\n\n'
+    allErrors = allErrors + level3error1 + level3error2 
 
     # copy all errors to error log, remove html and copy to curator log
+    allErrors = allErrors + 'End Log: ' + mgi_utils.date() + '<BR>\n\n'
     errorFile.write(allErrors)
     curatorFile.write(re.sub('<.*?>', '', allErrors))
 
