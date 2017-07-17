@@ -561,8 +561,8 @@ def level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, ref):
     if len(results) > 1:
         diagFile.write('1b: duplicate : input PMID or DOI ID associated with different MGI references: ' \
 		+ doiID + ',' + pubmedID + '\n')
-	level3error1 = level3error1 + doiID + ',' + pubMedID + '<BR>\n' + \
-	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
+	#level3error1 = level3error1 + doiID + ',' + pubMedID + '<BR>\n' + \
+	    	#linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
 	#os.rename(pdfPath + pdfFile, failPath + pdfFile)
 	return 1, results
 
@@ -694,9 +694,9 @@ def processPDFs():
     level2error4 = '4: missing data from required field for DOI ID<BR><BR>\n' + level2error4 + '<BR>\n\n'
     allErrors = allErrors + level2errorStart + level2error1 + level2error2 + level2error3 + level2error4
 
-    level3error1 = '1:' + level3error1 + '<BR>\n\n'
-    level3error2 = '2:' + level3error2 + '<BR>\n\n'
-    allErrors = allErrors + level3error1 + level3error2 
+    #level3error1 = '1:' + level3error1 + '<BR>\n\n'
+    #level3error2 = '2:' + level3error2 + '<BR>\n\n'
+    #allErrors = allErrors + level3error1 + level3error2 
 
     # copy all errors to error log, remove html and copy to curator log
     allErrors = allErrors + 'End Log: ' + mgi_utils.date() + '<BR>\n\n'
