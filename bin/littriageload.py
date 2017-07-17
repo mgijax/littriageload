@@ -448,8 +448,8 @@ def level1SanityChecks():
     # write out level1 errors to both error log and curator log
     #
     level1error1 = '1: not in PDF format<BR><BR>\n' + level1error1 + '<BR>\n\n'
-    level1error2 = '2: cannot extract/find DOI ID<BR><BR>\n' + leve1error2 + '<BR>\n\n'
-    level1level1error3 = '3: duplicate published refs (same DOI ID)<BR><BR>\n' + leve1error3 + '<BR>\n\n'
+    level1error2 = '2: cannot extract/find DOI ID<BR><BR>\n' + level1error2 + '<BR>\n\n'
+    level1level1error3 = '3: duplicate published refs (same DOI ID)<BR><BR>\n' + level1error3 + '<BR>\n\n'
     allErrors = allErrors + level1errorStart + level1error1 + level1error2 + level1error3
 
     return 0
