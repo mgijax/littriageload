@@ -392,10 +392,13 @@ def bcpFiles():
 
     db.commit()
 
+    diagFile.write('\nstart: bcp process\n')
     for bcpCmd in [bcp1, bcp2, bcp3, bcp4]:
         diagFile.write('%s\n' % bcpCmd)
 	if bcpon:
             os.system(bcpCmd)
+    diagFile.write('\nend: bcp process\n')
+    diagFile.flush()
 
     diagFile.write('\nstart: oldPDF to newPDF\n')
     for oldPDF in mvPDFtoMasterDir:
@@ -406,6 +409,7 @@ def bcpFiles():
     diagFile.write('\nend: oldPDF to newPDF\n')
 
     diagFile.write('\nend: bcpFiles()\n')
+    diagFile.flush()
 
     return 0
 
@@ -862,6 +866,8 @@ def processPDFs():
     allErrors = allErrors + '<BR><BR>\nEnd Log: ' + mgi_utils.date() + '<BR>\n\n'
     errorFile.write(allErrors)
     curatorFile.write(re.sub('<.*?>', '', allErrors))
+
+    diagFile.flush()
 
     return 0
 
