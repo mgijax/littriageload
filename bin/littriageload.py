@@ -407,10 +407,10 @@ def bcpFiles():
 	    diagFile.write(oldPDF + '\t' +  newFileDir + '\t' + newPDF + '\n')
 	    if bcpon:
 	        try:
-		    os.makedirs(newFileDir))
+		    os.makedirs(newFileDir)
 		except:
 		    pass
-		tryp:
+		try:
                     os.rename(oldPDF, newFileDir + '/' + newPDF)
 		except:
 		    pass
