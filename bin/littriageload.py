@@ -370,6 +370,8 @@ def setPrimaryKeys():
 #
 def bcpFiles():
 
+    diagFile.write('\nstart: bcpFiles()\n')
+
     # close bcp files
     if refFile:
         refFile.close()
@@ -401,6 +403,8 @@ def bcpFiles():
 	    if bcpon:
                 os.rename(oldPDF, newPDF)
     diagFile.write('\nend: oldPDF to newPDF\n')
+
+    diagFile.write('\nend: bcpFiles()\n')
 
     return 0
 
