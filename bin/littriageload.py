@@ -70,7 +70,7 @@ import PubMedAgent
 import Pdfpath
 
 DEBUG = 1
-bcpon = 1
+bcpon = 0
 
 litparser = ''
 pma = ''
@@ -120,7 +120,10 @@ hasPDF = 1
 isPrivate = 0
 isPreferred = 1
 
+# list of workflow groups
 workflowGroupList = []
+
+# moving input/pdfs to master dir/pdfs
 mvPDFtoMasterDir = {}
 
 loaddate = loadlib.loaddate
@@ -323,13 +326,21 @@ def initialize():
 #
 def closeFiles():
 
-    diagFile.close()
-    errorFile.close()
-    curatorFile.close()
-    accFile.close()
-    refFile.close()
-    statusFile.close()
-    dataFile.close()
+    if diagFile:
+        diagFile.close()
+    if errorFile:
+        errorFile.close()
+    if curatorFile:
+        curatorFile.close()
+    if refFile:
+        refFile.close()
+    if statusFile:
+        statusFile.close()
+    if dataFile:
+        dataFile.close()
+    if accFile:
+        accFile.close()
+
     return 0
 
 #
@@ -359,37 +370,37 @@ def setPrimaryKeys():
 #
 def bcpFiles():
 
-    bcpdelim = "|" 
-
     # close bcp files
-    if accFileName:
-        accFileName.close()
-    if refFileName:
-        refFileName.close()
-    if statusFileName:
-        statusFileName.close()
-    if dataFileName:
-        dataFileName.close()
-
-    if DEBUG or not bcpon:
-        return
-
-    db.useOneConnection(1)
+    if refFile:
+        refFile.close()
+    if statusFile:
+        statusFile.close()
+    if dataFile:
+        dataFile.close()
+    if accFile:
+        accFile.close()
 
     bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
     bcpII = '"|" "\\n" mgd'
 
-    bcp1 = '%s %s "/" %s %s' % (bcpI, accTable, accFileName, bcpII)
-    bcp2 = '%s %s "/" %s %s' % (bcpI, refTable, refFileName, bcpII)
-    bcp3 = '%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII)
-    bcp4 = '%s %s "/" %s %s' % (bcpI, dataTable, dataFileName, bcpII)
-
-    db.commit()
+    bcp1 = '%s %s "/" %s %s' % (bcpI, refTable, refFileName, bcpII)
+    bcp2 = '%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII)
+    bcp3 = '%s %s "/" %s %s' % (bcpI, dataTable, dataFileName, bcpII)
+    bcp4 = '%s %s "/" %s %s' % (bcpI, accTable, accFileName, bcpII)
 
     for bcpCmd in [bcp1, bcp2, bcp3, bcp4]:
-	if DEBUG:
-            diagFile.write('%s\n' % bcpCmd)
-        os.system(bcpCmd)
+        diagFile.write('%s\n' % bcpCmd)
+	if bcpon:
+            os.system(bcpCmd)
+            db.commit()
+
+    diagFile.write('\nstart: oldPDF to newPDF\n')
+    for oldPDF in mvPDFtoMasterDir:
+	for newPDF in mvPDFtoMasterDir[oldPDF]:
+	    diagFile.write(oldPDF + '\t' +  newPDF + '\n')
+	    if bcpon:
+                os.rename(oldPDF, newPDF)
+    diagFile.write('\nend: oldPDF to newPDF\n')
 
     return 0
 
@@ -649,6 +660,7 @@ def processPDFs():
     global level2error1, level2error2, level2error3, level2error4
     global level3error1, level3error2
     global accKey, refKey, statusKey, mgiKey
+    global mvPDFtoMasterDir
 
     #
     # assumes the level1SanityChecks have passed
@@ -753,8 +765,8 @@ def processPDFs():
 	    #
 	    refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
 		% (refKey, referenceTypeKey, 
-		   pubmedRef.getAuthors, \
-		   pubmedRef.getPrimaryAuthor, \
+		   pubmedRef.getAuthors(), \
+		   pubmedRef.getPrimaryAuthor(), \
 		   pubmedRef.getTitle(), \
 		   pubmedRef.getJournal(), \
 		   pubmedRef.getVolume(), \
@@ -818,23 +830,13 @@ def processPDFs():
 		   isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
 	    accKey = accKey + 1
 
-	    # move pdf file from inputDir to masterPath
+	    # store dictionary : move pdf file from inputDir to masterPath
 	    newPath = Pdfpath.getPdfpath(masterDir, mgiID)
 	    mvPDFtoMasterDir[pdfPath + pdfFile] = []
 	    mvPDFtoMasterDir[pdfPath + pdfFile].append(newPath + '/' + str(mgiKey) + '.pdf')
 
 	    refKey = refKey + 1
 	    mgiKey = mgiKey + 1
-
-    # load BCP files
-    # bcpFiles()
-    
-    diagFile.write('\nstart: oldPDF to newPDF\n')
-    for oldPDF in mvPDFtoMasterDir:
-	for newPDF in mvPDFtoMasterDir[oldPDF]:
-	    diagFile.write(oldPDF + '\t' +  newPDF + '\n')
-            #os.rename(oldPDF, newPDF)
-    diagFile.write('\nend: oldPDF to newPDF\n')
 
     #
     # write out level2 errors to both error log and curator log
@@ -874,6 +876,9 @@ if setPrimaryKeys() != 0:
 
 if processPDFs() != 0:
     closeFiles()
+    sys.exit(1)
+
+if bcpFiles() != 0:
     sys.exit(1)
 
 closeFiles()

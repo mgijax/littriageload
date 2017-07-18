@@ -134,6 +134,12 @@ ${LITTRIAGELOAD}/bin/littriageload.py | tee -a ${LOG_DIAG}
 STAT=$?
 checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" | tee -a ${LOG_DIAG}
 
+date | tee -a ${LOG_DIAG}
+echo "Load BIB_Citation_Cache"  | tee -a ${LOG_DIAG}
+${MGICACHELOAD}/bibcitation.csh | tee -a ${LOG_DIAG}
+STAT=$?
+checkStatus ${STAT} "${MGICACHELOAD}/bibcitation.csh" | tee -a ${LOG_DIAG}
+
 # run postload cleanup and email logs
 shutDown
 
