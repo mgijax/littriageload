@@ -413,6 +413,7 @@ def bcpFiles():
 		try:
                     os.rename(oldPDF, newFileDir + '/' + newPDF)
 		except:
+	            diagFile.write('os.rename(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
 		    pass
     diagFile.write('\nend: oldPDF to newPDF\n')
 
