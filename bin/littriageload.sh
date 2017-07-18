@@ -124,11 +124,6 @@ ls -l ${PUBLISHEDDIR}/*/* | tee -a ${LOG_DIAG}
 
 cd ${LITTRIAGELOAD}
 
-# for testing only!
-#
-rm -rf ${INPUTDIR}/*/*
-rm -rf ${FAILEDTRIAGEDIR}/*/*
-
 #
 # run the load
 #
