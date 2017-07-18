@@ -403,10 +403,17 @@ def bcpFiles():
 
     diagFile.write('\nstart: oldPDF to newPDF\n')
     for oldPDF in mvPDFtoMasterDir:
-	for newPDF in mvPDFtoMasterDir[oldPDF]:
-	    diagFile.write(oldPDF + '\t' +  newPDF + '\n')
+	for newFileDir, newPDF in mvPDFtoMasterDir[oldPDF]:
+	    diagFile.write(oldPDF + '\t' +  newFileDir + '\t' + newPDF + '\n')
 	    if bcpon:
-                os.rename(oldPDF, newPDF)
+	        try:
+		    os.makedirs(newFileDir))
+		except:
+		    pass
+		tryp:
+                    os.rename(oldPDF, newFileDir + '/' + newPDF)
+		except:
+		    pass
     diagFile.write('\nend: oldPDF to newPDF\n')
 
     diagFile.write('\nend: bcpFiles()\n')
@@ -629,7 +636,7 @@ def level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, ref):
 		+ doiID + ',' + pubmedID + '\n')
 	level3error1 = level3error1 + doiID + ', ' + pubMedID + '<BR>\n' + \
 	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
-	#os.rename(pdfPath + pdfFile, failPath + pdfFile)
+	os.rename(pdfPath + pdfFile, failPath + pdfFile)
 	return 1, results
 
     elif len(results) == 1:
@@ -840,7 +847,7 @@ def processPDFs():
 	    # store dictionary : move pdf file from inputDir to masterPath
 	    newPath = Pdfpath.getPdfpath(masterDir, mgiID)
 	    mvPDFtoMasterDir[pdfPath + pdfFile] = []
-	    mvPDFtoMasterDir[pdfPath + pdfFile].append(newPath + '/' + str(mgiKey) + '.pdf')
+	    mvPDFtoMasterDir[pdfPath + pdfFile].append((newPath,str(mgiKey) + '.pdf'))
 
 	    refKey = refKey + 1
 	    mgiKey = mgiKey + 1
