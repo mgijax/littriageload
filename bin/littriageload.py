@@ -70,7 +70,7 @@ import PubMedAgent
 import Pdfpath
 
 DEBUG = 1
-bcpon = 0
+bcpon = 1
 
 litparser = ''
 pma = ''
