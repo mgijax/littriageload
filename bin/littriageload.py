@@ -392,16 +392,26 @@ def bcpFiles():
 
     db.commit()
 
-    diagFile.write('\nstart: bcp process\n')
+    #
+    # copy bcp files into database
+    #
+    diagFile.write('\nstart: copy bcp files into database\n')
     for bcpCmd in [bcp1, bcp2, bcp3, bcp4]:
         diagFile.write('%s\n' % bcpCmd)
         diagFile.flush()
 	if bcpon:
             os.system(bcpCmd)
-    diagFile.write('\nend: bcp process\n')
+    diagFile.write('\nend: copy bcp files into database\n')
     diagFile.flush()
 
-    diagFile.write('\nstart: oldPDF to newPDF\n')
+    #
+    # move PDF from inputdir to master directory
+    # using numeric part of MGI id
+    #
+    # /data/loads/mgi/littriageload/input/cms/28473584_g.pdf is moved to: 
+    #	-> /data/littriage/5904000/5904760.pdf
+    #
+    diagFile.write('\nstart: move oldPDF to newPDF\n')
     for oldPDF in mvPDFtoMasterDir:
 	for newFileDir, newPDF in mvPDFtoMasterDir[oldPDF]:
 	    diagFile.write(oldPDF + '\t' +  newFileDir + '\t' + newPDF + '\n')
@@ -413,9 +423,9 @@ def bcpFiles():
 		try:
                     os.rename(oldPDF, newFileDir + '/' + newPDF)
 		except:
-	            diagFile.write('os.rename(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
+	            diagFile.write('bcpFIles(): failed : os.rename(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
 		    pass
-    diagFile.write('\nend: oldPDF to newPDF\n')
+    diagFile.write('\nend: move oldPDF to newPDF\n')
 
     diagFile.write('\nend: bcpFiles()\n')
     diagFile.flush()
