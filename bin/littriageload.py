@@ -390,11 +390,12 @@ def bcpFiles():
     bcp3 = '%s %s "/" %s %s' % (bcpI, dataTable, dataFileName, bcpII)
     bcp4 = '%s %s "/" %s %s' % (bcpI, accTable, accFileName, bcpII)
 
+    db.commit()
+
     for bcpCmd in [bcp1, bcp2, bcp3, bcp4]:
         diagFile.write('%s\n' % bcpCmd)
 	if bcpon:
             os.system(bcpCmd)
-            db.commit()
 
     diagFile.write('\nstart: oldPDF to newPDF\n')
     for oldPDF in mvPDFtoMasterDir:
