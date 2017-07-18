@@ -584,9 +584,6 @@ def level2SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath):
 	    requiredDict['date'] = ref.getDate()
 	    requiredDict['year'] = ref.getYear()
 
-	    if DEBUG:
-	        diagFile.write('required NLM files\n' + str(requiredDict) + '\n')
-
             #  4: missing data from required field for DOI ID
 	    for reqLabel in requiredDict:
 		if requiredDict[reqLabel] == None:
@@ -639,14 +636,14 @@ def level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, ref):
         #  2: input PubMed ID exists in MGI but missing DOI ID -> add DOI ID in MGI
 	if results[0]['pubmedID'] == None:
 	    diagFile.write('2a: pubmedID is missing in MGI: ' + doiID + ',' + pubmedID + '\n')
-	    level3error2 = level3error1 + doiID + ', ' + pubMedID + '<BR>\n' + \
+	    level3error2 = level3error2 + doiID + ', ' + pubMedID + '<BR>\n' + \
 	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
 	    return 2, results
 
         #  2: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
 	if results[0]['doiID'] == None:
 	    diagFile.write('2b: doiid is missing in MGI:' + doiID + ',' + pubmedID + '\n')
-	    level3error2 = level3error1 + doiID + ', ' + pubmedID + '<BR>\n' + \
+	    level3error2 = level3error2 + doiID + ', ' + pubmedID + '<BR>\n' + \
 	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
 	    return 2, results
 
@@ -654,7 +651,7 @@ def level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, ref):
 	diagFile.write('1a: duplidate 1 : input PubMed ID or DOI ID exists in MGI: ' + doiID + ',' + pubmedID + '\n')
 	level3error1 = level3error1 + doiID + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
 	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
-	#os.rename(pdfPath + pdfFile, failPath + pdfFile)
+	os.rename(pdfPath + pdfFile, failPath + pdfFile)
         return 1, results
 
     else:
