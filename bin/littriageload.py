@@ -64,8 +64,10 @@ import os
 import re
 import db
 import mgi_utils
+import loadlib
 import PdfParser
 import PubMedAgent
+import Pdfpath
 
 DEBUG = 1
 bcpon = 1
@@ -94,10 +96,34 @@ refFile = ''
 refFileName = ''
 statusFile = ''
 statusFileName = ''
+dataFile = ''
+dataFileName = ''
 
 accTable = 'ACC_Accession'
 refTable = 'BIB_Refs'
 statusTable = 'BIB_Workflow_Status'
+dataTable = 'BIB_Workflow_Data'
+
+accKey = 0
+refKey = 0
+statusKey = 0
+mgiKey = 0
+
+mgiTypeKey = 1
+mgiPrefix = 'MGI:'
+referenceTypeKey = 31576687 	# Peer Reviewed Article
+notRoutedKey = 31576669		# Not Routed
+supplementalNotChecked = 31576677	# not checked
+isReviewArticle = 0
+isCurrent = 1
+hasPDF = 1
+isPrivate = 0
+isPreferred = 1
+
+workflowGroupList = []
+mvPDFtoMasterDir = {}
+
+loaddate = loadlib.loaddate
 
 #
 # userDict = {'user' : [pdf1, pdf2]}
@@ -172,9 +198,10 @@ def initialize():
     global inputDir, outputDir
     global masterDir, failDir
     global bcpScript
-    global accFileName, refFileName, statusFileName
-    global accFile, refFile, statusFile
+    global accFileName, refFileName, statusFileName, dataFileName
+    global accFile, refFile, statusFile, dataFile
     global pma
+    global workflowGroupList
 
     litparser = os.getenv('LITPARSER')
     diag = os.getenv('LOG_DIAG')
@@ -248,6 +275,11 @@ def initialize():
         exit(1, 'Cannot create file: ' + outputDir + '/' + statusTable + '.bcp')
 
     try:
+        dataFileName = outputDir + '/' + dataTable + '.bcp'
+    except:
+        exit(1, 'Cannot create file: ' + outputDir + '/' + dataTable + '.bcp')
+
+    try:
         accFile = open(accFileName, 'w')
     except:
         exit(1, 'Could not open file %s\n' % accFileName)
@@ -262,6 +294,11 @@ def initialize():
     except:
         exit(1, 'Could not open file %s\n' % statusFileName)
 
+    try:
+        dataFile = open(dataFileName, 'w')
+    except:
+        exit(1, 'Could not open file %s\n' % dataFileName)
+
     # initialized PdfParser.py
     try:
         PdfParser.setLitParserDir(litparser)
@@ -272,6 +309,10 @@ def initialize():
         pma = PubMedAgent.PubMedAgentMedline()
     except:
         exit(1, 'PubMedAgent.PubMedAgentMedline() failed')
+
+    results = db.sql('select _Term_key from VOC_Term where _Vocab_key = 127', 'auto')
+    for r in results:
+        workflowGroupList.append(r['_Term_key'])
 
     return 0
 
@@ -288,6 +329,7 @@ def closeFiles():
     accFile.close()
     refFile.close()
     statusFile.close()
+    dataFile.close()
     return 0
 
 #
@@ -295,17 +337,19 @@ def closeFiles():
 # Returns: 0
 #
 def setPrimaryKeys():
-
-    global accKey, refKey, statusKey
+    global accKey, refKey, statusKey, mgiKey
 
     results = db.sql('select max(_Refs_key) + 1 as maxKey from BIB_Refs', 'auto')
     refKey = results[0]['maxKey']
 
+    results = db.sql('select max(_Assoc_key) + 1 as maxKey from BIB_Workflow_Status', 'auto')
+    statusKey = results[0]['maxKey']
+
     results = db.sql('select max(_Accession_key) + 1 as maxKey from ACC_Accession', 'auto')
     accKey = results[0]['maxKey']
 
-    results = db.sql('select max(_Assoc_key) + 1 as maxKey from BIB_Workflow_Status', 'auto')
-    statusKey = results[0]['maxKey']
+    results = db.sql('select max(maxNumericPart) + 1 as maxKey from ACC_AccessionMax where prefixPart = \'MGI:\'', 'auto')
+    mgiKey = results[0]['maxKey']
 
     return 0
 
@@ -324,6 +368,8 @@ def bcpFiles():
         refFileName.close()
     if statusFileName:
         statusFileName.close()
+    if dataFileName:
+        dataFileName.close()
 
     if DEBUG or not bcpon:
         return
@@ -333,12 +379,14 @@ def bcpFiles():
     bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
     bcpII = '"|" "\\n" mgd'
 
-    bcp1 = '%s %s "/" %s %s' % (bcpI, refTable, refFileName, bcpII)
-    bcp2 = '%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII)
+    bcp1 = '%s %s "/" %s %s' % (bcpI, accTable, accFileName, bcpII)
+    bcp2 = '%s %s "/" %s %s' % (bcpI, refTable, refFileName, bcpII)
+    bcp3 = '%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII)
+    bcp4 = '%s %s "/" %s %s' % (bcpI, dataTable, dataFileName, bcpII)
 
     db.commit()
 
-    for bcpCmd in [bcp1, bcp2]:
+    for bcpCmd in [bcp1, bcp2, bcp3, bcp4]:
 	if DEBUG:
             diagFile.write('%s\n' % bcpCmd)
         os.system(bcpCmd)
@@ -469,7 +517,7 @@ def level2SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath):
     if DEBUG:
         diagFile.write('level2SanityChecks: %s, %s, %s\n' % (userPath, doiID, pdfFile))
 
-    # mapping of doiID to pubmedId, return list of references
+    # mapping of doiID to pubmedID, return list of references
     mapping = pma.getReferences([doiID])
     refList = mapping[doiID]
 
@@ -600,6 +648,7 @@ def processPDFs():
     global allErrors
     global level2error1, level2error2, level2error3, level2error4
     global level3error1, level3error2
+    global accKey, refKey, statusKey, mgiKey
 
     #
     # assumes the level1SanityChecks have passed
@@ -630,18 +679,18 @@ def processPDFs():
 	# level2SanityChecks()
 	# parse PubMed IDs from PubMed API
 	#
-	ref = level2SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath)
+	pubmedRef = level2SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath)
 
-	if ref == 1:
+	if pubmedRef == 1:
 	   if DEBUG:
-	       diagFile.write('level2SanityChecks() : failed : %s, %s, %s, %s\n' % (doiID, userPath, pdfFile, str(ref)))
+	       diagFile.write('level2SanityChecks() : failed : %s, %s, %s, %s\n' % (doiID, userPath, pdfFile, str(pubmedRef)))
 	   os.rename(pdfPath + pdfFile, failPath + pdfFile)
            continue
 
-	pubmedId = ref.getPubMedID()
+	pubmedID = pubmedRef.getPubMedID()
 
 	if DEBUG:
-	    diagFile.write('level2SanityChecks() : successful : %s, %s, %s, %s\n' % (doiID, userPath, pdfFile, pubmedId))
+	    diagFile.write('level2SanityChecks() : successful : %s, %s, %s, %s\n' % (doiID, userPath, pdfFile, pubmedID))
 
 	#
 	# level3SanityChecks()
@@ -651,39 +700,141 @@ def processPDFs():
         # return 1 : will skip/move to 'failed'
         # return 2 : will add new Accession ids
 	#
-	rc, results = level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, ref)
+	rc, mgdRef = level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, pubmedRef)
 
 	if rc == 1:
 	    if DEBUG:
                 diagFile.write('level3SanityChecks() : failed : %s, %s, %s, %s\n' \
-			% (doiID, userPath, pdfFile, pubmedId))
+			% (doiID, userPath, pdfFile, pubmedID))
 	    continue
 
 	#
 	# add accession ids to existing MGI reference
 	#
-	if rc == 2:
-            diagFile.write('level3SanityChecks() : successful : add PubMed ID or DOI ID : %s, %s, %s, %s\n' \
-	    	% (doiID, userPath, pdfFile, pubmedId))
+	elif rc == 2:
+
+            diagFile.write('level3SanityChecks() : successful : add PubMed ID or DOI ID : %s, %s, %s, %s, %s\n' \
+	    	% (doiID, userPath, pdfFile, pubmedID, str(mgdRef)))
+
+	    # add pubmedID or doiId
+	    userKey = loadlib.verifyUser(userPath, 0, diagFile)
+	    objectKey = mgdRef[0]['_Refs_key']
+
+	    if mgdRef[0]['pubmedID'] == None:
+	        accID = pubmedID
+		prefixPart = ''
+		numericPart = accID
+		logicalDBKey = 29
+	    else:
+	        accID = doiID
+		prefixPart = accID
+		numericPart = ''
+		logicalDBKey = 65
+
+	    accFile.write('%s|%s|%s|%s|%s|%d|%d|0|1|%s|%s|%s|%s\n' \
+		% (accKey, accID, prefixPart, numericPart, logicalDBKey, objectKey, mgiTypeKey, \
+		   userKey, userKey, loaddate, loaddate))
+
+	    accKey = accKey + 1
 
 	#
 	# add new MGI reference
 	#
-	if rc == 0:
+	elif rc == 0:
             diagFile.write('level3SanityChecks() : successful : add new : %s, %s, %s, %s\n' \
-	    	% (doiID, userPath, pdfFile, pubmedId))
+	    	% (doiID, userPath, pdfFile, pubmedID))
 
-	#
-	# build bcp files
-	#
-	#userKey = loadlib.verifyUser(userPath, 0, diagFile)
-	#doiidKey = accessionlib.get_Object_key(doiID, 'Reference')
+	    # add pubmedID or doiId
+	    userKey = loadlib.verifyUser(userPath, 0, diagFile)
+	    logicalDBKey = 1
+
+	    #
+	    # bib_refs
+	    #
+	    refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+		% (refKey, referenceTypeKey, 
+		   pubmedRef.getAuthors, \
+		   pubmedRef.getPrimaryAuthor, \
+		   pubmedRef.getTitle(), \
+		   pubmedRef.getJournal(), \
+		   pubmedRef.getVolume(), \
+		   pubmedRef.getIssue(), \
+		   pubmedRef.getDate(), \
+		   pubmedRef.getYear(), \
+		   pubmedRef.getPages(), \
+		   pubmedRef.getAbstract(), \
+		   isReviewArticle, \
+		   userKey, userKey, loaddate, loaddate))
+
+	    #
+	    # bib_workflow_status
+	    # 1 row per Group
+	    #
+	    for groupKey in workflowGroupList:
+	        statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+		   % (statusKey, refKey, groupKey, notRoutedKey, isCurrent, \
+		      userKey, userKey, loaddate, loaddate))
+                statusKey = statusKey + 1
+
+	    #
+	    # bib_workflow_data
+	    # 1 per reference; set hasPDF = 1
+	    #
+	    dataFile.write('%s|%s|%s|||%s|%s|%s|%s\n' \
+	    	% (refKey, hasPDF, supplementalNotChecked, userKey, userKey, loaddate, loaddate))
+            dataKey = statusKey + 1
+
+	    # MGI:xxxx
+	    #
+	    mgiID = mgiPrefix + str(mgiKey)
+	    accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
+		% (accKey, mgiID, mgiPrefix, mgiKey, logicalDBKey, refKey, mgiTypeKey, \
+		   isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
+	    accKey = accKey + 1
+	    
+	    #
+	    # pubmedID
+	    #
+	    accID = pubmedID
+	    prefixPart = ''
+	    numericPart = accID
+	    logicalDBKey = 29
+
+	    accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
+		% (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
+		   isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
+	    accKey = accKey + 1
+
+	    #
+	    # doiID
+	    #
+	    accID = doiID
+	    prefixPart = accID
+	    numericPart = ''
+	    logicalDBKey = 65
+
+	    accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
+		% (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
+		   isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
+	    accKey = accKey + 1
+
+	    # move pdf file from inputDir to masterPath
+	    newPath = Pdfpath.getPdfpath(masterDir, mgiID)
+	    mvPDFtoMasterDir[pdfPath + pdfFile] = []
+	    mvPDFtoMasterDir[pdfPath + pdfFile].append(newPath + '/' + str(mgiKey) + '.pdf')
+
+	    refKey = refKey + 1
+	    mgiKey = mgiKey + 1
 
     # load BCP files
     # bcpFiles()
     
-    # move pdf files from inputDir to masterPath, using new MGI numeric ####
-    # masterPath = masterDir + '/' : determine bin path based on MGI numeric ####
+    diagFile.write('\nstart: oldPDF to newPDF\n')
+    for oldPDF in mvPDFtoMasterDir:
+	for newPDF in mvPDFtoMasterDir[oldPDF]:
+	    diagFile.write(oldPDF + '\t' +  newPDF + '\n')
+            #os.rename(oldPDF, newPDF)
+    diagFile.write('\nend: oldPDF to newPDF\n')
 
     #
     # write out level2 errors to both error log and curator log
@@ -718,8 +869,8 @@ if level1SanityChecks() != 0:
     closeFiles()
     sys.exit(1)
 
-#if setPrimaryKeys() != 0:
-#    sys.exit(1)
+if setPrimaryKeys() != 0:
+    sys.exit(1)
 
 if processPDFs() != 0:
     closeFiles()
