@@ -395,6 +395,7 @@ def bcpFiles():
     diagFile.write('\nstart: bcp process\n')
     for bcpCmd in [bcp1, bcp2, bcp3, bcp4]:
         diagFile.write('%s\n' % bcpCmd)
+        diagFile.flush()
 	if bcpon:
             os.system(bcpCmd)
     diagFile.write('\nend: bcp process\n')
