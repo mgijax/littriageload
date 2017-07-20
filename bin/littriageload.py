@@ -654,7 +654,7 @@ def level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, ref):
     elif len(results) == 1:
 
         #  2: input PubMed ID or DOI ID associated with different MGI references
-	if (pubmedID == resulsts[0][pubmedID] and doiID != resulsts[0][doiID]) or \
+	if (pubmedID == resulsts[0][pubmedID] and doiID != resulsts[0][doiID] or \
 	    pubmedID != resulsts[0][pubmedID] and doiID == resulsts[0][doiID]):
             diagFile.write('2: input PubMed ID or DOI ID associated with different MGI references: ' \
 		    + doiID + ',' + pubmedID + '\n')
