@@ -154,7 +154,6 @@ level3errorStart = '**********<BR>\nLiterature Triage Level 3 Errors : check MGI
 level1error1 = '' 
 level1error2 = ''
 level1error3 = ''
-level1error4 = ''
 
 level2error1 = '' 
 level2error2 = ''
