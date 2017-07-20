@@ -750,7 +750,7 @@ def processPDFs():
 	#
 	rc, mgdRef = level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, pubmedRef)
 
-	if rc == 1:
+	if rc == 1 or rc == 2:
 	    if DEBUG:
                 diagFile.write('level3SanityChecks() : failed : %s, %s, %s, %s\n' \
 			% (doiID, userPath, pdfFile, pubmedID))
@@ -759,7 +759,7 @@ def processPDFs():
 	#
 	# add accession ids to existing MGI reference
 	#
-	elif rc == 2:
+	elif rc == 3:
 
             diagFile.write('level3SanityChecks() : successful : add PubMed ID or DOI ID : %s, %s, %s, %s, %s\n' \
 	    	% (doiID, userPath, pdfFile, pubmedID, str(mgdRef)))
