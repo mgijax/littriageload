@@ -666,14 +666,14 @@ def level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, ref):
         #  3: input PubMed ID exists in MGI but missing DOI ID -> add DOI ID in MGI
 	if results[0]['pubmedID'] == None:
 	    diagFile.write('2a: pubmedID is missing in MGI: ' + doiID + ',' + pubmedID + '\n')
-	    level3error3 = level3error3 + doiID + ', ' + pubmedID + '<BR>\n' + \
+	    level3error3 = level3error3 + doiID + ', ' + pubmedID + ' : adding DOI ID<BR>\n' + \
 	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
 	    return 3, results
 
         #  3: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
 	if results[0]['doiID'] == None:
 	    diagFile.write('2b: doiid is missing in MGI:' + doiID + ',' + pubmedID + '\n')
-	    level3error3 = level3error3 + doiID + ', ' + pubmedID + '<BR>\n' + \
+	    level3error3 = level3error3 + doiID + ', ' + pubmedID + ' : adding PubMed ID<BR>\n' + \
 	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
 	    return 3, results
 
@@ -883,7 +883,7 @@ def processPDFs():
     level2error4 = '<B>4: missing data from required field for DOI ID</B><BR><BR>\n' + level2error4 + '<BR>\n\n'
     allErrors = allErrors + level2errorStart + level2error1 + level2error2 + level2error3 + level2error4
 
-    level3error1 = '<B>1: PubMed ID/DOI ID either exists in MGI</B><BR><BR>\n' + \
+    level3error1 = '<B>1: PubMed ID/DOI ID exists in MGI</B><BR><BR>\n' + \
     	level3error1 + '<BR>\n\n'
     level3error2 = '<B>2: PubMed ID/DOI ID is associated with different MGI references</B><BR><BR>\n' + \
     	level3error2 + '<BR>\n\n'
