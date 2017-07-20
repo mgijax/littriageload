@@ -534,9 +534,9 @@ def level1SanityChecks():
     #
     # write out level1 errors to both error log and curator log
     #
-    level1error1 = '<B>1: not in PDF format</B><BR><BR>\n' + level1error1 + '<BR>\n\n'
-    level1error2 = '<B>2: cannot extract/find DOI ID</B><BR><BR>\n' + level1error2 + '<BR>\n\n'
-    level1error3 = '<B>3: duplicate published refs (same DOI ID)</B><BR><BR>\n' + level1error3 + '<BR>\n\n'
+    level1error1 = '<B>1: not in PDF format</B><BR><BR>\n\n' + level1error1 + '<BR>\n\n'
+    level1error2 = '<B>2: cannot extract/find DOI ID</B><BR><BR>\n\n' + level1error2 + '<BR>\n\n'
+    level1error3 = '<B>3: duplicate published refs (same DOI ID)</B><BR><BR>\n\n' + level1error3 + '<BR>\n\n'
     allErrors = allErrors + level1errorStart + level1error1 + level1error2 + level1error3
 
     return 0
@@ -877,17 +877,17 @@ def processPDFs():
     #
     # write out level2 errors to both error log and curator log
     #
-    level2error1 = '<B>1: DOI ID maps to multiple pubmed IDs</B><BR><BR>\n' + level2error1 + '<BR>\n\n'
-    level2error2 = '<B>2: DOI ID not found in pubmed</B><BR><BR>\n' + level2error2 + '<BR>\n\n'
-    level2error3 = '<B>3: error getting medline record</B><BR><BR>\n' + level2error3 + '<BR>\n\n'
-    level2error4 = '<B>4: missing data from required field for DOI ID</B><BR><BR>\n' + level2error4 + '<BR>\n\n'
+    level2error1 = '<B>1: DOI ID maps to multiple pubmed IDs</B><BR><BR>\n\n' + level2error1 + '<BR>\n\n'
+    level2error2 = '<B>2: DOI ID not found in pubmed</B><BR><BR>\n\n' + level2error2 + '<BR>\n\n'
+    level2error3 = '<B>3: error getting medline record</B><BR><BR>\n\n' + level2error3 + '<BR>\n\n'
+    level2error4 = '<B>4: missing data from required field for DOI ID</B><BR><BR>\n\n' + level2error4 + '<BR>\n\n'
     allErrors = allErrors + level2errorStart + level2error1 + level2error2 + level2error3 + level2error4
 
-    level3error1 = '<B>1: PubMed ID/DOI ID exists in MGI</B><BR><BR>\n' + \
+    level3error1 = '<B>1: PubMed ID/DOI ID exists in MGI</B><BR><BR>\n\n' + \
     	level3error1 + '<BR>\n\n'
-    level3error2 = '<B>2: PubMed ID/DOI ID is associated with different MGI references</B><BR><BR>\n' + \
+    level3error2 = '<B>2: PubMed ID/DOI ID is associated with different MGI references</B><BR><BR>\n\n' + \
     	level3error2 + '<BR>\n\n'
-    level3error3 = '<B>3: missing PubMed ID or DOI ID in MGD -> will add PubMed ID or DOI ID to MGI</B><BR><BR>\n' + \
+    level3error3 = '<B>3: missing PubMed ID or DOI ID in MGD -> will add PubMed ID or DOI ID to MGI</B><BR><BR>\n\n' + \
     	level3error3 + '<BR>\n\n'
     allErrors = allErrors + level3errorStart + level3error1 + level3error2 + level3error3
 
