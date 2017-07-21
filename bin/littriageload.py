@@ -668,6 +668,7 @@ def level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, ref):
 	    diagFile.write('3: pubmedID is missing in MGI: ' + doiID + ',' + pubmedID + '\n')
 	    level3error3 = level3error3 + doiID + ', ' + pubmedID + ' : adding PubMed ID<BR>\n' + \
 	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
+	    os.rename(pdfPath + pdfFile, failPath + pdfFile)
 	    return 3, results
 
         #  3: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
@@ -675,6 +676,7 @@ def level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, ref):
 	    diagFile.write('3: doiid is missing in MGI:' + doiID + ',' + pubmedID + '\n')
 	    level3error3 = level3error3 + doiID + ', ' + pubmedID + ' : adding DOI ID<BR>\n' + \
 	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
+	    os.rename(pdfPath + pdfFile, failPath + pdfFile)
 	    return 3, results
 
         #  1: input PubMed ID or DOI ID exists in MGI
