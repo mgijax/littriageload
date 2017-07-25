@@ -48,11 +48,12 @@
 #
 #      This script will perform following steps:
 #
-#      1) initialize()
-#      2) openFiles()
-#      3) level1SanityChecks(): Iterate thru PDF directories and run sanity check
-#      6) processPDFs():  Iterate thru PDFs that passed sanity check
-#      7) closeFiles()
+#	1) initialize() : initiailze 
+#	2) level1SanityChecks() : run Level 1 Sanity Checks
+#	3) setPrimaryKeys() : setting global primary keys
+#	4) processPDFs() : iterate thru PDF files/run level2 and level3 sanity checks
+#	5) bcpFiles() : load BCP files into database
+#       6) closeFiles() : close files
 #
 # lec	06/20/2017
 #       - TR12250/Lit Triage
@@ -72,7 +73,9 @@ import Pdfpath
 DEBUG = 1
 bcpon = 1
 
+# for setting where the litparser lives (see PdfParser)
 litparser = ''
+# for setting the PubMedAgent
 pma = ''
 
 diag = ''
@@ -894,7 +897,6 @@ def processPDFs():
     allErrors = allErrors + level3errorStart + level3error1 + level3error2 + level3error3
 
     # copy all errors to error log, remove html and copy to curator log
-    allErrors = allErrors + '<BR><BR>\nEnd Log: ' + mgi_utils.date() + '<BR>\n\n'
     errorFile.write(allErrors)
     curatorFile.write(re.sub('<.*?>', '', allErrors))
 
