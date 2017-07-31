@@ -55,8 +55,8 @@ fi
 #
 # clean out arhicve and logs.* after 30 days
 #
-find ${FILEDIR} -type d -mtime +30 | grep "archive" | sort | sed 's/^/rm -f /' | tee -a ${LOG}
-find ${FILEDIR} -type d -mtime +30 | grep "logs." | sort | sed 's/^/rm -f /' | tee -a ${LOG}
+find ${FILEDIR} -type d -mtime +30 | grep "archive" | sort | sed 's/^/rm -rf /' | tee -a ${LOG}
+find ${FILEDIR} -type d -mtime +30 | grep "logs." | sort | sed 's/^/rm -rf /' | tee -a ${LOG}
 
 #
 # copy the ${LOGDIR} to a separate archive
