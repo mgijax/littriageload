@@ -118,6 +118,7 @@ referenceTypeKey = 31576687 	# Peer Reviewed Article
 notRoutedKey = 31576669		# Not Routed
 supplementalNotChecked = 31576677	# not checked
 isReviewArticle = 0
+isDiscard = 0
 isCurrent = 1
 hasPDF = 1
 isPrivate = 0
@@ -804,7 +805,7 @@ def processPDFs():
 	    #
 	    # bib_refs
 	    #
-	    refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+	    refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
 		% (refKey, referenceTypeKey, 
 		   pubmedRef.getAuthors(), \
 		   pubmedRef.getPrimaryAuthor(), \
@@ -817,6 +818,7 @@ def processPDFs():
 		   pubmedRef.getPages(), \
 		   pubmedRef.getAbstract(), \
 		   isReviewArticle, \
+		   isDiscard, \
 		   userKey, userKey, loaddate, loaddate))
 
 	    #

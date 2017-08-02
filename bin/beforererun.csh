@@ -19,9 +19,9 @@ touch $LOG
  
 date | tee -a $LOG
 
-cat - <<EOSQL | ${PG_DBUTILS}/bin/doisql.csh $0 | tee -a $LOG
-select count(*) from BIB_Refs;
-select count(*) from BIB_Workflow_Data;
-select count(*) from BIB_Citation_Cache;
+cat - <<EOSQL | ${PG_DBUTILS}/bin/doisql.csh $0 
+delete from BIB_Refs where _Refs_key >= 243713;
+delete from ACC_Accession where _Accession_key >= 943678537;
 EOSQL
+${MGICACHELOAD}/bibcitation.csh 
 
