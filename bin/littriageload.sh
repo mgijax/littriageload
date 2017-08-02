@@ -124,6 +124,13 @@ ls -l ${PUBLISHEDDIR}/*/* | tee -a ${LOG_DIAG}
 
 cd ${LITTRIAGELOAD}
 
+# update cache : must be current
+date | tee -a ${LOG_DIAG}
+echo "Load BIB_Citation_Cache"  | tee -a ${LOG_DIAG}
+${MGICACHELOAD}/bibcitation.csh | tee -a ${LOG_DIAG}
+STAT=$?
+checkStatus ${STAT} "${MGICACHELOAD}/bibcitation.csh" | tee -a ${LOG_DIAG}
+
 #
 # run the load
 #
@@ -134,6 +141,7 @@ ${LITTRIAGELOAD}/bin/littriageload.py | tee -a ${LOG_DIAG}
 STAT=$?
 checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" | tee -a ${LOG_DIAG}
 
+# update cache
 date | tee -a ${LOG_DIAG}
 echo "Load BIB_Citation_Cache"  | tee -a ${LOG_DIAG}
 ${MGICACHELOAD}/bibcitation.csh | tee -a ${LOG_DIAG}
