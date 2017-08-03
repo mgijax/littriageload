@@ -476,7 +476,7 @@ def level1SanityChecks():
 	    #
 	    if not pdfFile.lower().endswith('.pdf'):
 		if DEBUG:
-	            diagFile.write('file in input directory does not end with pdf: %s/%s\n') % (userPath, pdfFile)
+	            diagFile.write('file in input directory does not end with pdf: %s %s\n') % (userPath, pdfFile)
 	        continue
 
 	    #
@@ -507,6 +507,7 @@ def level1SanityChecks():
 
 	    try:
                 doiid = pdf.getFirstDoiID()
+		doitext = pdf.getText()
 
 		if (doiid):
 		    if doiid not in doiidById:
@@ -533,7 +534,7 @@ def level1SanityChecks():
 	    # store by User as well 
 	    if (userPath, doiid) not in doiidByUser:
 	        doiidByUser[(userPath, doiid)] = []
-	        doiidByUser[(userPath, doiid)].append(pdfFile)
+	        doiidByUser[(userPath, doiid)].append((pdfFile, doitext))
 
     #
     # write out level1 errors to both error log and curator log
@@ -716,14 +717,15 @@ def processPDFs():
     if DEBUG:
         diagFile.write('\nprocessPDFs()\n')
 
-    # doiidByUser = {('user name', 'doiid') : 'pdffile'}
+    # doiidByUser = {('user name', 'doiid') : ('pdffile', 'doitext')}
 
     for key in doiidByUser:
 
 	if DEBUG:
             diagFile.write('\ndoiidByUser: %s\n' % (str(key)))
 
-	pdfFile = doiidByUser[key][0]
+	pdfFile = doiidByUser[key][0][0]
+	extractedText = doiidByUser[key][0][1]
 	userPath = key[0]
 	doiID = key[1]
         pdfPath = inputDir + '/' + userPath + '/'
@@ -835,8 +837,8 @@ def processPDFs():
 	    # bib_workflow_data
 	    # 1 per reference; set hasPDF = 1
 	    #
-	    dataFile.write('%s|%s|%s|||%s|%s|%s|%s\n' \
-	    	% (refKey, hasPDF, supplementalNotChecked, userKey, userKey, loaddate, loaddate))
+	    dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
+	    	% (refKey, hasPDF, supplementalNotChecked, extractedText, userKey, userKey, loaddate, loaddate))
             dataKey = statusKey + 1
 
 	    # MGI:xxxx
@@ -924,8 +926,8 @@ if processPDFs() != 0:
     closeFiles()
     sys.exit(1)
 
-if bcpFiles() != 0:
-    sys.exit(1)
+#if bcpFiles() != 0:
+#    sys.exit(1)
 
 closeFiles()
 sys.exit(0)
