@@ -837,6 +837,8 @@ def processPDFs():
 	    # bib_workflow_data
 	    # 1 per reference; set hasPDF = 1
 	    #
+	    extractedText = extractedText.replace('\n', '\\n')
+	    extractedText = extractedText.replace('|', '\\n')
 	    dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
 	    	% (refKey, hasPDF, supplementalNotChecked, extractedText, userKey, userKey, loaddate, loaddate))
             dataKey = statusKey + 1
