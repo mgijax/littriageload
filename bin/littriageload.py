@@ -926,8 +926,8 @@ if processPDFs() != 0:
     closeFiles()
     sys.exit(1)
 
-#if bcpFiles() != 0:
-#    sys.exit(1)
+if bcpFiles() != 0:
+    sys.exit(1)
 
 closeFiles()
 sys.exit(0)
