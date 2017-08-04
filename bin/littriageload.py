@@ -836,7 +836,9 @@ def processPDFs():
 	    #
 	    # bib_workflow_data
 	    # remove non-ascii characters
-	    # replace carriage returns
+	    #
+	    # remove non-ascii
+	    # carriage returns, etc.
 	    #
 	    extractedText = re.sub(r'[^\x00-\x7F]','', extractedText)
 	    extractedText = extractedText.replace('\\', '\\\\')
