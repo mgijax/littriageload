@@ -836,6 +836,8 @@ def processPDFs():
 	    #
 	    # bib_workflow_data
 	    # 1 per reference; set hasPDF = 1
+	    # remove non-ascii characters
+	    # replace carriage returns
 	    #
             extractedText = re.sub(r'[^\x00-\x7f]', r'', extractedText)
 	    extractedText = extractedText.replace('\n', '\\n')
