@@ -838,6 +838,7 @@ def processPDFs():
 	    # 1 per reference; set hasPDF = 1
 	    #
 	    extractedText = extractedText.replace('\n', '\\n')
+	    extractedText = extractedText.replace('\r', '\\r')
 	    extractedText = extractedText.replace('|', '\\n')
 	    dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
 	    	% (refKey, hasPDF, supplementalNotChecked, extractedText, userKey, userKey, loaddate, loaddate))
