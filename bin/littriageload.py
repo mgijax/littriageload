@@ -837,6 +837,7 @@ def processPDFs():
 	    # bib_workflow_data
 	    # 1 per reference; set hasPDF = 1
 	    #
+            extractedText = re.sub(r'[^\x00-\x7f]', r'', extractedText)
 	    extractedText = extractedText.replace('\n', '\\n')
 	    extractedText = extractedText.replace('\r', '\\r')
 	    extractedText = extractedText.replace('|', '\\n')
