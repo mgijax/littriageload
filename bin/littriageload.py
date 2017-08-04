@@ -838,6 +838,7 @@ def processPDFs():
 	    # remove non-ascii characters
 	    # replace carriage returns
 	    #
+	    extractedText = re.sub(r'[^\x00-\x7F]',' ', extractedText)
 	    extractedText = extractedText.replace('\n', '\\n')
 	    extractedText = extractedText.replace('\r', '\\r')
 	    extractedText = extractedText.replace('|', '\\n')
