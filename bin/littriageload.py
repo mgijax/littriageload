@@ -410,7 +410,7 @@ def bcpFiles():
 	    try:
                 os.system(bcpCmd)
 	    except:
-	        diagFile.write('bcpFiles(): failed : os.system()\n')
+	        diagFile.write('bcpFiles(): failed : os.system(%s)\n' (bcpCmd ))
 		return 0
     diagFile.write('\nend: copy bcp files into database\n')
     diagFile.flush()
@@ -434,11 +434,11 @@ def bcpFiles():
 		try:
                     os.rename(oldPDF, newFileDir + '/' + newPDF)
 		except:
-	            diagFile.write('bcpFiles(): failed : os.rename(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
+	            diagFile.write('bcpFiles(): failed : os.rename(%s, %s)\n' (oldPDF, newFileDir + '/' + newPDF))
 		    return 0
     diagFile.write('\nend: move oldPDF to newPDF\n')
 
-    diagFile.write('\nend: bcpFiles()\n')
+    diagFile.write('\nend: bcpFiles() : successful\n')
     diagFile.flush()
 
     return 0
