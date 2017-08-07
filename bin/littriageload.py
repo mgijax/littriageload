@@ -469,7 +469,7 @@ def level1SanityChecks():
 	    if pdfFile.find(' ') > 0 or pdfFile.find('.PDF') > 0:
                 pdfFile = pdfFile.replace(' ', '')
                 pdfFile = pdfFile.replace('.PDF', '.pdf')
-		os.rename(pdfPath + origFile, pdfPath + pdfFile)
+		os.rename(os.path.join(pdfPath, origFile), os.path.join(pdfPath, pdfFile))
 
 	    #
 	    # file in input directory does not end with pdf
@@ -492,8 +492,8 @@ def level1SanityChecks():
     #
     for userPath in userDict:
 
-	pdfPath = inputDir + '/' + userPath + '/'
-	failPath = failDir + '/' + userPath + '/'
+	pdfPath = os.path.join(inputDir, userPath)
+	failPath = os.path.join(failDir, userPath)
 
 	#
 	# for each pdfFile
@@ -502,7 +502,7 @@ def level1SanityChecks():
 	#
 	for pdfFile in userDict[userPath]:
 
-	    pdf = PdfParser.PdfParser(pdfPath + pdfFile)
+	    pdf = PdfParser.PdfParser(os.path.join(pdfPath, pdfFile))
 	    doiid = ''
 
 	    try:
@@ -519,16 +519,16 @@ def level1SanityChecks():
 		    else:
 		        level1error3 = level1error3 + doiid + '<BR>\n' + linkOut % (failPath + pdfFile, failPath + pdfFile) + \
 				'<BR>\nduplicate of ' + \
-				linkOut % (pdfPath + doiidById[doiid][0], pdfPath + doiidById[doiid][0]) + '<BR><BR>\n\n'
-			os.rename(pdfPath + pdfFile, failPath + pdfFile)
+				linkOut % (os.path.join(pdfPath, doiidById[doiid][0]), os.path.join(pdfPath, doiidById[doiid][0])) + '<BR><BR>\n\n'
+			os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 			continue
 		else:
 		    level1error2 = level1error2 + linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR>\n'
-		    os.rename(pdfPath + pdfFile, failPath + pdfFile)
+		    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 		    continue
             except:
 		level1error1 = level1error1 + linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR>\n'
-		os.rename(pdfPath + pdfFile, failPath + pdfFile)
+		os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 		continue
 
 	    # store by User as well 
@@ -652,7 +652,7 @@ def level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, ref):
 		+ doiID + ',' + pubmedID + '\n')
 	level3error2 = level3error2 + doiID + ', ' + pubmedID + '<BR>\n' + \
 	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
-	os.rename(pdfPath + pdfFile, failPath + pdfFile)
+	os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 	return 2, results
 
     elif len(results) == 1:
@@ -665,7 +665,7 @@ def level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, ref):
 		        + doiID + ',' + pubmedID + '\n')
 	        level3error2 = level3error2 + doiID + ', ' + pubmedID + '<BR>\n' + \
 	    	        linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
-	        os.rename(pdfPath + pdfFile, failPath + pdfFile)
+		os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 	        return 2, results
 
         #  3: input PubMed ID exists in MGI but missing DOI ID -> add DOI ID in MGI
@@ -673,7 +673,7 @@ def level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, ref):
 	    diagFile.write('3: pubmedID is missing in MGI: ' + doiID + ',' + pubmedID + '\n')
 	    level3error3 = level3error3 + doiID + ', ' + pubmedID + ' : adding PubMed ID<BR>\n' + \
 	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
-	    os.rename(pdfPath + pdfFile, failPath + pdfFile)
+	    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 	    return 3, results
 
         #  3: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
@@ -681,14 +681,14 @@ def level3SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath, ref):
 	    diagFile.write('3: doiid is missing in MGI:' + doiID + ',' + pubmedID + '\n')
 	    level3error3 = level3error3 + doiID + ', ' + pubmedID + ' : adding DOI ID<BR>\n' + \
 	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
-	    os.rename(pdfPath + pdfFile, failPath + pdfFile)
+	    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 	    return 3, results
 
         #  1: input PubMed ID or DOI ID exists in MGI
 	diagFile.write('1: input PubMed ID or DOI ID exists in MGI: ' + doiID + ',' + pubmedID + '\n')
 	level3error1 = level3error1 + doiID + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
 	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
-	os.rename(pdfPath + pdfFile, failPath + pdfFile)
+	os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
         return 1, results
 
     else:
@@ -728,8 +728,8 @@ def processPDFs():
 	extractedText = doiidByUser[key][0][1]
 	userPath = key[0]
 	doiID = key[1]
-        pdfPath = inputDir + '/' + userPath + '/'
-        failPath = failDir + '/' + userPath + '/'
+        pdfPath = os.path.join(inputDir, userPath)
+        failPath = os.path.join(failDir, userPath)
 
 	#
 	# level2SanityChecks()
@@ -740,7 +740,7 @@ def processPDFs():
 	if pubmedRef == 1:
 	   if DEBUG:
 	       diagFile.write('level2SanityChecks() : failed : %s, %s, %s, %s\n' % (doiID, userPath, pdfFile, str(pubmedRef)))
-	   os.rename(pdfPath + pdfFile, failPath + pdfFile)
+	   os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
            continue
 
 	pubmedID = pubmedRef.getPubMedID()
