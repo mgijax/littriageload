@@ -398,13 +398,20 @@ def bcpFiles():
 
     #
     # copy bcp files into database
+    # if any bcp fails, return (0)
+    # this means the input files will remain
+    # and can be used in the next running of the load
     #
     diagFile.write('\nstart: copy bcp files into database\n')
     for bcpCmd in [bcp1, bcp2, bcp3, bcp4]:
         diagFile.write('%s\n' % bcpCmd)
         diagFile.flush()
 	if bcpon:
-            os.system(bcpCmd)
+	    try:
+                os.system(bcpCmd)
+	    except:
+	        diagFile.write('bcpFiles(): failed : os.system()\n')
+		return 0
     diagFile.write('\nend: copy bcp files into database\n')
     diagFile.flush()
 
@@ -427,8 +434,8 @@ def bcpFiles():
 		try:
                     os.rename(oldPDF, newFileDir + '/' + newPDF)
 		except:
-	            diagFile.write('bcpFIles(): failed : os.rename(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
-		    pass
+	            diagFile.write('bcpFiles(): failed : os.rename(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
+		    return 0
     diagFile.write('\nend: move oldPDF to newPDF\n')
 
     diagFile.write('\nend: bcpFiles()\n')
