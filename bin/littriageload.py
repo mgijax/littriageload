@@ -438,10 +438,6 @@ def bcpFiles():
 		    #return 0
     diagFile.write('\nend: move oldPDF to newPDF\n')
 
-    # reload BIB_Citation_Cache
-    db.sql('select * from BIB_reloadCache(-1)', None)
-    db.commit()
-
     diagFile.write('\nend: bcpFiles() : successful\n')
     diagFile.flush()
 
