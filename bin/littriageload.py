@@ -434,9 +434,13 @@ def bcpFiles():
 		try:
                     os.rename(oldPDF, newFileDir + '/' + newPDF)
 		except:
-	            diagFile.write('bcpFiles(): failed : os.rename(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n'))
+	            diagFile.write('bcpFiles(): failed : os.rename(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
 		    #return 0
     diagFile.write('\nend: move oldPDF to newPDF\n')
+
+    # reload BIB_Citation_Cache
+    db.sql('select * from BIB_reloadCache(-1)', None)
+    db.commit()
 
     diagFile.write('\nend: bcpFiles() : successful\n')
     diagFile.flush()
