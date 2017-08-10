@@ -573,7 +573,12 @@ def level2SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath):
         diagFile.write('level2SanityChecks: %s, %s, %s\n' % (userPath, doiID, pdfFile))
 
     # mapping of doiID to pubmedID, return list of references
-    mapping = pma.getReferences([doiID])
+    try:
+        mapping = pma.getReferences([doiID])
+    except:
+        diagFile.write('level2SanityChecks:pma.getReferences() failed: %s, %s, %s\n' % (doiID, userPath, pdfFile))
+	return -1
+
     refList = mapping[doiID]
 
     #  1: DOI ID maps to multiple pubmed IDs
@@ -748,13 +753,20 @@ def processPDFs():
 	#
 	pubmedRef = level2SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath)
 
+	if pubmedRef == -1:
+           continue
+
 	if pubmedRef == 1:
 	   if DEBUG:
 	       diagFile.write('level2SanityChecks() : failed : %s, %s, %s, %s\n' % (doiID, userPath, pdfFile, str(pubmedRef)))
 	   os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
            continue
 
-	pubmedID = pubmedRef.getPubMedID()
+	try:
+	   pubmedID = pubmedRef.getPubMedID()
+	except:
+           diagFile.write('process:pubmedRef.getPubMedID()() failed: %s, %s, %s\n' % (doiID, userPath, pdfFile))
+           continue
 
 	if DEBUG:
 	    diagFile.write('level2SanityChecks() : successful : %s, %s, %s, %s\n' % (doiID, userPath, pdfFile, pubmedID))
