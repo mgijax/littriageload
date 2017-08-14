@@ -111,6 +111,7 @@ accKey = 0
 refKey = 0
 statusKey = 0
 mgiKey = 0
+recordsProcessed = 0
 
 mgiTypeKey = 1
 mgiPrefix = 'MGI:'
@@ -438,6 +439,10 @@ def bcpFiles():
 		    #return 0
     diagFile.write('\nend: move oldPDF to newPDF\n')
 
+    # update the max Accession ID value
+    db.sql('select * from ACC_setMax (%d)' % (recordsProcessed), None)
+    db.commit()
+
     diagFile.write('\nend: bcpFiles() : successful\n')
     diagFile.flush()
 
@@ -716,6 +721,7 @@ def processPDFs():
     global level3error1, level3error2, level3error3
     global accKey, refKey, statusKey, mgiKey
     global mvPDFtoMasterDir
+    global recordsProcessed
 
     #
     # assumes the level1SanityChecks have passed
@@ -841,6 +847,8 @@ def processPDFs():
 		   isReviewArticle, \
 		   isDiscard, \
 		   userKey, userKey, loaddate, loaddate))
+
+	    recordsProcessed += 1;
 
 	    #
 	    # bib_workflow_status
