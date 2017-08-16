@@ -630,7 +630,7 @@ def level2SanityChecks(userPath, doiID, pdfFile, pdfPath, failPath):
 		if requiredDict[reqLabel] == None:
 		    missingList.append(reqLabel)
 	    if len(missingList):
-	        level2error4 = level2error4 + doiID + ', ' + pubmedID + '<BR>\n' + \
+	        level2error4 = level2error4 + str(doiID) + ', ' + str(pubmedID) + '<BR>\n' + \
 			linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
 		return 1
 
