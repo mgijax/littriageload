@@ -117,7 +117,7 @@ mgiTypeKey = 1
 mgiPrefix = 'MGI:'
 referenceTypeKey = 31576687 	# Peer Reviewed Article
 notRoutedKey = 31576669		# Not Routed
-supplementalNotChecked = 31576677	# not checked
+supplementalKey = 33853681	# Not Specified
 isReviewArticle = 0
 isDiscard = 0
 isCurrent = 1
@@ -873,7 +873,7 @@ def processPDFs():
 	    extractedText = extractedText.replace('\r', '\\r')
 	    extractedText = extractedText.replace('|', '\\n')
 	    dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	% (refKey, hasPDF, supplementalNotChecked, extractedText, userKey, userKey, loaddate, loaddate))
+	    	% (refKey, hasPDF, supplementalKey, extractedText, userKey, userKey, loaddate, loaddate))
             dataKey = statusKey + 1
 
 	    # MGI:xxxx
