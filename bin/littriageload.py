@@ -432,10 +432,10 @@ def bcpFiles():
 		    os.makedirs(newFileDir)
 		except:
 		    pass
-		try:
-                    os.rename(oldPDF, newFileDir + '/' + newPDF)
-		except:
-	            diagFile.write('bcpFiles(): failed : os.rename(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
+		#try:
+                os.rename(oldPDF, newFileDir + '/' + newPDF)
+		#except:
+	            #diagFile.write('bcpFiles(): failed : os.rename(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
 		    #return 0
     diagFile.write('\nend: move oldPDF to newPDF\n')
 
