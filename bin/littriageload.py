@@ -432,10 +432,10 @@ def bcpFiles():
 		    os.makedirs(newFileDir)
 		except:
 		    pass
-		#try:
-                os.rename(oldPDF, newFileDir + '/' + newPDF)
-		#except:
-	            #diagFile.write('bcpFiles(): failed : os.rename(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
+		try:
+                    os.rename(oldPDF, newFileDir + '/' + newPDF)
+		except:
+	            diagFile.write('bcpFiles(): failed : os.rename(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
 		    #return 0
     diagFile.write('\nend: move oldPDF to newPDF\n')
 
@@ -911,8 +911,8 @@ def processPDFs():
 
 	    # store dictionary : move pdf file from inputDir to masterPath
 	    newPath = Pdfpath.getPdfpath(masterDir, mgiID)
-	    mvPDFtoMasterDir[pdfPath + pdfFile] = []
-	    mvPDFtoMasterDir[pdfPath + pdfFile].append((newPath,str(mgiKey) + '.pdf'))
+	    mvPDFtoMasterDir[pdfPath + '/' + pdfFile] = []
+	    mvPDFtoMasterDir[pdfPath + '/' + pdfFile].append((newPath,str(mgiKey) + '.pdf'))
 
 	    refKey = refKey + 1
 	    mgiKey = mgiKey + 1
