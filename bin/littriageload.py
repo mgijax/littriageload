@@ -874,7 +874,6 @@ def processPDFs():
 	    extractedText = extractedText.replace('|', '\\n')
 	    dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
 	    	% (refKey, hasPDF, supplementalKey, extractedText, userKey, userKey, loaddate, loaddate))
-            dataKey = statusKey + 1
 
 	    # MGI:xxxx
 	    #
