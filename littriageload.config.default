@@ -15,7 +15,7 @@ fi
 #  Path name of the archive, logs, reports and output directories
 
 # published directory/maintained by curators
-PUBLISHEDDIR=/mgi/all/Triage/PDF_files/_New_Newcurrent
+PUBLISHEDDIR=${LITTRIAGE_NEWNEW}
 #PUBLISHEDDIR=/data/loads/litpublishtest
 export PUBLISHEDDIR
 
