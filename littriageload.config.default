@@ -28,6 +28,11 @@ FAILEDTRIAGEDIR=${MASTERTRIAGEDIR}/failed
 #FAILEDTRIAGEDIR=${DATALOADSOUTPUT}/mgi/littriageload/failed
 export FAILEDTRIAGEDIR
 
+# CRUD users
+CREATE_SUPPLEMENT=littriage_create_supplement
+CREATE_PDF=littriage_create_update_pdf
+UPDATE_NLM=littriage_update_nlm
+
 # litparser needed with lib/python/PdfParser.py
 LITPARSER=${MGIUTILS}/litparser
 export LITPARSER

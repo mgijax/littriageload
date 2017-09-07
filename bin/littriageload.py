@@ -579,20 +579,19 @@ def level1SanityChecks():
 			        diagFile.write('pdf.getFirstDoiID() : successful : %s%s : %s\n' % (pdfPath, pdfFile, doiid))
 			        diagFile.flush()
 		        else:
-
                             level1error3 = level1error3 + objId + '<BR>\n' + \
-			    	linkOut % (failPath + pdfFile, failPath + pdfFile) + \
+			    	linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + \
 			        '<BR>\nduplicate of ' + \
 				linkOut % (os.path.join(pdfPath, doiidById[doiid][0]), os.path.join(pdfPath, doiidById[doiid][0])) + \
 				'<BR><BR>\n\n'
 			    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 			    continue
 		    else:
-		        level1error2 = level1error2 + linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR>\n'
+		        level1error2 = level1error2 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
 		        os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 		        continue
                 except:
-		    level1error1 = level1error1 + linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR>\n'
+		    level1error1 = level1error1 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
 		    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 		    continue
 
@@ -611,7 +610,7 @@ def level1SanityChecks():
 	                objByUser[(userPath, 'pm', pmid)] = []
 	                objByUser[(userPath, 'pm', pmid)].append((pdfFile, pdftext))
                 except:
-		    level1error4 = level1error4 + linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR>\n'
+		    level1error4 = level1error4 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
 		    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 		    continue
 
@@ -655,14 +654,14 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath):
         if len(refList) > 1:
             for ref in refList:
 	        level2error1 = level2error1 + objId + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
-	    	    linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
+	    	    linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	    return 1
 
         #  2: DOI ID not found in pubmed
         for ref in refList:
             if ref == None:
 	        level2error2 = level2error2 + objId + '<BR>\n' + \
-		            linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
+		            linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	        return 1
 
         pubMedRef = refList[0]
@@ -674,7 +673,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath):
     #  3: error getting medline record
     if not pubMedRef.isValid():
 	level2error3 = level2error3 + objId + ', ' + pubmedID + '<BR>\n' + \
-		linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
+		linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	return 1
 
     # check for required NLM fields
@@ -700,7 +699,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath):
 		missingList.append(reqLabel)
 	if len(missingList):
 	   level2error4 = level2error4 + str(objId) + ', ' + str(pubmedID) + '<BR>\n' + \
-		linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
+		linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	   return 1
 
     # if successful, return 'pubMedRef' object, else return 1, continue
@@ -737,7 +736,7 @@ def level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, ref):
         diagFile.write('2: input PubMed ID or DOI ID associated with different MGI references: ' \
 		+ objId + ',' + pubmedID + '\n')
 	level3error2 = level3error2 + objId + ', ' + pubmedID + '<BR>\n' + \
-	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
+	    	linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 	return 2, results
 
@@ -750,7 +749,7 @@ def level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, ref):
                 diagFile.write('2: input PubMed ID or DOI ID associated with different MGI references: ' \
 		        + objId + ',' + pubmedID + '\n')
 	        level3error2 = level3error2 + objId + ', ' + pubmedID + '<BR>\n' + \
-	    	        linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
+	    	        linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
 		os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 	        return 2, results
 
@@ -758,7 +757,7 @@ def level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, ref):
 	if results[0]['pubmedID'] == None:
 	    diagFile.write('3: pubmedID is missing in MGI: ' + objId + ',' + pubmedID + '\n')
 	    level3error3 = level3error3 + objId + ', ' + pubmedID + ' : adding PubMed ID<BR>\n' + \
-	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
+	    	linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 	    return 3, results
 
@@ -766,14 +765,14 @@ def level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, ref):
 	if results[0]['doiID'] == None:
 	    diagFile.write('3: doiid is missing in MGI:' + objId + ',' + pubmedID + '\n')
 	    level3error3 = level3error3 + objId + ', ' + pubmedID + ' : adding DOI ID<BR>\n' + \
-	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
+	    	linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 	    return 3, results
 
         # 1: input PubMed ID or DOI ID exists in MGI
 	diagFile.write('1: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
 	level3error1 = level3error1 + objId + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
-	    	linkOut % (failPath + pdfFile, failPath + pdfFile) + '<BR><BR>\n\n'
+	    	linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
         return 1, results
 
