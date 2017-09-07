@@ -16,7 +16,6 @@ fi
 
 # published directory/maintained by curators
 PUBLISHEDDIR=${LITTRIAGE_NEWNEW}
-#PUBLISHEDDIR=/data/loads/litpublishtest
 export PUBLISHEDDIR
 
 # master triage directory/subdivied by 1000
