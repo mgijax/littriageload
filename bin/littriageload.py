@@ -51,7 +51,7 @@
 #	1) initialize() : initiailze 
 #	2) level1SanityChecks() : run Level 1 Sanity Checks
 #	3) setPrimaryKeys() : setting global primary keys
-#	4) processAdds() : iterate thru PDF files/run level2 and level3 sanity checks
+#	4) processPDFs() : iterate thru PDF files/run level2 and level3 sanity checks
 #	5) bcpFiles() : load BCP files into database
 #       6) closeFiles() : close files
 #
@@ -79,9 +79,9 @@ litparser = ''
 pma = ''
 
 # special processing for specific cases
-createSupplement = ''
-createPDF = ''
-updateNLM = ''
+userSupplement = 'littriage_create_supplement'
+userPDF = 'littriage_create_update_pdf'
+userNLM = 'littriage_update_nlm'
 
 diag = ''
 diagFile = ''
@@ -136,6 +136,9 @@ workflowGroupList = []
 # moving input/pdfs to master dir/pdfs
 mvPDFtoMasterDir = {}
 
+# update SQL commands
+updateSQLAll = ''
+
 loaddate = loadlib.loaddate
 
 #
@@ -149,6 +152,7 @@ userDict = {}
 # objByUser = {('user name', 'object type', 'object id') : ('pdffile', 'pdftext')}
 # objByUser = {('user name', 'doi', 'doiid') : ('pdffile', 'pdftext')}
 # objByUser = {('user name', 'pm', 'pmid') : ('pdffile', 'pdftext')}
+# objByUser = {('user name', 'supplement', 'mgiid') : ('pdffile', 'pdftext')}
 # {('cms, 'doi', '10.112xxx'): ['10.112xxx.pdf, 'text'']}
 # {('cms, 'pm', 'PMID_14440025'): ['PDF_14440025.pdf', 'text'']}
 objByUser = {}
@@ -166,8 +170,8 @@ linkOut = '<A HREF="%s">%s</A>'
 allErrors = 'Start Log: ' + mgi_utils.date() + '<BR><BR>\n\n'
 level1errorStart = '**********<BR>\nLiterature Triage Level 1 Errors : parse DOI ID from PDF files<BR><BR>\n'
 level2errorStart = '**********<BR>\nLiterature Triage Level 2 Errors : parse PubMed IDs from PubMed API<BR><BR>\n\n'
-level3errorStart = '**********<BR>\nLiterature Triage Level 3 Errors : check MGI for errors (adds)<BR><BR>\n\n'
-level4errorStart = '**********<BR>\nLiterature Triage Level 4 Errors : check MGI for errors (updates)<BR><BR>\n\n'
+level3errorStart = '**********<BR>\nLiterature Triage Level 3 Errors : check MGI for errors<BR><BR>\n\n'
+supplerrorStart = '**********<BR>\nLiterature Triage Supplement Errors : check MGI for errors<BR><BR>\n\n'
 
 level1error1 = '' 
 level1error2 = ''
@@ -183,7 +187,7 @@ level3error1 = ''
 level3error2 = ''
 level3error3 = ''
 
-level4error1 = '' 
+supplerror1 = ''
 
 #
 # Purpose: prints error message and exits
@@ -229,9 +233,6 @@ def initialize():
     global workflowGroupList
 
     litparser = os.getenv('LITPARSER')
-    #createSupplement = os.getenv('CREATE_SUPPLEMENT')
-    createPDF = os.getenv('CREATEPDF')
-    updateNLM = os.getenv('UPDATE_NLM')
     diag = os.getenv('LOG_DIAG')
     error = os.getenv('LOG_ERROR')
     curator = os.getenv('LOG_CUR')
@@ -247,15 +248,6 @@ def initialize():
 
     if not litparser:
         exit(1, 'Environment variable not set: LITPARSER')
-
-    #if not createSupplement:
-    #    exit(1, 'Environment variable not set: CREATE_SUPPLEMENT')
-
-    #if not createPDF:
-    #    exit(1, 'Environment variable not set: CREATE_PDF')
-
-    #if not updateNLM:
-    #    exit(1, 'Environment variable not set: UPDATE_NLM')
 
     if not diag:
         exit(1, 'Environment variable not set: LOG_DIAG')
@@ -440,7 +432,7 @@ def bcpFiles():
 	    try:
                 os.system(bcpCmd)
 	    except:
-	        diagFile.write('bcpFiles(): failed : os.system(%s)\n' (bcpCmd ))
+	        diagFile.write('bcpFiles(): failed : os.system(%s)\n' (bcpCmd))
 		return 0
     diagFile.write('\nend: copy bcp files into database\n')
     diagFile.flush()
@@ -468,6 +460,14 @@ def bcpFiles():
 		    #return 0
     diagFile.write('\nend: move oldPDF to newPDF\n')
 
+    diagFile.write('\nstart: update sql commands\n')
+    try:
+        db.sql(updateSQLAll, None)
+	db.commit()
+    except:
+        diagFile.write('bcpFiles(): failed : os.system(%s)\n' (updateSQLAll))
+    diagFile.write('\nend: update sql commands\n')
+
     # update the max Accession ID value
     db.sql('select * from ACC_setMax (%d)' % (recordsProcessed), None)
     db.commit()
@@ -489,6 +489,7 @@ def replaceText(extractedText):
    extractedText = extractedText.replace('\n', '\\n')
    extractedText = extractedText.replace('\r', '\\r')
    extractedText = extractedText.replace('|', '\\n')
+   extractedText = extractedText.replace("'", "''")
    return extractedText
 
 #
@@ -506,7 +507,6 @@ def level1SanityChecks():
     global userDict
     global objByUser
     global doiidById
-    global supplementDict
     global allErrors, level1error1, level1error2, level1error3, level1error4
 
     # iterate thru input directory by user
@@ -564,9 +564,27 @@ def level1SanityChecks():
 	    doiid = ''
 
 	    #
+	    # if userPath is in the 'supplement' folder
+	    #	store in objByUser
+	    #	skip DOI/PMID sanity checks
+	    #
+	    if userPath == userSupplement:
+		try:
+	            # store by mgiid
+	            mgiid = pdfFile.replace('.pdf', '')
+	            pdftext = replaceText(pdf.getText())
+	            if (userPath, 'supplement', mgiid) not in objByUser:
+	                objByUser[(userPath, 'supplement', mgiid)] = []
+	                objByUser[(userPath, 'supplement', mgiid)].append((pdfFile, pdftext))
+                except:
+		    level1error4 = level1error4 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
+		    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+		    continue
+
+	    #
 	    # if PDF does *not* start with "PMID", then search for doiid
 	    #
-	    if not pdfFile.lower().startswith('pmid'):
+	    elif not pdfFile.lower().startswith('pmid'):
 	        try:
                     doiid = pdf.getFirstDoiID()
 	            pdftext = replaceText(pdf.getText())
@@ -596,10 +614,13 @@ def level1SanityChecks():
 		    continue
 
 	        # store by doiid
-	        if (userPath, 'doi', doiid) not in objByUser:
+		if (userPath, 'doi', doiid) not in objByUser:
 	            objByUser[(userPath, 'doi', doiid)] = []
 	            objByUser[(userPath, 'doi', doiid)].append((pdfFile, pdftext))
 
+	    #
+	    # else, pdf file is "PMID_xxxx" format
+	    #
 	    else:
 		try:
 	            # store by pmid
@@ -783,10 +804,11 @@ def level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, ref):
 # Purpose: Process/Iterate PDF adds
 # Returns: 0
 #
-def processAdds():
+def processPDFs():
     global allErrors
     global level2error1, level2error2, level2error3, level2error4
     global level3error1, level3error2, level3error3
+    global supplerror1
     global accKey, refKey, statusKey, mgiKey
     global mvPDFtoMasterDir
     global recordsProcessed
@@ -801,10 +823,11 @@ def processAdds():
     #
 
     if DEBUG:
-        diagFile.write('\nprocessAdds()\n')
+        diagFile.write('\nprocessPDFs()\n')
 
     # objByUser = {('user name', 'doi', 'doiid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', 'pm', 'pmid') : ('pdffile', 'pdftext')}
+    # objByUser = {('user name', 'supplement', 'mgiid') : ('pdffile', 'pdftext')}
 
     for key in objByUser:
 
@@ -818,6 +841,11 @@ def processAdds():
 	objId = key[2]
         pdfPath = os.path.join(inputDir, userPath)
         failPath = os.path.join(failDir, userPath)
+
+	# process supplement?
+	if objType == 'supplement':
+	    processSupplement(key)
+	    continue
 
 	#
 	# level2SanityChecks()
@@ -995,6 +1023,10 @@ def processAdds():
     	level3error3 + '<BR>\n\n'
     allErrors = allErrors + level3errorStart + level3error1 + level3error2 + level3error3
 
+    supplerror1 = '<B>1: MGI ID in filename does not match reference in MGI</B><BR><BR>\n\n' + \
+    	supplerror1 + '<BR>\n\n'
+    allErrors = allErrors + supplerrorStart + supplerror1
+
     # copy all errors to error log, remove html and copy to curator log
     errorFile.write(allErrors)
     curatorFile.write(re.sub('<.*?>', '', allErrors))
@@ -1002,6 +1034,64 @@ def processAdds():
     diagFile.flush()
 
     return 0
+
+#
+# Purpose: Process Supplmental Object : see processPDFs()
+# Returns: nothing
+#
+# bib_workflow_data: 
+#	store extracted
+#	hasPDF = 1
+#	_supplimental_key = 34026997/'Supplement attached'
+#
+def processSupplement(objKey):
+    global supplerror1
+    global mvPDFtoMasterDir
+    global updateSQLAll
+
+    if DEBUG:
+        diagFile.write('\nprocessSupplement()\n')
+
+    # objByUser = {('user name', 'supplement', 'mgiid') : ('pdffile', 'pdftext')}
+
+    pdfFile = objByUser[objKey][0][0]
+    extractedText = objByUser[objKey][0][1]
+    userPath = objKey[0]
+    objType = objKey[1]
+    mgiKey = objKey[2]
+    mgiId = 'MGI:' + mgiKey
+    pdfPath = os.path.join(inputDir, userPath)
+    failPath = os.path.join(failDir, userPath)
+
+    results = db.sql('select _Refs_key from BIB_Citation_Cache where mgiID = \'%s\' ' % (mgiId), 'auto')
+
+    if len(results) == 0:
+	supplerror1 = supplerror1 + str(objId) + '<BR>\n' + \
+		linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
+
+    	if DEBUG:
+            diagFile.write('supplement level1 : failed : %s, %s, %s\n' % (mgiId, userPath, pdfFile))
+
+        return
+
+    refsKey = results[0]['_Refs_key']
+
+    updateSQL = '''
+    	update BIB_Workflow_Data set hasPDF = 1, _Supplemental_key = 34026997,
+    		extractedText = E'%s' where _Refs_key = %s;\n
+	''' % (extractedText, refsKey)
+
+    if DEBUG:
+        diagFile.write('\nprocessSupplement() : sql (minus extracted text) : \n%s\n\n' % (updateSQL))
+
+    updateSQLAll = updateSQLAll + updateSQL
+
+    # store dictionary : move pdf file from inputDir to masterPath
+    newPath = Pdfpath.getPdfpath(masterDir, mgiId)
+    mvPDFtoMasterDir[pdfPath + '/' + pdfFile] = []
+    mvPDFtoMasterDir[pdfPath + '/' + pdfFile].append((newPath,str(mgiKey) + '.pdf'))
+
+    return
 
 #
 #  MAIN
@@ -1017,7 +1107,7 @@ if level1SanityChecks() != 0:
 if setPrimaryKeys() != 0:
     sys.exit(1)
 
-if processAdds() != 0:
+if processPDFs() != 0:
     closeFiles()
     sys.exit(1)
 
