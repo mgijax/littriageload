@@ -603,7 +603,8 @@ def level1SanityChecks():
 	    else:
 		try:
 	            # store by pmid
-	            pmid = pdfFile.replace('PMID_', '')
+		    pmid = pdfFile.lower()
+	            pmid = pmid.replace('pmid_', '')
 	            pmid = pmid.replace('.pdf', '')
 	            pdftext = replaceText(pdf.getText())
 	            if (userPath, 'pm', pmid) not in objByUser:
