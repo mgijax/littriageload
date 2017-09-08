@@ -1075,11 +1075,18 @@ def processSupplement(objKey):
         return
 
     refsKey = results[0]['_Refs_key']
+    userKey = loadlib.verifyUser(userPath, 0, diagFile)
 
     updateSQL = '''
-    	update BIB_Workflow_Data set hasPDF = 1, _Supplemental_key = 34026997,
-    		extractedText = E'%s' where _Refs_key = %s;\n
-	''' % (extractedText, refsKey)
+    	update BIB_Workflow_Data set 
+		hasPDF = 1, 
+		_Supplemental_key = 34026997,
+    		extractedText = E'%s',
+		modifiedby_key = %s,
+		modification_date = now()
+		where _Refs_key = %s,
+		;\n
+	''' % (extractedText, userKey, refsKey)
 
     if DEBUG:
         diagFile.write('\nprocessSupplement() : sql (minus extracted text) : \n%s\n\n' % (updateSQL))
