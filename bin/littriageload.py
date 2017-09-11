@@ -460,20 +460,21 @@ def bcpFiles():
 		    #return 0
     diagFile.write('\nend: move oldPDF to newPDF\n')
 
-    #diagFile.write('\nstart: update sql commands\n')
-    #try:
-    #    db.sql(updateSQLAll, None)
-#	db.commit()
-#    except:
-#        diagFile.write('bcpFiles(): failed : os.system(%s)\n' (updateSQLAll))
-#    diagFile.write('\nend: update sql commands\n')
+    diagFile.write('\nstart: update sql commands\n')
+    diagFile.write(updateSQLAll)
+    try:
+        db.sql(updateSQLAll, None)
+	db.commit()
+    except:
+        diagFile.write('bcpFiles(): failed : update sql commands\n')
+    diagFile.write('\nend: update sql commands\n')
 
     # update the max Accession ID value
     db.sql('select * from ACC_setMax (%d)' % (recordsProcessed), None)
     db.commit()
 
     diagFile.write('\nend: bcpFiles() : successful\n')
-    diagFile.flush()
+    #diagFile.flush()
 
     return 0
 
@@ -1085,27 +1086,21 @@ def processSupplement(objKey):
     refsKey = results[0]['_Refs_key']
     userKey = loadlib.verifyUser(userPath, 0, diagFile)
 
-	#	update BIB_Refs set
-	#	modifiedby_key = %s,
-	#	modification_date = now()
-	#	where _Refs_key = %s
-	#	;
-
     updateSQL = '''
     	update BIB_Workflow_Data set 
 		hasPDF = 1, 
 		_Supplemental_key = 34026997,
     		extractedText = E'%s',
-		modifiedby_key = %s,
+		_ModifiedBy_key = %s,
 		modification_date = now()
-		where _Refs_key = %s,
+		where _Refs_key = %s
 		;\n
 	''' % (extractedText, userKey, refsKey)
 
     if DEBUG:
         diagFile.write('\nprocessSupplement() : sql (minus extracted text) : \n%s\n\n' % (updateSQL))
 
-    #updateSQLAll = updateSQLAll + updateSQL
+    updateSQLAll = updateSQLAll + updateSQL
 
     # store dictionary : move pdf file from inputDir to masterPath
     newPath = Pdfpath.getPdfpath(masterDir, mgiId)
