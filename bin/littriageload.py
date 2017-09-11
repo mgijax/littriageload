@@ -172,7 +172,7 @@ allErrors = 'Start Log: ' + mgi_utils.date() + '<BR><BR>\n\n'
 level1errorStart = '**********<BR>\nLiterature Triage Level 1 Errors : parse DOI ID from PDF files<BR><BR>\n'
 level2errorStart = '**********<BR>\nLiterature Triage Level 2 Errors : parse PubMed IDs from PubMed API<BR><BR>\n\n'
 level3errorStart = '**********<BR>\nLiterature Triage Level 3 Errors : check MGI for errors<BR><BR>\n\n'
-supplerrorStart = '**********<BR>\nLiterature Triage Supplement Errors : check MGI for errors<BR><BR>\n\n'
+specialerrorStart = '**********<BR>\nLiterature Triage littriage_create_supplement/littriage_update_pdf Errors : check MGI for errors<BR><BR>\n\n'
 
 level1error1 = '' 
 level1error2 = ''
@@ -188,7 +188,7 @@ level3error1 = ''
 level3error2 = ''
 level3error3 = ''
 
-supplerror1 = ''
+specialerror1 = ''
 
 #
 # Purpose: prints error message and exits
@@ -584,6 +584,24 @@ def level1SanityChecks():
 		    continue
 
 	    #
+	    # if userPath is in the 'userPDF' folder
+	    #	store in objByUser
+	    #	skip DOI/PMID sanity checks
+	    #
+	    elif userPath == userPDF:
+		try:
+	            # store by mgiid
+	            mgiid = pdfFile.replace('.pdf', '')
+	            pdftext = replaceText(pdf.getText())
+	            if (userPath, userPDF, mgiid) not in objByUser:
+	                objByUser[(userPath, userPDF, mgiid)] = []
+	                objByUser[(userPath, userPDF, mgiid)].append((pdfFile, pdftext))
+                except:
+		    level1error4 = level1error4 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
+		    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+		    continue
+
+	    #
 	    # if PDF does *not* start with "PMID", then search for doiid
 	    #
 	    elif not pdfFile.lower().startswith('pmid'):
@@ -745,7 +763,6 @@ def level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, ref):
     # return 0 : will add as new reference
     # return 1/2 : will skip/move to 'failed'
     # return 3 : will add new Accession ids
-    # return 4 : will update PDF/extracted text
 
     if DEBUG:
         diagFile.write('level3SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
@@ -794,10 +811,6 @@ def level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, ref):
 	    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 	    return 3, results
 
-	# 4: ok to update the PDF
-	if userPath == userPDF:
-		return 4, results
-
         # 1: input PubMed ID or DOI ID exists in MGI
 	diagFile.write('1: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
 	level3error1 = level3error1 + objId + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
@@ -816,7 +829,7 @@ def processPDFs():
     global allErrors
     global level2error1, level2error2, level2error3, level2error4
     global level3error1, level3error2, level3error3
-    global supplerror1
+    global specialerror1
     global accKey, refKey, statusKey, mgiKey
     global mvPDFtoMasterDir
     global recordsProcessed
@@ -851,9 +864,9 @@ def processPDFs():
         pdfPath = os.path.join(inputDir, userPath)
         failPath = os.path.join(failDir, userPath)
 
-	# process supplement
-	if objType == userSupplement:
-	    processSupplement(key)
+	# process pdfs/supplement
+	if objType in (userSupplement, userPDF):
+	    processUserPDF(key)
 	    continue
 
 	#
@@ -887,7 +900,6 @@ def processPDFs():
         # return 0 : will add as new reference
         # return 1/2 : will skip/move to 'failed'
         # return 3 : will add new Accession ids
-        # return 4 : will update PDF/extracted text
 	#
 	rc, mgdRef = level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, pubmedRef)
 
@@ -925,33 +937,6 @@ def processPDFs():
 		   userKey, userKey, loaddate, loaddate))
 
 	    accKey = accKey + 1
-
-	#
-	# update extracted text, hasPDF = 1
-	#
-	elif rc == 4:
-
-            diagFile.write('level3SanityChecks() : successful : update PDF, extracted text: %s, %s, %s, %s, %s\n' \
-	    	% (objId, userPath, pdfFile, pubmedID, str(mgdRef)))
-
-	    userKey = loadlib.verifyUser(userPath, 0, diagFile)
-	    objectKey = mgdRef[0]['_Refs_key']
-
-            updateSQL = '''
-    	        update BIB_Workflow_Data set 
-		        hasPDF = 1, 
-		        _Supplemental_key = 34026997,
-    		        extractedText = E'%s',
-		        _ModifiedBy_key = %s,
-		        modification_date = now()
-		        where _Refs_key = %s
-		        ;
-                update BIB_Refs set _ModifiedBy_key = %s, modification_date = now() where _Refs_key = %s
-		;
-
-	        ''' % (extractedText, userKey, objectKey, userKey, objectKey)
-
-	    updateSQLAll = updateSQLAll + updateSQL
 
 	# add new MGI reference
 	#
@@ -1059,9 +1044,9 @@ def processPDFs():
     	level3error3 + '<BR>\n\n'
     allErrors = allErrors + level3errorStart + level3error1 + level3error2 + level3error3
 
-    supplerror1 = '<B>1: MGI ID in filename does not match reference in MGI</B><BR><BR>\n\n' + \
-    	supplerror1 + '<BR>\n\n'
-    allErrors = allErrors + supplerrorStart + supplerror1
+    specialerror1 = '<B>1: MGI ID in filename does not match reference in MGI</B><BR><BR>\n\n' + \
+    	specialerror1 + '<BR>\n\n'
+    allErrors = allErrors + specialerrorStart + specialerror1
 
     # copy all errors to error log, remove html and copy to curator log
     errorFile.write(allErrors)
@@ -1072,23 +1057,24 @@ def processPDFs():
     return 0
 
 #
-# Purpose: Process Supplmental Object : see processPDFs()
+# Purpose: Process userSupplement, userPDF Object : see processPDFs()
 # Returns: nothing
 #
 # bib_workflow_data: 
 #	store extracted
 #	hasPDF = 1
-#	_supplimental_key = 34026997/'Supplement attached'
+#	if userSupplement, _supplimental_key = 34026997/'Supplement attached'
 #
-def processSupplement(objKey):
-    global supplerror1
+def processUserPDF(objKey):
+    global specialerror1
     global mvPDFtoMasterDir
     global updateSQLAll
 
     if DEBUG:
-        diagFile.write('\nprocessSupplement()\n')
+        diagFile.write('\nprocessUserPDF()\n')
 
     # objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
 
     pdfFile = objByUser[objKey][0][0]
     extractedText = objByUser[objKey][0][1]
@@ -1102,21 +1088,26 @@ def processSupplement(objKey):
     results = db.sql('select _Refs_key from BIB_Citation_Cache where mgiID = \'%s\' ' % (mgiId), 'auto')
 
     if len(results) == 0:
-	supplerror1 = supplerror1 + str(objId) + '<BR>\n' + \
+	specialerror1 = specialerror1 + str(objId) + '<BR>\n' + \
 		linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
 
     	if DEBUG:
-            diagFile.write('userSupplement level1 : failed : %s, %s, %s\n' % (mgiId, userPath, pdfFile))
+            diagFile.write('userPDF/userSupplement level1 : failed : %s, %s, %s\n' % (mgiId, userPath, pdfFile))
 
         return
 
     refsKey = results[0]['_Refs_key']
     userKey = loadlib.verifyUser(userPath, 0, diagFile)
 
+    if objType == userSupplement:
+        suppSQL = '_Supplemental_key = 34026997,'
+    else:
+        suppSQL = ''
+
     updateSQL = '''
     	update BIB_Workflow_Data set 
 		hasPDF = 1, 
-		_Supplemental_key = 34026997,
+		%s
     		extractedText = E'%s',
 		_ModifiedBy_key = %s,
 		modification_date = now()
@@ -1125,7 +1116,7 @@ def processSupplement(objKey):
                 update BIB_Refs set _ModifiedBy_key = %s, modification_date = now() where _Refs_key = %s
 		;
 
-	''' % (extractedText, userKey, refsKey, userKey, refsKey)
+	''' % (suppSQL, extractedText, userKey, refsKey, userKey, refsKey)
 
     updateSQLAll = updateSQLAll + updateSQL
 
