@@ -460,13 +460,13 @@ def bcpFiles():
 		    #return 0
     diagFile.write('\nend: move oldPDF to newPDF\n')
 
-    diagFile.write('\nstart: update sql commands\n')
-    try:
-        db.sql(updateSQLAll, None)
-	db.commit()
-    except:
-        diagFile.write('bcpFiles(): failed : os.system(%s)\n' (updateSQLAll))
-    diagFile.write('\nend: update sql commands\n')
+    #diagFile.write('\nstart: update sql commands\n')
+    #try:
+    #    db.sql(updateSQLAll, None)
+#	db.commit()
+#    except:
+#        diagFile.write('bcpFiles(): failed : os.system(%s)\n' (updateSQLAll))
+#    diagFile.write('\nend: update sql commands\n')
 
     # update the max Accession ID value
     db.sql('select * from ACC_setMax (%d)' % (recordsProcessed), None)
@@ -790,6 +790,9 @@ def level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, ref):
 	    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 	    return 3, results
 
+	#if userPath == userPDF:
+	#	return 4, results
+
         # 1: input PubMed ID or DOI ID exists in MGI
 	diagFile.write('1: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
 	level3error1 = level3error1 + objId + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
@@ -812,6 +815,7 @@ def processPDFs():
     global accKey, refKey, statusKey, mgiKey
     global mvPDFtoMasterDir
     global recordsProcessed
+    global updateSQLAll
 
     #
     # assumes the level1SanityChecks have passed
@@ -917,6 +921,10 @@ def processPDFs():
 	    accKey = accKey + 1
 
 	#
+	# update extracted text, hasPDF = 1
+	#
+	#elif rc == 4:
+
 	# add new MGI reference
 	#
 	elif rc == 0:
@@ -1077,6 +1085,12 @@ def processSupplement(objKey):
     refsKey = results[0]['_Refs_key']
     userKey = loadlib.verifyUser(userPath, 0, diagFile)
 
+	#	update BIB_Refs set
+	#	modifiedby_key = %s,
+	#	modification_date = now()
+	#	where _Refs_key = %s
+	#	;
+
     updateSQL = '''
     	update BIB_Workflow_Data set 
 		hasPDF = 1, 
@@ -1091,7 +1105,7 @@ def processSupplement(objKey):
     if DEBUG:
         diagFile.write('\nprocessSupplement() : sql (minus extracted text) : \n%s\n\n' % (updateSQL))
 
-    updateSQLAll = updateSQLAll + updateSQL
+    #updateSQLAll = updateSQLAll + updateSQL
 
     # store dictionary : move pdf file from inputDir to masterPath
     newPath = Pdfpath.getPdfpath(masterDir, mgiId)
