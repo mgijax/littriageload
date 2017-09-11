@@ -152,7 +152,8 @@ userDict = {}
 # objByUser = {('user name', 'object type', 'object id') : ('pdffile', 'pdftext')}
 # objByUser = {('user name', 'doi', 'doiid') : ('pdffile', 'pdftext')}
 # objByUser = {('user name', 'pm', 'pmid') : ('pdffile', 'pdftext')}
-# objByUser = {('user name', 'supplement', 'mgiid') : ('pdffile', 'pdftext')}
+# objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
+# objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
 # {('cms, 'doi', '10.112xxx'): ['10.112xxx.pdf, 'text'']}
 # {('cms, 'pm', 'PMID_14440025'): ['PDF_14440025.pdf', 'text'']}
 objByUser = {}
@@ -565,7 +566,7 @@ def level1SanityChecks():
 	    doiid = ''
 
 	    #
-	    # if userPath is in the 'supplement' folder
+	    # if userPath is in the 'userSupplement' folder
 	    #	store in objByUser
 	    #	skip DOI/PMID sanity checks
 	    #
@@ -574,9 +575,9 @@ def level1SanityChecks():
 	            # store by mgiid
 	            mgiid = pdfFile.replace('.pdf', '')
 	            pdftext = replaceText(pdf.getText())
-	            if (userPath, 'supplement', mgiid) not in objByUser:
-	                objByUser[(userPath, 'supplement', mgiid)] = []
-	                objByUser[(userPath, 'supplement', mgiid)].append((pdfFile, pdftext))
+	            if (userPath, userSupplement, mgiid) not in objByUser:
+	                objByUser[(userPath, userSupplement, mgiid)] = []
+	                objByUser[(userPath, userSupplement, mgiid)].append((pdfFile, pdftext))
                 except:
 		    level1error4 = level1error4 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
 		    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
@@ -736,6 +737,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath):
 #  2: PubMed or DOI ID associated with different MGI references
 #  3a: input PubMed ID exists in MGI but missing DOI ID -> add DOI ID in MGI
 #  3b: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
+#  4 : update PDF/extracted text
 #
 def level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, ref):
     global level3error1, level3error2, level3error3
@@ -743,6 +745,7 @@ def level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, ref):
     # return 0 : will add as new reference
     # return 1/2 : will skip/move to 'failed'
     # return 3 : will add new Accession ids
+    # return 4 : will update PDF/extracted text
 
     if DEBUG:
         diagFile.write('level3SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
@@ -791,8 +794,9 @@ def level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, ref):
 	    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 	    return 3, results
 
-	#if userPath == userPDF:
-	#	return 4, results
+	# 4: ok to update the PDF
+	if userPath == userPDF:
+		return 4, results
 
         # 1: input PubMed ID or DOI ID exists in MGI
 	diagFile.write('1: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
@@ -832,7 +836,7 @@ def processPDFs():
 
     # objByUser = {('user name', 'doi', 'doiid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', 'pm', 'pmid') : ('pdffile', 'pdftext')}
-    # objByUser = {('user name', 'supplement', 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
 
     for key in objByUser:
 
@@ -847,8 +851,8 @@ def processPDFs():
         pdfPath = os.path.join(inputDir, userPath)
         failPath = os.path.join(failDir, userPath)
 
-	# process supplement?
-	if objType == 'supplement':
+	# process supplement
+	if objType == userSupplement:
 	    processSupplement(key)
 	    continue
 
@@ -883,6 +887,7 @@ def processPDFs():
         # return 0 : will add as new reference
         # return 1/2 : will skip/move to 'failed'
         # return 3 : will add new Accession ids
+        # return 4 : will update PDF/extracted text
 	#
 	rc, mgdRef = level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, pubmedRef)
 
@@ -924,7 +929,29 @@ def processPDFs():
 	#
 	# update extracted text, hasPDF = 1
 	#
-	#elif rc == 4:
+	elif rc == 4:
+
+            diagFile.write('level3SanityChecks() : successful : update PDF, extracted text: %s, %s, %s, %s, %s\n' \
+	    	% (objId, userPath, pdfFile, pubmedID, str(mgdRef)))
+
+	    userKey = loadlib.verifyUser(userPath, 0, diagFile)
+	    objectKey = mgdRef[0]['_Refs_key']
+
+            updateSQL = '''
+    	        update BIB_Workflow_Data set 
+		        hasPDF = 1, 
+		        _Supplemental_key = 34026997,
+    		        extractedText = E'%s',
+		        _ModifiedBy_key = %s,
+		        modification_date = now()
+		        where _Refs_key = %s
+		        ;
+                update BIB_Refs set _ModifiedBy_key = %s, modification_date = now() where _Refs_key = %s
+		;
+
+	        ''' % (extractedText, userKey, objectKey, userKey, objectKey)
+
+	    updateSQLAll = updateSQLAll + updateSQL
 
 	# add new MGI reference
 	#
@@ -1061,7 +1088,7 @@ def processSupplement(objKey):
     if DEBUG:
         diagFile.write('\nprocessSupplement()\n')
 
-    # objByUser = {('user name', 'supplement', 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
 
     pdfFile = objByUser[objKey][0][0]
     extractedText = objByUser[objKey][0][1]
@@ -1079,7 +1106,7 @@ def processSupplement(objKey):
 		linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
 
     	if DEBUG:
-            diagFile.write('supplement level1 : failed : %s, %s, %s\n' % (mgiId, userPath, pdfFile))
+            diagFile.write('userSupplement level1 : failed : %s, %s, %s\n' % (mgiId, userPath, pdfFile))
 
         return
 
@@ -1094,11 +1121,11 @@ def processSupplement(objKey):
 		_ModifiedBy_key = %s,
 		modification_date = now()
 		where _Refs_key = %s
-		;\n
-	''' % (extractedText, userKey, refsKey)
+		;
+                update BIB_Refs set _ModifiedBy_key = %s, modification_date = now() where _Refs_key = %s
+		;
 
-    if DEBUG:
-        diagFile.write('\nprocessSupplement() : sql (minus extracted text) : \n%s\n\n' % (updateSQL))
+	''' % (extractedText, userKey, refsKey, userKey, refsKey)
 
     updateSQLAll = updateSQLAll + updateSQL
 
