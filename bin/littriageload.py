@@ -778,7 +778,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath, ref
     else:
         results = db.sql('''
 	    select _Refs_key, mgiID, pubmedID, doiID from BIB_Citation_Cache where pubmedID = '%s'
-    	    ''' % (pubmedID, objId), 'auto')
+    	    ''' % (pubmedID), 'auto')
 
     # 2: input PubMed ID or DOI ID associated with different MGI references
     if len(results) > 1:
