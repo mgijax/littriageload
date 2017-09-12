@@ -580,7 +580,7 @@ def level1SanityChecks():
 	                objByUser[(userPath, userSupplement, mgiid)] = []
 	                objByUser[(userPath, userSupplement, mgiid)].append((pdfFile, pdftext))
                 except:
-		    level1error4 = level1error4 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
+		    level1error1 = level1error1 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
 		    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 		    continue
 
@@ -598,7 +598,7 @@ def level1SanityChecks():
 	                objByUser[(userPath, userPDF, mgiid)] = []
 	                objByUser[(userPath, userPDF, mgiid)].append((pdfFile, pdftext))
                 except:
-		    level1error4 = level1error4 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
+		    level1error1 = level1error1 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
 		    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 		    continue
 
@@ -632,7 +632,7 @@ def level1SanityChecks():
 		            doiidById[doiid] = []
 		            doiidById[doiid].append(pdfFile)
 	                    if DEBUG:
-			        diagFile.write('pdf.getFirstDoiID() : successful : %s%s : %s\n' % (pdfPath, pdfFile, doiid))
+			        diagFile.write('pdf.getFirstDoiID() : successful : %s/%s : %s\n' % (pdfPath, pdfFile, doiid))
 			        diagFile.flush()
 		        else:
                             level1error3 = level1error3 + objId + '<BR>\n' + \
