@@ -81,7 +81,7 @@ pma = ''
 # special processing for specific cases
 userSupplement = 'littriage_create_supplement'
 userPDF = 'littriage_create_update_pdf'
-userNLM = 'littriage_update_nlm'
+userNLM = 'littriage_update_nlm' # not yet implemented
 
 diag = ''
 diagFile = ''
@@ -152,8 +152,9 @@ userDict = {}
 # objByUser = {('user name', 'object type', 'object id') : ('pdffile', 'pdftext')}
 # objByUser = {('user name', 'doi', 'doiid') : ('pdffile', 'pdftext')}
 # objByUser = {('user name', 'pm', 'pmid') : ('pdffile', 'pdftext')}
-# objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
 # objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
+# objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
+# objByUser = {('user name', userNLM, 'mgiid') : ('pdffile', 'pdftext')}
 # {('cms, 'doi', '10.112xxx'): ['10.112xxx.pdf, 'text'']}
 # {('cms, 'pm', 'PMID_14440025'): ['PDF_14440025.pdf', 'text'']}
 objByUser = {}
@@ -602,9 +603,26 @@ def level1SanityChecks():
 		    continue
 
 	    #
-	    # if PDF does *not* start with "PMID", then search for doiid
+	    # if pdf file is in "PMID_xxxx" format
 	    #
-	    elif not pdfFile.lower().startswith('pmid'):
+	    elif pdfFile.lower().startswith('pmid'):
+		try:
+	            # store by pmid
+	            pmid = pdfFile.lower().replace('pmid_', '')
+	            pmid = pmid.replace('.pdf', '')
+	            pdftext = replaceText(pdf.getText())
+	            if (userPath, 'pm', pmid) not in objByUser:
+	                objByUser[(userPath, 'pm', pmid)] = []
+	                objByUser[(userPath, 'pm', pmid)].append((pdfFile, pdftext))
+                except:
+		    level1error4 = level1error4 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
+		    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+		    continue
+
+	    #
+	    # anything else
+	    #
+	    else:
 	        try:
                     doiid = pdf.getFirstDoiID()
 	            pdftext = replaceText(pdf.getText())
@@ -638,22 +656,6 @@ def level1SanityChecks():
 	            objByUser[(userPath, 'doi', doiid)] = []
 	            objByUser[(userPath, 'doi', doiid)].append((pdfFile, pdftext))
 
-	    #
-	    # else, pdf file is "PMID_xxxx" format
-	    #
-	    else:
-		try:
-	            # store by pmid
-	            pmid = pdfFile.lower().replace('pmid_', '')
-	            pmid = pmid.replace('.pdf', '')
-	            pdftext = replaceText(pdf.getText())
-	            if (userPath, 'pm', pmid) not in objByUser:
-	                objByUser[(userPath, 'pm', pmid)] = []
-	                objByUser[(userPath, 'pm', pmid)].append((pdfFile, pdftext))
-                except:
-		    level1error4 = level1error4 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
-		    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-		    continue
 
     #
     # write out level1 errors to both error log and curator log
@@ -769,9 +771,14 @@ def level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, ref):
 
     pubmedID = ref.getPubMedID()
 
-    results = db.sql('''
-	select _Refs_key, mgiID, pubmedID, doiID from BIB_Citation_Cache where pubmedID = '%s' or doiID = '%s'
-    	''' % (pubmedID, objId), 'auto')
+    if objId == 'pm':
+        results = db.sql('''
+	    select _Refs_key, mgiID, pubmedID, doiID from BIB_Citation_Cache where pubmedID = '%s'
+    	    ''' % (pubmedID, objId), 'auto')
+    else:
+        results = db.sql('''
+	    select _Refs_key, mgiID, pubmedID, doiID from BIB_Citation_Cache where pubmedID = '%s' or doiID = '%s'
+    	    ''' % (pubmedID, objId), 'auto')
 
     # 2: input PubMed ID or DOI ID associated with different MGI references
     if len(results) > 1:
@@ -849,6 +856,7 @@ def processPDFs():
 
     # objByUser = {('user name', 'doi', 'doiid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', 'pm', 'pmid') : ('pdffile', 'pdftext')}
+    # objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
 
     for key in objByUser:
@@ -864,8 +872,8 @@ def processPDFs():
         pdfPath = os.path.join(inputDir, userPath)
         failPath = os.path.join(failDir, userPath)
 
-	# process pdfs/supplement
-	if objType in (userSupplement, userPDF):
+	# process pdf/supplement
+	if objType in (userPDF, userSupplement):
 	    processUserPDF(key)
 	    continue
 
@@ -1073,8 +1081,8 @@ def processUserPDF(objKey):
     if DEBUG:
         diagFile.write('\nprocessUserPDF()\n')
 
-    # objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
 
     pdfFile = objByUser[objKey][0][0]
     extractedText = objByUser[objKey][0][1]
