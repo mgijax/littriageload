@@ -487,6 +487,10 @@ def bcpFiles():
 # Returns:  new extractedText value
 #
 def replaceText(extractedText):
+
+   if extractedText == None:
+       return extractedText
+
    extractedText = re.sub(r'[^\x00-\x7F]','', extractedText)
    extractedText = extractedText.replace('\\', '\\\\')
    extractedText = extractedText.replace('\n', '\\n')
