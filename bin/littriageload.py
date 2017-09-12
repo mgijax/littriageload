@@ -1098,7 +1098,7 @@ def processUserPDF(objKey):
     results = db.sql('select _Refs_key from BIB_Citation_Cache where mgiID = \'%s\' ' % (mgiId), 'auto')
 
     if len(results) == 0:
-	specialerror1 = specialerror1 + str(objId) + '<BR>\n' + \
+	specialerror1 = specialerror1 + str(mgiId) + '<BR>\n' + \
 		linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
 
     	if DEBUG:
