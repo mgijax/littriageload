@@ -759,7 +759,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath):
 #  3b: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
 #  4 : update PDF/extracted text
 #
-def level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, ref):
+def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath, ref):
     global level3error1, level3error2, level3error3
 
     # return 0 : will add as new reference
@@ -771,13 +771,13 @@ def level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, ref):
 
     pubmedID = ref.getPubMedID()
 
-    if objId == 'pm':
+    if objType == 'doi':
         results = db.sql('''
-	    select _Refs_key, mgiID, pubmedID, doiID from BIB_Citation_Cache where pubmedID = '%s'
+	    select _Refs_key, mgiID, pubmedID, doiID from BIB_Citation_Cache where pubmedID = '%s' or doiID = '%s'
     	    ''' % (pubmedID, objId), 'auto')
     else:
         results = db.sql('''
-	    select _Refs_key, mgiID, pubmedID, doiID from BIB_Citation_Cache where pubmedID = '%s' or doiID = '%s'
+	    select _Refs_key, mgiID, pubmedID, doiID from BIB_Citation_Cache where pubmedID = '%s'
     	    ''' % (pubmedID, objId), 'auto')
 
     # 2: input PubMed ID or DOI ID associated with different MGI references
@@ -909,7 +909,7 @@ def processPDFs():
         # return 1/2 : will skip/move to 'failed'
         # return 3 : will add new Accession ids
 	#
-	rc, mgdRef = level3SanityChecks(userPath, objId, pdfFile, pdfPath, failPath, pubmedRef)
+	rc, mgdRef = level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath, pubmedRef)
 
 	if rc == 1 or rc == 2:
 	    if DEBUG:
