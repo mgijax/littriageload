@@ -80,7 +80,7 @@ pma = ''
 
 # special processing for specific cases
 userSupplement = 'littriage_create_supplement'
-userPDF = 'littriage_create_update_pdf'
+userPDF = 'littriage_update_pdf'
 userNLM = 'littriage_update_nlm' # not yet implemented
 
 diag = ''
