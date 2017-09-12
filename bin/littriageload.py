@@ -791,32 +791,34 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath, ref
 
     elif len(results) == 1:
 
-        # 2: input PubMed ID or DOI ID associated with different MGI references
-	if results[0]['pubmedID'] != None and results[0]['doiID'] != None:
-	    if (pubmedID == results[0]['pubmedID'] and objId != results[0]['doiID']) or \
-	       (pubmedID != results[0]['pubmedID'] and objId == results[0]['doiID']):
-                diagFile.write('2: input PubMed ID or DOI ID associated with different MGI references: ' \
-		        + objId + ',' + pubmedID + '\n')
-	        level3error2 = level3error2 + objId + ', ' + pubmedID + '<BR>\n' + \
-	    	        linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
-		os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-	        return 2, results
+        if objType == 'doi':
 
-        # 3a: input PubMed ID exists in MGI but missing DOI ID -> add DOI ID in MGI
-	if results[0]['pubmedID'] == None:
-	    diagFile.write('3: pubmedID is missing in MGI: ' + objId + ',' + pubmedID + '\n')
-	    level3error3 = level3error3 + objId + ', ' + pubmedID + ' : adding PubMed ID<BR>\n' + \
-	    	linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-	    return 3, results
+            # 2: input PubMed ID or DOI ID associated with different MGI references
+	    if results[0]['pubmedID'] != None and results[0]['doiID'] != None:
+	        if (pubmedID == results[0]['pubmedID'] and objId != results[0]['doiID']) or \
+	           (pubmedID != results[0]['pubmedID'] and objId == results[0]['doiID']):
+                    diagFile.write('2: input PubMed ID or DOI ID associated with different MGI references: ' \
+		            + objId + ',' + pubmedID + '\n')
+	            level3error2 = level3error2 + objId + ', ' + pubmedID + '<BR>\n' + \
+	    	            linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
+		    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+	            return 2, results
 
-        # 3b: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
-	if results[0]['doiID'] == None:
-	    diagFile.write('3: doiid is missing in MGI:' + objId + ',' + pubmedID + '\n')
-	    level3error3 = level3error3 + objId + ', ' + pubmedID + ' : adding DOI ID<BR>\n' + \
-	    	linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-	    return 3, results
+            # 3a: input PubMed ID exists in MGI but missing DOI ID -> add DOI ID in MGI
+	    if results[0]['pubmedID'] == None:
+	        diagFile.write('3: pubmedID is missing in MGI: ' + objId + ',' + pubmedID + '\n')
+	        level3error3 = level3error3 + objId + ', ' + pubmedID + ' : adding PubMed ID<BR>\n' + \
+	    	    linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
+	        os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+	        return 3, results
+
+            # 3b: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
+	    if results[0]['doiID'] == None:
+	        diagFile.write('3: doiid is missing in MGI:' + objId + ',' + pubmedID + '\n')
+	        level3error3 = level3error3 + objId + ', ' + pubmedID + ' : adding DOI ID<BR>\n' + \
+	    	    linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
+	        os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+	        return 3, results
 
         # 1: input PubMed ID or DOI ID exists in MGI
 	diagFile.write('1: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
