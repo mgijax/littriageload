@@ -667,7 +667,7 @@ def level1SanityChecks():
     level1error1 = '<B>1: not in PDF format</B><BR><BR>\n\n' + level1error1 + '<BR>\n\n'
     level1error2 = '<B>2: cannot extract/find DOI ID</B><BR><BR>\n\n' + level1error2 + '<BR>\n\n'
     level1error3 = '<B>3: duplicate published refs (same DOI ID)</B><BR><BR>\n\n' + level1error3 + '<BR>\n\n'
-    level1error4 = '<B>4: cannot extract PMID or MGI ID</B><BR><BR>\n\n' + level1error4 + '<BR>\n\n'
+    level1error4 = '<B>4: cannot extract PMID</B><BR><BR>\n\n' + level1error4 + '<BR>\n\n'
     allErrors = allErrors + level1errorStart + level1error1 + level1error2 + level1error3 + level1error4
 
     return 0
