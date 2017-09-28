@@ -83,6 +83,11 @@ userSupplement = 'littriage_create_supplement'
 userPDF = 'littriage_update_pdf'
 userNLM = 'littriage_update_nlm' # not yet implemented
 
+count_processPDFs = 0
+count_userSupplement = 0
+count_userPDF = 0
+count_userNLM = 0
+
 diag = ''
 diagFile = ''
 curator = ''
@@ -95,7 +100,6 @@ outputDir = ''
 
 masterDir = ''
 failDir = ''
-
 bcpScript = ''
 
 accFile = ''
@@ -115,8 +119,8 @@ dataTable = 'BIB_Workflow_Data'
 accKey = 0
 refKey = 0
 statusKey = 0
+tagassocKey = 0
 mgiKey = 0
-recordsProcessed = 0
 
 mgiTypeKey = 1
 mgiPrefix = 'MGI:'
@@ -129,6 +133,25 @@ isCurrent = 1
 hasPDF = 1
 isPrivate = 0
 isPreferred = 1
+
+# for cutover only
+tagTable = 'BIB_Workflow_Tag'
+isCutover = ''
+tagFile = ''
+tagFileName = ''
+cutover_routedKey = 31576670 	# Routed
+cutover_group = { 
+'a' : '31576664',
+'e' : '31576665',
+'g' : '31576666',
+'t' : '31576667'
+}
+cutover_tag = { 
+'s' : '31576694',
+'p' : '34693808',
+'m' : '31576695',
+'n' : '34693807'
+}
 
 # list of workflow groups
 workflowGroupList = []
@@ -233,6 +256,7 @@ def initialize():
     global accFile, refFile, statusFile, dataFile
     global pma
     global workflowGroupList
+    global isCutover, tagFile, tagFileName
 
     litparser = os.getenv('LITPARSER')
     diag = os.getenv('LOG_DIAG')
@@ -242,7 +266,8 @@ def initialize():
     outputDir = os.getenv('OUTPUTDIR')
     masterDir = os.getenv('MASTERTRIAGEDIR')
     failDir = os.getenv('FAILEDTRIAGEDIR')
-    bcpScript = os.environ['PG_DBUTILS'] + '/bin/bcpin.csh'
+    bcpScript = os.getenv('PG_DBUTILS') + '/bin/bcpin.csh'
+    isCutover = os.getenv('CUTOVER')
 
     #
     # Make sure the required environment variables are set.
@@ -330,6 +355,16 @@ def initialize():
     except:
         exit(1, 'Could not open file %s\n' % dataFileName)
 
+    try:
+        tagFileName = outputDir + '/' + tagTable + '.bcp'
+    except:
+        exit(1, 'Cannot create file: ' + outputDir + '/' + tagTable + '.bcp')
+
+    try:
+        tagFile = open(tagFileName, 'w')
+    except:
+        exit(1, 'Could not open file %s\n' % tagFileName)
+
     # initialized PdfParser.py
     try:
         PdfParser.setLitParserDir(litparser)
@@ -368,6 +403,8 @@ def closeFiles():
         dataFile.close()
     if accFile:
         accFile.close()
+    if tagFile:
+        tagFile.close()
 
     return 0
 
@@ -376,13 +413,16 @@ def closeFiles():
 # Returns: 0
 #
 def setPrimaryKeys():
-    global accKey, refKey, statusKey, mgiKey
+    global accKey, refKey, statusKey, mgiKey, tagassocKey
 
     results = db.sql('select max(_Refs_key) + 1 as maxKey from BIB_Refs', 'auto')
     refKey = results[0]['maxKey']
 
     results = db.sql('select max(_Assoc_key) + 1 as maxKey from BIB_Workflow_Status', 'auto')
     statusKey = results[0]['maxKey']
+
+    results = db.sql('select max(_Assoc_key) + 1 as maxKey from BIB_Workflow_Tag', 'auto')
+    tagassocKey = results[0]['maxKey']
 
     results = db.sql('select max(_Accession_key) + 1 as maxKey from ACC_Accession', 'auto')
     accKey = results[0]['maxKey']
@@ -409,6 +449,8 @@ def bcpFiles():
         dataFile.close()
     if accFile:
         accFile.close()
+    if tagFile:
+        tagFile.close()
 
     bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
     bcpII = '"|" "\\n" mgd'
@@ -417,6 +459,7 @@ def bcpFiles():
     bcp2 = '%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII)
     bcp3 = '%s %s "/" %s %s' % (bcpI, dataTable, dataFileName, bcpII)
     bcp4 = '%s %s "/" %s %s' % (bcpI, accTable, accFileName, bcpII)
+    bcp5 = '%s %s "/" %s %s' % (bcpI, tagTable, tagFileName, bcpII)
 
     db.commit()
 
@@ -427,7 +470,7 @@ def bcpFiles():
     # and can be used in the next running of the load
     #
     diagFile.write('\nstart: copy bcp files into database\n')
-    for bcpCmd in [bcp1, bcp2, bcp3, bcp4]:
+    for bcpCmd in [bcp1, bcp2, bcp3, bcp4, bcp5]:
         diagFile.write('%s\n' % bcpCmd)
         diagFile.flush()
 	if bcpon:
@@ -472,7 +515,7 @@ def bcpFiles():
     diagFile.write('\nend: update sql commands\n')
 
     # update the max Accession ID value
-    db.sql('select * from ACC_setMax (%d)' % (recordsProcessed), None)
+    db.sql('select * from ACC_setMax (%d)' % (count_processPDFs), None)
     db.commit()
 
     diagFile.write('\nend: bcpFiles() : successful\n')
@@ -843,10 +886,10 @@ def processPDFs():
     global level2error1, level2error2, level2error3, level2error4
     global level3error1, level3error2, level3error3
     global specialerror1
-    global accKey, refKey, statusKey, mgiKey
+    global accKey, refKey, statusKey, mgiKey, tagassocKey
     global mvPDFtoMasterDir
-    global recordsProcessed
     global updateSQLAll
+    global count_processPDFs
 
     #
     # assumes the level1SanityChecks have passed
@@ -981,17 +1024,51 @@ def processPDFs():
 		   isDiscard, \
 		   userKey, userKey, loaddate, loaddate))
 
-	    recordsProcessed += 1;
+	    count_processPDFs += 1
 
 	    #
 	    # bib_workflow_status
 	    # 1 row per Group
 	    #
-	    for groupKey in workflowGroupList:
-	        statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-		   % (statusKey, refKey, groupKey, notRoutedKey, isCurrent, \
-		      userKey, userKey, loaddate, loaddate))
-                statusKey = statusKey + 1
+
+	    # can be removed after cutover
+	    # start : cutover-specific processing
+	    #
+	    # 28495855_ag.pdf : split by '_' and then by '.'
+	    #
+	    try:
+	        if isCutover:
+
+		    tokens1 = pdfFile.split('_')
+		    tokens2 = tokens1[1].split('.')
+
+		    for c in cutover_group:
+		        if c in tokens2[0].lower():
+	                    statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+		                % (statusKey, refKey, cutover_group[c], cutover_routedKey, isCurrent, \
+		                   userKey, userKey, loaddate, loaddate))
+                            statusKey = statusKey + 1
+	                else:
+		            statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+		                % (statusKey, refKey, cutover_group[c], notRoutedKey, isCurrent, \
+		                   userKey, userKey, loaddate, loaddate))
+                            statusKey = statusKey + 1
+
+		    for c in cutover_tag:
+		        if c in tokens2[0].lower():
+	                    tagFile.write('%s|%s|%s|%s|%s|%s|%s\n' \
+		               % (tagassocKey, refKey, cutover_tag[c], userKey, userKey, loaddate, loaddate))
+                            tagassocKey = tagassocKey + 1
+
+	    #
+	    # normal execution
+	    #
+	    except:
+	        for groupKey in workflowGroupList:
+	            statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+		       % (statusKey, refKey, groupKey, notRoutedKey, isCurrent, \
+		          userKey, userKey, loaddate, loaddate))
+                    statusKey = statusKey + 1
 
 	    #
 	    # bib_workflow_data
@@ -1083,6 +1160,8 @@ def processUserPDF(objKey):
     global specialerror1
     global mvPDFtoMasterDir
     global updateSQLAll
+    global count_userSupplement
+    global count_userPDF
 
     if DEBUG:
         diagFile.write('\nprocessUserPDF()\n')
@@ -1115,8 +1194,10 @@ def processUserPDF(objKey):
 
     if objType == userSupplement:
         suppSQL = '_Supplemental_key = 34026997,'
+	count_userSupplement += 1
     else:
         suppSQL = ''
+	count_userPDF += 1
 
     updateSQL = '''
     	update BIB_Workflow_Data set 

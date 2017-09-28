@@ -12,6 +12,10 @@ fi
 
 . ${MGICONFIG}/master.config.sh
 
+# only run this once; set to 0 after migration
+CUTOVER=0
+export CUTOVER
+
 #  Path name of the archive, logs, reports and output directories
 
 # published directory/maintained by curators
@@ -19,7 +23,7 @@ PUBLISHEDDIR=${LITTRIAGE_NEWNEW}
 export PUBLISHEDDIR
 
 # master triage directory/subdivied by 1000
-MASTERTRIAGEDIR=/data/littriage
+MASTERTRIAGEDIR=${LITTRIAGE_MASTER}
 export MASTERTRIAGEDIR
 
 # failed triage directory/subdivided by curator
