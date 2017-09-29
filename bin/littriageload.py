@@ -70,7 +70,7 @@ import PdfParser
 import PubMedAgent
 import Pdfpath
 
-DEBUG = 0
+DEBUG = 1
 bcpon = 1
 
 # for setting where the litparser lives (see PdfParser)
@@ -693,7 +693,7 @@ def level1SanityChecks():
 			        diagFile.write('pdf.getFirstDoiID() : successful : %s/%s : %s\n' % (pdfPath, pdfFile, doiid))
 			        diagFile.flush()
 		        else:
-                            level1error3 = level1error3 + objId + '<BR>\n' + \
+                            level1error3 = level1error3 + doiid + '<BR>\n' + \
 			    	linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + \
 			        '<BR>\nduplicate of ' + \
 				linkOut % (os.path.join(pdfPath, doiidById[doiid][0]), os.path.join(pdfPath, doiidById[doiid][0])) + \
