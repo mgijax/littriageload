@@ -70,7 +70,7 @@ import PdfParser
 import PubMedAgent
 import Pdfpath
 
-DEBUG = 1
+DEBUG = 0
 bcpon = 1
 
 # for setting where the litparser lives (see PdfParser)
@@ -136,6 +136,8 @@ isPreferred = 1
 
 # for cutover only
 tagTable = 'BIB_Workflow_Tag'
+jnumKey = 0
+count_cutover = 0
 isCutover = ''
 tagFile = ''
 tagFileName = ''
@@ -144,7 +146,8 @@ cutover_group = {
 'a' : '31576664',
 'e' : '31576665',
 'g' : '31576666',
-'t' : '31576667'
+'t' : '31576667',
+'q' : '31576668'
 }
 cutover_tag = { 
 's' : '31576694',
@@ -413,7 +416,7 @@ def closeFiles():
 # Returns: 0
 #
 def setPrimaryKeys():
-    global accKey, refKey, statusKey, mgiKey, tagassocKey
+    global accKey, refKey, statusKey, mgiKey, tagassocKey, jnumKey
 
     results = db.sql('select max(_Refs_key) + 1 as maxKey from BIB_Refs', 'auto')
     refKey = results[0]['maxKey']
@@ -421,14 +424,17 @@ def setPrimaryKeys():
     results = db.sql('select max(_Assoc_key) + 1 as maxKey from BIB_Workflow_Status', 'auto')
     statusKey = results[0]['maxKey']
 
-    results = db.sql('select max(_Assoc_key) + 1 as maxKey from BIB_Workflow_Tag', 'auto')
-    tagassocKey = results[0]['maxKey']
-
     results = db.sql('select max(_Accession_key) + 1 as maxKey from ACC_Accession', 'auto')
     accKey = results[0]['maxKey']
 
     results = db.sql('select max(maxNumericPart) + 1 as maxKey from ACC_AccessionMax where prefixPart = \'MGI:\'', 'auto')
     mgiKey = results[0]['maxKey']
+
+    results = db.sql('select max(_Assoc_key) + 1 as maxKey from BIB_Workflow_Tag', 'auto')
+    tagassocKey = results[0]['maxKey']
+
+    results = db.sql('select max(maxNumericPart) + 1 as maxKey from ACC_AccessionMax where prefixPart = \'J:\'', 'auto')
+    jnumKey = results[0]['maxKey']
 
     return 0
 
@@ -517,6 +523,11 @@ def bcpFiles():
     # update the max Accession ID value
     db.sql('select * from ACC_setMax (%d)' % (count_processPDFs), None)
     db.commit()
+
+    # update the max Accession ID value for J:
+    if isCutover:
+        db.sql('select * from ACC_setMax (%d, \'J:\')' % (count_cutover), None)
+        db.commit()
 
     diagFile.write('\nend: bcpFiles() : successful\n')
     #diagFile.flush()
@@ -886,10 +897,11 @@ def processPDFs():
     global level2error1, level2error2, level2error3, level2error4
     global level3error1, level3error2, level3error3
     global specialerror1
-    global accKey, refKey, statusKey, mgiKey, tagassocKey
+    global accKey, refKey, statusKey, mgiKey
     global mvPDFtoMasterDir
     global updateSQLAll
     global count_processPDFs
+    global tagassocKey, jnumKey, count_cutover
 
     #
     # assumes the level1SanityChecks have passed
@@ -993,7 +1005,7 @@ def processPDFs():
 		% (accKey, accID, prefixPart, numericPart, logicalDBKey, objectKey, mgiTypeKey, \
 		   userKey, userKey, loaddate, loaddate))
 
-	    accKey = accKey + 1
+	    accKey += 1
 
 	# add new MGI reference
 	#
@@ -1039,26 +1051,38 @@ def processPDFs():
 	    try:
 	        if isCutover:
 
-		    tokens1 = pdfFile.split('_')
+	            tokens1 = pdfFile.split('_')
 		    tokens2 = tokens1[1].split('.')
-
-		    for c in cutover_group:
-		        if c in tokens2[0].lower():
-	                    statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-		                % (statusKey, refKey, cutover_group[c], cutover_routedKey, isCurrent, \
-		                   userKey, userKey, loaddate, loaddate))
-                            statusKey = statusKey + 1
-	                else:
-		            statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-		                % (statusKey, refKey, cutover_group[c], notRoutedKey, isCurrent, \
-		                   userKey, userKey, loaddate, loaddate))
-                            statusKey = statusKey + 1
 
 		    for c in cutover_tag:
 		        if c in tokens2[0].lower():
 	                    tagFile.write('%s|%s|%s|%s|%s|%s|%s\n' \
-		               % (tagassocKey, refKey, cutover_tag[c], userKey, userKey, loaddate, loaddate))
-                            tagassocKey = tagassocKey + 1
+		                   % (tagassocKey, refKey, cutover_tag[c], userKey, userKey, loaddate, loaddate))
+                            tagassocKey += 1
+			    if c.lower() == 's':
+			        tokens2[0] = tokens2[0] + 'a'
+			
+		    for c in cutover_group:
+		        if c in tokens2[0].lower():
+	                    statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+		                    % (statusKey, refKey, cutover_group[c], cutover_routedKey, isCurrent, \
+		                       userKey, userKey, loaddate, loaddate))
+                            statusKey += 1
+	                else:
+		            statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+		                    % (statusKey, refKey, cutover_group[c], notRoutedKey, isCurrent, \
+		                       userKey, userKey, loaddate, loaddate))
+                            statusKey += 1
+
+	            # J:xxxx
+	            #
+	            jnumID = 'J:' + str(jnumKey)
+	            accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
+		            % (accKey, jnumID, 'J:', jnumKey, logicalDBKey, refKey, mgiTypeKey, \
+		               isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
+	            accKey += 1
+		    jnumKey += 1
+		    count_cutover += 1
 
 	    #
 	    # normal execution
@@ -1068,7 +1092,7 @@ def processPDFs():
 	            statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
 		       % (statusKey, refKey, groupKey, notRoutedKey, isCurrent, \
 		          userKey, userKey, loaddate, loaddate))
-                    statusKey = statusKey + 1
+                    statusKey += 1
 
 	    #
 	    # bib_workflow_data
@@ -1081,7 +1105,7 @@ def processPDFs():
 	    accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
 		% (accKey, mgiID, mgiPrefix, mgiKey, logicalDBKey, refKey, mgiTypeKey, \
 		   isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
-	    accKey = accKey + 1
+	    accKey += 1
 	    
 	    #
 	    # pubmedID
@@ -1094,7 +1118,7 @@ def processPDFs():
 	    accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
 		% (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
 		   isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
-	    accKey = accKey + 1
+	    accKey += 1
 
 	    #
 	    # doiId only
@@ -1108,15 +1132,15 @@ def processPDFs():
 	    	accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
 			% (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
 		   	isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
-	    	accKey = accKey + 1
+	    	accKey += 1
 
 	    # store dictionary : move pdf file from inputDir to masterPath
 	    newPath = Pdfpath.getPdfpath(masterDir, mgiID)
 	    mvPDFtoMasterDir[pdfPath + '/' + pdfFile] = []
 	    mvPDFtoMasterDir[pdfPath + '/' + pdfFile].append((newPath,str(mgiKey) + '.pdf'))
 
-	    refKey = refKey + 1
-	    mgiKey = mgiKey + 1
+	    refKey += 1
+	    mgiKey += 1
 
     #
     # write out level2 errors to both error log and curator log
