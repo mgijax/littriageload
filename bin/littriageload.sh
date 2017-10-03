@@ -104,7 +104,10 @@ for i in *
 do
 for j in "${i}/*.pdf" "${i}/*.PDF"
 do
-if [ "${INSTALL_TYPE}" = "dev" ]
+if [ `uname -n` = "bhmgidevapp01" ]
+then
+mv -f ${j} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
+elif [ "${INSTALL_TYPE}" = "dev" ]
 then
 cp -f ${j} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
 else
