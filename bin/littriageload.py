@@ -142,6 +142,8 @@ isCutover = ''
 tagFile = ''
 tagFileName = ''
 cutover_routedKey = 31576670 	# Routed
+cutover_suppfound = 31576675	# Db found supplement
+cutover_suppnotfound = 31576676 # Db supplement not found
 cutover_group = { 
 'a' : '31576664',
 'e' : '31576665',
@@ -693,10 +695,10 @@ def level1SanityChecks():
 			        diagFile.write('pdf.getFirstDoiID() : successful : %s/%s : %s\n' % (pdfPath, pdfFile, doiid))
 			        diagFile.flush()
 		        else:
+				#linkOut % (os.path.join(pdfPath, doiidById[doiid][0]), os.path.join(pdfPath, doiidById[doiid][0])) + \
                             level1error3 = level1error3 + doiid + '<BR>\n' + \
 			    	linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + \
-			        '<BR>\nduplicate of ' + \
-				linkOut % (os.path.join(pdfPath, doiidById[doiid][0]), os.path.join(pdfPath, doiidById[doiid][0])) + \
+			        '<BR>\nduplicate of: ' + userPath + '/' + doiidById[doiid][0] + \
 				'<BR><BR>\n\n'
 			    os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
 			    continue
@@ -1096,8 +1098,20 @@ def processPDFs():
 
 	    #
 	    # bib_workflow_data
-	    dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	% (refKey, hasPDF, supplementalKey, extractedText, userKey, userKey, loaddate, loaddate))
+	    if isCutover:
+	        if extractedText.lower().find('supplemental') > 0 \
+	           or extractedText.lower().find('supplementary') > 0 \
+	           or extractedText.lower().find('supplement ') > 0 \
+	           or extractedText.lower().find('additional file') > 0 \
+	           or extractedText.lower().find('appendix') > 0:
+	            dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
+	    	        % (refKey, hasPDF, cutover_suppfound, extractedText, userKey, userKey, loaddate, loaddate))
+	        else:
+	            dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
+	    	        % (refKey, hasPDF, cutover_suppnotfound, extractedText, userKey, userKey, loaddate, loaddate))
+	    else:
+	        dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
+	    	    % (refKey, hasPDF, supplementalKey, extractedText, userKey, userKey, loaddate, loaddate))
 
 	    # MGI:xxxx
 	    #
