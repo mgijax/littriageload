@@ -649,10 +649,14 @@ def level1SanityChecks():
 	    #	store in objByUser
 	    #	skip DOI/PMID sanity checks
 	    #
+	    # may be in format:
+	    #	xxxx.pdf, xxxx_Jyyyy.pdf
+	    #
 	    elif userPath == userPDF:
 		try:
 	            # store by mgiid
-	            mgiid = pdfFile.replace('.pdf', '')
+	            tokens = pdfFile.replace('.pdf', '').split('_')
+	            mgiid = tokens[0]
 	            pdftext = replaceText(pdf.getText())
 	            if (userPath, userPDF, mgiid) not in objByUser:
 	                objByUser[(userPath, userPDF, mgiid)] = []
