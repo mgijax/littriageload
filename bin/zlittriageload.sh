@@ -12,7 +12,8 @@
 
 cd `dirname $0` 
 
-COMMON_CONFIG=${LITTRIAGELOAD}/littriageload.config
+#COMMON_CONFIG=${LITTRIAGELOAD}/littriageload.config
+COMMON_CONFIG=../littriageload.config
 
 USAGE="Usage: littriageload.sh"
 

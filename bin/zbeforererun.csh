@@ -20,8 +20,8 @@ touch $LOG
 date | tee -a $LOG
 
 cat - <<EOSQL | ${PG_DBUTILS}/bin/doisql.csh $0 
-delete from ACC_Accession where _Accession_key >= 963862866;
-delete from BIB_Refs where _Refs_key >= 244811;
+delete from BIB_Refs where _Refs_key >= 243849;
+delete from ACC_Accession where _Accession_key >= 945882174;
 EOSQL
 ${MGICACHELOAD}/bibcitation.csh 
 
