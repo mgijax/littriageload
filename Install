@@ -68,21 +68,8 @@ then
 fi
 
 #
-# Create the master triage directory.
-#
-if [ ! -d ${MASTERTRIAGE} ]
-then
-    mkdir -p ${MASTERTRIAGE}
-fi
-
-#
-# Create symlink to New_New
-#
-ln -s ${PUBLISHEDDIR} New_New
-
-#
 # Create curator subdirectories in input directory
-# Create curator subdirectories in failed directory
+# Create curator subdirectories in needs review directory
 # note: this will not remove old/obsolete input directories
 #	archive obsolete curator directories manually
 #
@@ -94,7 +81,7 @@ mkdir -p ${FAILEDTRIAGEDIR}/${i}
 done
 echo 'input directory'
 ls -l ${INPUTDIR}
-echo 'failed directory'
+echo 'needs review directory'
 ls -l ${FAILEDTRIAGEDIR}
 
 cd ${LITTRIAGELOAD}

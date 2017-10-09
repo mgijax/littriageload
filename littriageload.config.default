@@ -26,10 +26,9 @@ export PUBLISHEDDIR
 MASTERTRIAGEDIR=${LITTRIAGE_MASTER}
 export MASTERTRIAGEDIR
 
-# failed triage directory/subdivided by curator
-FAILEDTRIAGEDIR=${MASTERTRIAGEDIR}/failed
-#FAILEDTRIAGEDIR=${DATALOADSOUTPUT}/mgi/littriageload/failed
-export FAILEDTRIAGEDIR
+# needs review triage directory/subdivided by curator
+NEEDSREVIEWTRIAGEDIR=${MASTERTRIAGEDIR}/needs_review
+export NEEDSREVIEWTRIAGEDIR
 
 # litparser needed with lib/python/PdfParser.py
 LITPARSER=${MGIUTILS}/litparser

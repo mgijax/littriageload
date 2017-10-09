@@ -26,7 +26,7 @@
 #	LOG_ERROR
 #	LOG_CUR
 #	MASTERTRIAGEDIR
-#	FAILEDTRIAGEDIR
+#	NEEDSREVIEWTRIAGEDIR
 #	PG_DBUTILS
 #
 #  Inputs:
@@ -42,7 +42,7 @@
 #
 #	OUTPUTDIR=${FILEDIR}/output : bcp files
 #	MASTERTRIAGEDIR : master pdf files
-#	FAILEDTRIAGEDIR : failed pdf files by user
+#	NEEDSREVIEWTRIAGEDIR : needs review pdf files by user
 #
 #  Implementation:
 #
@@ -100,7 +100,7 @@ inputDir = ''
 outputDir = ''
 
 masterDir = ''
-failDir = ''
+needsReviewDir = ''
 bcpScript = ''
 
 accFile = ''
@@ -256,7 +256,7 @@ def initialize():
     global error, errorFile
     global curator, curatorFile
     global inputDir, outputDir
-    global masterDir, failDir
+    global masterDir, needsReviewDir
     global bcpScript
     global accFileName, refFileName, statusFileName, dataFileName
     global accFile, refFile, statusFile, dataFile
@@ -271,7 +271,7 @@ def initialize():
     inputDir = os.getenv('INPUTDIR')
     outputDir = os.getenv('OUTPUTDIR')
     masterDir = os.getenv('MASTERTRIAGEDIR')
-    failDir = os.getenv('FAILEDTRIAGEDIR')
+    needsReviewDir = os.getenv('NEEDSREVIEWTRIAGEDIR')
     bcpScript = os.getenv('PG_DBUTILS') + '/bin/bcpin.csh'
     isCutover = os.getenv('CUTOVER')
 
@@ -300,8 +300,8 @@ def initialize():
     if not masterDir:
         exit(1, 'Environment variable not set: MASTEREDTRIAGEDIR')
 
-    if not failDir:
-        exit(1, 'Environment variable not set: FAILEDTRIAGEDIR')
+    if not needsReviewDir:
+        exit(1, 'Environment variable not set: NEEDSREVIEWTRIAGEDIR')
 
     if not bcpScript:
         exit(1, 'Environment variable not set: PG_DBUTILS')
@@ -375,12 +375,12 @@ def initialize():
     try:
         PdfParser.setLitParserDir(litparser)
     except:
-        exit(1, 'PdfParser.setLitParserDir(litparser) failed')
+        exit(1, 'PdfParser.setLitParserDir(litparser) needs review')
 
     try:
         pma = PubMedAgent.PubMedAgentMedline()
     except:
-        exit(1, 'PubMedAgent.PubMedAgentMedline() failed')
+        exit(1, 'PubMedAgent.PubMedAgentMedline() needs review')
 
     results = db.sql('select _Term_key from VOC_Term where _Vocab_key = 127', 'auto')
     for r in results:
@@ -486,7 +486,7 @@ def bcpFiles():
 	    try:
                 os.system(bcpCmd)
 	    except:
-	        diagFile.write('bcpFiles(): failed : os.system(%s)\n' (bcpCmd))
+	        diagFile.write('bcpFiles(): needs review : os.system(%s)\n' (bcpCmd))
 		return 0
     diagFile.write('\nend: copy bcp files into database\n')
     diagFile.flush()
@@ -508,10 +508,9 @@ def bcpFiles():
 		except:
 		    pass
 		try:
-                    #os.rename(oldPDF, newFileDir + '/' + newPDF)
                     shutil.move(oldPDF, newFileDir + '/' + newPDF)
 		except:
-	            diagFile.write('bcpFiles(): failed : os.rename(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
+	            diagFile.write('bcpFiles(): needs review : os.rename(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
 		    #return 0
     diagFile.write('\nend: move oldPDF to newPDF\n')
 
@@ -521,7 +520,7 @@ def bcpFiles():
         db.sql(updateSQLAll, None)
 	db.commit()
     except:
-        diagFile.write('bcpFiles(): failed : update sql commands\n')
+        diagFile.write('bcpFiles(): needs review : update sql commands\n')
     diagFile.write('\nend: update sql commands\n')
 
     # update the max Accession ID value
@@ -562,7 +561,7 @@ def replaceText(extractedText):
 # Returns: 0
 #
 # if successful, pdf stays in the 'input' directory
-# if failed, pdf is moved to the 'failed' directory
+# if needs review, pdf is moved to the 'needs review' directory
 #
 # 1: not in PDF format
 # 2: cannot extract/find DOI ID
@@ -591,7 +590,6 @@ def level1SanityChecks():
 	    if pdfFile.find(' ') > 0 or pdfFile.find('.PDF') > 0:
                 pdfFile = pdfFile.replace(' ', '')
                 pdfFile = pdfFile.replace('.PDF', '.pdf')
-		#os.rename(os.path.join(pdfPath, origFile), os.path.join(pdfPath, pdfFile))
 		shutil.move(os.path.join(pdfPath, origFile), os.path.join(pdfPath, pdfFile))
 
 	    #
@@ -616,13 +614,13 @@ def level1SanityChecks():
     for userPath in userDict:
 
 	pdfPath = os.path.join(inputDir, userPath)
-	failPath = os.path.join(failDir, userPath)
+	needsReviewPath = os.path.join(needsReviewDir, userPath)
 
 	#
 	# for each pdfFile
 	# if pdfFile starts with "PMID", then store in objByUser dictionary as 'pm'
 	# else if doi id can be found, then store in objByUser dictionary as 'doi'
-	# else, report error, move pdf to failed directory
+	# else, report error, move pdf to needs review directory
 	#
 	for pdfFile in userDict[userPath]:
 
@@ -647,9 +645,8 @@ def level1SanityChecks():
 	                objByUser[(userPath, userSupplement, mgiid)] = []
 	                objByUser[(userPath, userSupplement, mgiid)].append((pdfFile, pdftext))
                 except:
-		    level1error1 = level1error1 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
-		    #os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+		    level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 		    continue
 
 	    #
@@ -670,9 +667,8 @@ def level1SanityChecks():
 	                objByUser[(userPath, userPDF, mgiid)] = []
 	                objByUser[(userPath, userPDF, mgiid)].append((pdfFile, pdftext))
                 except:
-		    level1error1 = level1error1 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
-		    #os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+		    level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 		    continue
 
 	    #
@@ -688,9 +684,8 @@ def level1SanityChecks():
 	                objByUser[(userPath, 'pm', pmid)] = []
 	                objByUser[(userPath, 'pm', pmid)].append((pdfFile, pdftext))
                 except:
-		    level1error4 = level1error4 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
-		    #os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+		    level1error4 = level1error4 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 		    continue
 
 	    #
@@ -711,21 +706,18 @@ def level1SanityChecks():
 		        else:
 				#linkOut % (os.path.join(pdfPath, doiidById[doiid][0]), os.path.join(pdfPath, doiidById[doiid][0])) + \
                             level1error3 = level1error3 + doiid + '<BR>\n' + \
-			    	linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + \
+			    	linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + \
 			        '<BR>\nduplicate of: ' + userPath + '/' + doiidById[doiid][0] + \
 				'<BR><BR>\n\n'
-			    #os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-			    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+			    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 			    continue
 		    else:
-		        level1error2 = level1error2 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
-		        #os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-		        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+		        level1error2 = level1error2 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+		        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 		        continue
                 except:
-		    level1error1 = level1error1 + linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR>\n'
-		    #os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+		    level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 		    continue
 
 	        # store by doiid
@@ -754,7 +746,7 @@ def level1SanityChecks():
 #  3: error getting medline record
 #  4: missing data from required field for DOI ID
 #
-def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath):
+def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath):
     global level2error1, level2error2, level2error3, level2error4
 
     if DEBUG:
@@ -765,7 +757,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath):
         try:
             mapping = pma.getReferences([objId])
         except:
-            diagFile.write('level2SanityChecks:pma.getReferences() failed: %s, %s, %s\n' % (objId, userPath, pdfFile))
+            diagFile.write('level2SanityChecks:pma.getReferences() needs review: %s, %s, %s\n' % (objId, userPath, pdfFile))
 	    return -1
 
         refList = mapping[objId]
@@ -774,14 +766,14 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath):
         if len(refList) > 1:
             for ref in refList:
 	        level2error1 = level2error1 + objId + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
-	    	    linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
+	    	    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	    return 1
 
         #  2: DOI ID not found in pubmed
         for ref in refList:
             if ref == None:
 	        level2error2 = level2error2 + objId + '<BR>\n' + \
-		            linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
+		            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	        return 1
 
         pubMedRef = refList[0]
@@ -793,7 +785,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath):
     #  3: error getting medline record
     if not pubMedRef.isValid():
 	level2error3 = level2error3 + objId + ', ' + pubmedID + '<BR>\n' + \
-		linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
+		linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	return 1
 
     # check for required NLM fields
@@ -819,7 +811,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath):
 		missingList.append(reqLabel)
 	if len(missingList):
 	   level2error4 = level2error4 + str(objId) + ', ' + str(pubmedID) + '<BR>\n' + \
-		linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
+		linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	   return 1
 
     # if successful, return 'pubMedRef' object, else return 1, continue
@@ -836,11 +828,11 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath):
 #  3b: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
 #  4 : update PDF/extracted text
 #
-def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath, ref):
+def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath, ref):
     global level3error1, level3error2, level3error3
 
     # return 0 : will add as new reference
-    # return 1/2 : will skip/move to 'failed'
+    # return 1/2 : will skip/move to 'needs review'
     # return 3 : will add new Accession ids
 
     if DEBUG:
@@ -862,9 +854,8 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath, ref
         diagFile.write('2: input PubMed ID or DOI ID associated with different MGI references: ' \
 		+ objId + ',' + pubmedID + '\n')
 	level3error2 = level3error2 + objId + ', ' + pubmedID + '<BR>\n' + \
-	    	linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	#os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-	shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+	    	linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+	shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 	return 2, results
 
     elif len(results) == 1:
@@ -878,35 +869,31 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath, ref
                     diagFile.write('2: input PubMed ID or DOI ID associated with different MGI references: ' \
 		            + objId + ',' + pubmedID + '\n')
 	            level3error2 = level3error2 + objId + ', ' + pubmedID + '<BR>\n' + \
-	    	            linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
-		    #os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+	    	            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 	            return 2, results
 
             # 3a: input PubMed ID exists in MGI but missing DOI ID -> add DOI ID in MGI
 	    if results[0]['pubmedID'] == None:
 	        diagFile.write('3: pubmedID is missing in MGI: ' + objId + ',' + pubmedID + '\n')
 	        level3error3 = level3error3 + objId + ', ' + pubmedID + ' : adding PubMed ID<BR>\n' + \
-	    	    linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	        #os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-	        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+	    	    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+	        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 	        return 3, results
 
             # 3b: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
 	    if results[0]['doiID'] == None:
 	        diagFile.write('3: doiid is missing in MGI:' + objId + ',' + pubmedID + '\n')
 	        level3error3 = level3error3 + objId + ', ' + pubmedID + ' : adding DOI ID<BR>\n' + \
-	    	    linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	        #os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-	        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+	    	    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+	        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 	        return 3, results
 
         # 1: input PubMed ID or DOI ID exists in MGI
 	diagFile.write('1: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
 	level3error1 = level3error1 + objId + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
-	    	linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	#os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-	shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+	    	linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+	shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
         return 1, results
 
     else:
@@ -955,7 +942,7 @@ def processPDFs():
 	objType = key[1]
 	objId = key[2]
         pdfPath = os.path.join(inputDir, userPath)
-        failPath = os.path.join(failDir, userPath)
+        needsReviewPath = os.path.join(needsReviewDir, userPath)
 
 	# process pdf/supplement
 	if objType in (userPDF, userSupplement):
@@ -966,22 +953,21 @@ def processPDFs():
 	# level2SanityChecks()
 	# parse PubMed IDs from PubMed API
 	#
-	pubmedRef = level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath)
+	pubmedRef = level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath)
 
 	if pubmedRef == -1:
            continue
 
 	if pubmedRef == 1:
 	   if DEBUG:
-	       diagFile.write('level2SanityChecks() : failed : %s, %s, %s, %s\n' % (objId, userPath, pdfFile, str(pubmedRef)))
-	   #os.rename(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
-	   shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(failPath, pdfFile))
+	       diagFile.write('level2SanityChecks() : needs review : %s, %s, %s, %s\n' % (objId, userPath, pdfFile, str(pubmedRef)))
+	   shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
            continue
 
 	try:
 	   pubmedID = pubmedRef.getPubMedID()
 	except:
-           diagFile.write('process:pubmedRef.getPubMedID()() failed: %s, %s, %s\n' % (objId, userPath, pdfFile))
+           diagFile.write('process:pubmedRef.getPubMedID()() needs review: %s, %s, %s\n' % (objId, userPath, pdfFile))
            continue
 
 	if DEBUG:
@@ -992,14 +978,14 @@ def processPDFs():
 	# check MGI for errors
 	#
         # return 0 : will add as new reference
-        # return 1/2 : will skip/move to 'failed'
+        # return 1/2 : will skip/move to 'needs review'
         # return 3 : will add new Accession ids
 	#
-	rc, mgdRef = level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, failPath, pubmedRef)
+	rc, mgdRef = level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath, pubmedRef)
 
 	if rc == 1 or rc == 2:
 	    if DEBUG:
-                diagFile.write('level3SanityChecks() : failed : %s, %s, %s, %s\n' \
+                diagFile.write('level3SanityChecks() : needs review : %s, %s, %s, %s\n' \
 			% (objId, userPath, pdfFile, pubmedID))
 	    continue
 
@@ -1237,16 +1223,16 @@ def processUserPDF(objKey):
     mgiKey = objKey[2]
     mgiId = 'MGI:' + mgiKey
     pdfPath = os.path.join(inputDir, userPath)
-    failPath = os.path.join(failDir, userPath)
+    needsReviewPath = os.path.join(needsReviewDir, userPath)
 
     results = db.sql('select _Refs_key from BIB_Citation_Cache where mgiID = \'%s\' ' % (mgiId), 'auto')
 
     if len(results) == 0:
 	specialerror1 = specialerror1 + str(mgiId) + '<BR>\n' + \
-		linkOut % (failPath + '/' + pdfFile, failPath + '/' + pdfFile) + '<BR><BR>\n\n'
+		linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 
     	if DEBUG:
-            diagFile.write('userPDF/userSupplement level1 : failed : %s, %s, %s\n' % (mgiId, userPath, pdfFile))
+            diagFile.write('userPDF/userSupplement level1 : needs review : %s, %s, %s\n' % (mgiId, userPath, pdfFile))
 
         return
 

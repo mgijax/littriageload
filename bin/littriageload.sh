@@ -71,7 +71,7 @@ preload ${OUTPUTDIR}
 
 #
 # Create curator subdirectories in input directory
-# Create curator subdirectories in failed directory
+# Create curator subdirectories in needs review directory
 # note: this will not remove old/obsolete input directories
 #       archive obsolete curator directories manually
 #
@@ -79,15 +79,15 @@ cd ${PUBLISHEDDIR}
 for i in *
 do
 mkdir -p ${INPUTDIR}/${i}
-mkdir -p ${FAILEDTRIAGEDIR}/${i}
+mkdir -p ${NEEDSREVIEWTRIAGEDIR}/${i}
 done
 date | tee -a ${LOG_DIAG}
 echo "---------------------" | tee -a ${LOG_DIAG}
 echo "input directory" | tee -a ${LOG_DIAG}
 ls -l ${INPUTDIR_DIAG} | tee -a ${LOG_DIAG}
 echo "---------------------" | tee -a ${LOG_DIAG}
-echo "failed directory"| tee -a ${LOG_DIAG}
-ls -l ${FAILEDTRIAGEDIR} | tee -a ${LOG_DIAG}
+echo "needs review directory"| tee -a ${LOG_DIAG}
+ls -l ${NEEDSREVIEWTRIAGEDIR} | tee -a ${LOG_DIAG}
 
 #
 # if DEV, use 'cp'
