@@ -1205,7 +1205,7 @@ def processPDFs():
 
     # copy all errors to error log, remove html and copy to curator log
     allCounts = allCounts + countStart
-    allCounts = allCounts + 'Successful PDF\'s processed (All NEW_Newcurrent curator & PDF download directories): ' + str(count_processPDFs) + '<BR>\n\n'
+    allCounts = allCounts + 'Successful PDF\'s processed (All New_Newcurrent curator & PDF download directories): ' + str(count_processPDFs) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Supplemental data added: ' + str(count_userSupplement) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Updated PDF\'s: ' + str(count_userPDF) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Updated NLM information: ' + str(count_userNLM) + '<BR>\n\n'
