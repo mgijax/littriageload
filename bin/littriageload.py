@@ -88,6 +88,7 @@ count_processPDFs = 0
 count_userSupplement = 0
 count_userPDF = 0
 count_userNLM = 0
+count_needsreview = 0
 
 diag = ''
 diagFile = ''
@@ -198,11 +199,13 @@ linkOut = '<A HREF="%s">%s</A>'
 
 # error logs for level1, level2, level3
 
-allErrors = 'Start Log: ' + mgi_utils.date() + '<BR><BR>\n\n'
+allErrors = ''
+allCounts = ''
 level1errorStart = '**********<BR>\nLiterature Triage Level 1 Errors : parse DOI ID from PDF files<BR><BR>\n'
 level2errorStart = '**********<BR>\nLiterature Triage Level 2 Errors : parse PubMed IDs from PubMed API<BR><BR>\n\n'
 level3errorStart = '**********<BR>\nLiterature Triage Level 3 Errors : check MGI for errors<BR><BR>\n\n'
 specialerrorStart = '**********<BR>\nLiterature Triage littriage_create_supplement/littriage_update_pdf Errors : check MGI for errors<BR><BR>\n\n'
+countStart = '**********\nLiterature Triage Counts<BR>\n'
 
 level1error1 = '' 
 level1error2 = ''
@@ -572,6 +575,7 @@ def level1SanityChecks():
     global objByUser
     global doiidById
     global allErrors, level1error1, level1error2, level1error3, level1error4
+    global count_needsreview
 
     # iterate thru input directory by user
     for userPath in os.listdir(inputDir):
@@ -647,6 +651,7 @@ def level1SanityChecks():
                 except:
 		    level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
 		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+		    count_needsreview += 1
 		    continue
 
 	    #
@@ -669,6 +674,7 @@ def level1SanityChecks():
                 except:
 		    level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
 		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+		    count_needsreview += 1
 		    continue
 
 	    #
@@ -686,6 +692,7 @@ def level1SanityChecks():
                 except:
 		    level1error4 = level1error4 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
 		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+		    count_needsreview += 1
 		    continue
 
 	    #
@@ -710,14 +717,17 @@ def level1SanityChecks():
 			        '<BR>\nduplicate of: ' + userPath + '/' + doiidById[doiid][0] + \
 				'<BR><BR>\n\n'
 			    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+			    count_needsreview += 1
 			    continue
 		    else:
 		        level1error2 = level1error2 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
 		        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+			count_needsreview += 1
 		        continue
                 except:
 		    level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
 		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+		    count_needsreview += 1
 		    continue
 
 	        # store by doiid
@@ -830,6 +840,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 #
 def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath, ref):
     global level3error1, level3error2, level3error3
+    global count_needsreview
 
     # return 0 : will add as new reference
     # return 1/2 : will skip/move to 'needs review'
@@ -856,6 +867,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	level3error2 = level3error2 + objId + ', ' + pubmedID + '<BR>\n' + \
 	    	linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+	count_needsreview += 1
 	return 2, results
 
     elif len(results) == 1:
@@ -871,6 +883,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	            level3error2 = level3error2 + objId + ', ' + pubmedID + '<BR>\n' + \
 	    	            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+		    count_needsreview += 1
 	            return 2, results
 
             # 3a: input PubMed ID exists in MGI but missing DOI ID -> add DOI ID in MGI
@@ -879,6 +892,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	        level3error3 = level3error3 + objId + ', ' + pubmedID + ' : adding PubMed ID<BR>\n' + \
 	    	    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+		count_needsreview += 1
 	        return 3, results
 
             # 3b: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
@@ -887,6 +901,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	        level3error3 = level3error3 + objId + ', ' + pubmedID + ' : adding DOI ID<BR>\n' + \
 	    	    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+		count_needsreview += 1
 	        return 3, results
 
         # 1: input PubMed ID or DOI ID exists in MGI
@@ -894,6 +909,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	level3error1 = level3error1 + objId + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
 	    	linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+	count_needsreview += 1
         return 1, results
 
     else:
@@ -904,14 +920,14 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 # Returns: 0
 #
 def processPDFs():
-    global allErrors
+    global allErrors, allCounts
     global level2error1, level2error2, level2error3, level2error4
     global level3error1, level3error2, level3error3
     global specialerror1
     global accKey, refKey, statusKey, mgiKey
     global mvPDFtoMasterDir
     global updateSQLAll
-    global count_processPDFs
+    global count_processPDFs, count_needsreview
     global tagassocKey, jnumKey, count_cutover
 
     #
@@ -962,6 +978,7 @@ def processPDFs():
 	   if DEBUG:
 	       diagFile.write('level2SanityChecks() : needs review : %s, %s, %s, %s\n' % (objId, userPath, pdfFile, str(pubmedRef)))
 	   shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+	   count_needsreview += 1
            continue
 
 	try:
@@ -1187,7 +1204,16 @@ def processPDFs():
     allErrors = allErrors + specialerrorStart + specialerror1
 
     # copy all errors to error log, remove html and copy to curator log
+    allCounts = allCounts + countStart
+    allCounts = allCounts + 'Successful PDF\'s processed (All NEW_Newcurrent curator & PDF download directories): ' + str(count_processPDFs) + '<BR>\n\n'
+    allCounts = allCounts + 'Records with Supplemental data added: ' + str(count_userSupplement) + '<BR>\n\n'
+    allCounts = allCounts + 'Records with Updated PDF\'s: ' + str(count_userPDF) + '<BR>\n\n'
+    allCounts = allCounts + 'Records with Updated NLM information: ' + str(count_userNLM) + '<BR>\n\n'
+    allCounts = allCounts + 'New Failed PDF\'s in Needs_Review folder: ' + str(count_needsreview) + '<BR><BR>\n\n'
+
+    errorFile.write(allCounts)
     errorFile.write(allErrors)
+    curatorFile.write(re.sub('<.*?>', '', allCounts))
     curatorFile.write(re.sub('<.*?>', '', allErrors))
 
     diagFile.flush()
