@@ -71,6 +71,7 @@ import PdfParser
 import PubMedAgent
 import Pdfpath
 
+db.setTrace(True)
 DEBUG = 1
 bcpon = 1
 
@@ -82,11 +83,13 @@ pma = ''
 # special processing for specific cases
 userSupplement = 'littriage_create_supplement'
 userPDF = 'littriage_update_pdf'
+userGOA = 'littriage_goa'
 userNLM = 'littriage_update_nlm' # not yet implemented
 
 count_processPDFs = 0
 count_userSupplement = 0
 count_userPDF = 0
+count_userGOA = 0
 count_userNLM = 0
 count_needsreview = 0
 
@@ -123,11 +126,14 @@ refKey = 0
 statusKey = 0
 tagassocKey = 0
 mgiKey = 0
+jnumKey = 0
 
+objDOI = 'doi'
 mgiTypeKey = 1
 mgiPrefix = 'MGI:'
 referenceTypeKey = 31576687 	# Peer Reviewed Article
 notRoutedKey = 31576669		# Not Routed
+fullCodedKey = 31576674		# Full-coded
 supplementalKey = 31576677	# not checked
 isReviewArticle = 0
 isDiscard = 0
@@ -136,11 +142,10 @@ hasPDF = 1
 isPrivate = 0
 isPreferred = 1
 
-# for cutover only
+# for cutover only; can be removed after production release
 tagTable = 'BIB_Workflow_Tag'
-jnumKey = 0
 count_cutover = 0
-isCutover = ''
+isCutover = 0
 tagFile = ''
 tagFileName = ''
 cutover_routedKey = 31576670 	# Routed
@@ -159,6 +164,7 @@ cutover_tag = {
 'm' : '31576695',
 'n' : '34693807'
 }
+# end cutover
 
 # list of workflow groups
 workflowGroupList = []
@@ -184,6 +190,7 @@ userDict = {}
 # objByUser = {('user name', 'pm', 'pmid') : ('pdffile', 'pdftext')}
 # objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
 # objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
+# objByUser = {('user name', userGOA, 'mgiid') : ('pdffile', 'pdftext')}
 # objByUser = {('user name', userNLM, 'mgiid') : ('pdffile', 'pdftext')}
 # {('cms, 'doi', '10.112xxx'): ['10.112xxx.pdf, 'text'']}
 # {('cms, 'pm', 'PMID_14440025'): ['PDF_14440025.pdf', 'text'']}
@@ -531,7 +538,12 @@ def bcpFiles():
     db.commit()
 
     # update the max Accession ID value for J:
-    if isCutover:
+    if count_userGOA:
+        db.sql('select * from ACC_setMax (%d, \'J:\')' % (count_userGOA), None)
+        db.commit()
+
+    # update the max Accession ID value for J:
+    if count_cutover:
         db.sql('select * from ACC_setMax (%d, \'J:\')' % (count_cutover), None)
         db.commit()
 
@@ -762,7 +774,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
     if DEBUG:
         diagFile.write('level2SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
 
-    if objType == 'doi':
+    if objType == objDOI:
         # mapping of objId to pubmedID, return list of references
         try:
             mapping = pma.getReferences([objId])
@@ -851,7 +863,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
     pubmedID = ref.getPubMedID()
 
-    if objType == 'doi':
+    if objType == objDOI:
         results = db.sql('''
 	    select _Refs_key, mgiID, pubmedID, doiID from BIB_Citation_Cache where pubmedID = '%s' or doiID = '%s'
     	    ''' % (pubmedID, objId), 'auto')
@@ -872,7 +884,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
     elif len(results) == 1:
 
-        if objType == 'doi':
+        if objType == objDOI:
 
             # 2: input PubMed ID or DOI ID associated with different MGI references
 	    if results[0]['pubmedID'] != None and results[0]['doiID'] != None:
@@ -927,7 +939,7 @@ def processPDFs():
     global accKey, refKey, statusKey, mgiKey
     global mvPDFtoMasterDir
     global updateSQLAll
-    global count_processPDFs, count_needsreview
+    global count_processPDFs, count_needsreview, count_userGOA
     global tagassocKey, jnumKey, count_cutover
 
     #
@@ -946,6 +958,7 @@ def processPDFs():
     # objByUser = {('user name', 'pm', 'pmid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('user name', userGOA, 'mgiid') : ('pdffile', 'pdftext')}
 
     for key in objByUser:
 
@@ -1076,55 +1089,65 @@ def processPDFs():
 	    #
 	    # 28495855_ag.pdf : split by '_' and then by '.'
 	    #
-	    try:
-	        if isCutover:
 
-	            tokens1 = pdfFile.split('_')
-		    tokens2 = tokens1[1].split('.')
+            try:
+		diagFile.write('cutover execution\n')
 
-		    for c in cutover_tag:
-		        if c in tokens2[0].lower():
-	                    tagFile.write('%s|%s|%s|%s|%s|%s|%s\n' \
-		                   % (tagassocKey, refKey, cutover_tag[c], userKey, userKey, loaddate, loaddate))
+                if isCutover:
+
+                    tokens1 = pdfFile.split('_')
+                    tokens2 = tokens1[1].split('.')
+
+                    for c in cutover_tag:
+                        if c in tokens2[0].lower():
+                            tagFile.write('%s|%s|%s|%s|%s|%s|%s\n' \
+                                   % (tagassocKey, refKey, cutover_tag[c], userKey, userKey, loaddate, loaddate))
                             tagassocKey += 1
-			    if c.lower() == 's':
-			        tokens2[0] = tokens2[0] + 'a'
-			
-		    for c in cutover_group:
-		        if c in tokens2[0].lower():
-	                    statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-		                    % (statusKey, refKey, cutover_group[c], cutover_routedKey, isCurrent, \
-		                       userKey, userKey, loaddate, loaddate))
+                            if c.lower() == 's':
+                                tokens2[0] = tokens2[0] + 'a'
+
+                    for c in cutover_group:
+                        if c in tokens2[0].lower():
+                            statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+                                    % (statusKey, refKey, cutover_group[c], cutover_routedKey, isCurrent, \
+                                       userKey, userKey, loaddate, loaddate))
                             statusKey += 1
-	                else:
-		            statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-		                    % (statusKey, refKey, cutover_group[c], notRoutedKey, isCurrent, \
-		                       userKey, userKey, loaddate, loaddate))
+                        else:
+                            statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+                                    % (statusKey, refKey, cutover_group[c], notRoutedKey, isCurrent, \
+                                       userKey, userKey, loaddate, loaddate))
                             statusKey += 1
 
-	            # J:xxxx
-	            #
-	            jnumID = 'J:' + str(jnumKey)
-	            accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
-		            % (accKey, jnumID, 'J:', jnumKey, logicalDBKey, refKey, mgiTypeKey, \
-		               isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
-	            accKey += 1
-		    jnumKey += 1
-		    count_cutover += 1
+                    # J:xxxx
+                    #
+                    jnumID = 'J:' + str(jnumKey)
+                    accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
+                            % (accKey, jnumID, 'J:', jnumKey, logicalDBKey, refKey, mgiTypeKey, \
+                               isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
+                    accKey += 1
+                    jnumKey += 1
+                    count_cutover += 1
 
-	    #
-	    # normal execution
-	    #
-	    except:
+            #
+            # normal execution
+            #
+            except:
+		diagFile.write('normal execution\n')
 	        for groupKey in workflowGroupList:
-	            statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-		       % (statusKey, refKey, groupKey, notRoutedKey, isCurrent, \
-		          userKey, userKey, loaddate, loaddate))
+		    # if userGOA and group = GO, then status = Full-coded
+		    if userPath == userGOA and groupKey == 31576666:
+	                statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+		           % (statusKey, refKey, groupKey, fullCodedKey, isCurrent, \
+		              userKey, userKey, loaddate, loaddate))
+		    else:
+	                statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+		           % (statusKey, refKey, groupKey, notRoutedKey, isCurrent, \
+		              userKey, userKey, loaddate, loaddate))
                     statusKey += 1
 
 	    #
 	    # bib_workflow_data
-	    if isCutover:
+	    if userPath == userGOA or isCutover:
 	        if extractedText.lower().find('supplemental') > 0 \
 	           or extractedText.lower().find('supplementary') > 0 \
 	           or extractedText.lower().find('supplement ') > 0 \
@@ -1163,7 +1186,7 @@ def processPDFs():
 	    #
 	    # doiId only
 	    #
-	    if objType == 'doi':
+	    if objType == objDOI:
 	    	accID = objId
 	    	prefixPart = accID
 	    	numericPart = ''
@@ -1173,6 +1196,21 @@ def processPDFs():
 			% (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
 		   	isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
 	    	accKey += 1
+
+	    #
+	    # J:xxxx
+	    #
+            if userPath == userGOA:
+	    	accID = 'J:' + str(jnumKey)
+	    	prefixPart = 'J:'
+	    	numericPart = jnumKey
+	    	logicalDBKey = 1
+	    	accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
+			% (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
+		   	isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
+	        accKey += 1
+		jnumKey += 1
+		count_userGOA += 1
 
 	    # store dictionary : move pdf file from inputDir to masterPath
 	    newPath = Pdfpath.getPdfpath(masterDir, mgiID)
@@ -1234,7 +1272,6 @@ def processUserPDF(objKey):
     global mvPDFtoMasterDir
     global updateSQLAll
     global count_userSupplement
-    global count_userPDF
 
     if DEBUG:
         diagFile.write('\nprocessUserPDF()\n')

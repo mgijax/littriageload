@@ -77,12 +77,12 @@ cd ${PUBLISHEDDIR}
 for i in *
 do
 mkdir -p ${INPUTDIR}/${i}
-mkdir -p ${FAILEDTRIAGEDIR}/${i}
+mkdir -p ${NEEDSREVIEWTRIAGEDIR}/${i}
 done
 echo 'input directory'
 ls -l ${INPUTDIR}
 echo 'needs review directory'
-ls -l ${FAILEDTRIAGEDIR}
+ls -l ${NEEDSREVIEWTRIAGEDIR}
 
 cd ${LITTRIAGELOAD}
 
