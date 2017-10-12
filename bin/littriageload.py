@@ -1273,6 +1273,7 @@ def processUserPDF(objKey):
     global mvPDFtoMasterDir
     global updateSQLAll
     global count_userSupplement
+    global count_needsreview
 
     if DEBUG:
         diagFile.write('\nprocessUserPDF()\n')
@@ -1294,6 +1295,7 @@ def processUserPDF(objKey):
     if len(results) == 0:
 	specialerror1 = specialerror1 + str(mgiId) + '<BR>\n' + \
 		linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+	count_needsreview += 1
 
     	if DEBUG:
             diagFile.write('userPDF/userSupplement level1 : needs review : %s, %s, %s\n' % (mgiId, userPath, pdfFile))
