@@ -71,7 +71,7 @@ import PdfParser
 import PubMedAgent
 import Pdfpath
 
-db.setTrace(True)
+#db.setTrace(True)
 DEBUG = 1
 bcpon = 1
 
