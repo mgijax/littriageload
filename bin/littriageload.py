@@ -145,7 +145,7 @@ isPreferred = 1
 # for cutover only; can be removed after production release
 tagTable = 'BIB_Workflow_Tag'
 count_cutover = 0
-isCutover = 0
+isCutover = '0'
 tagFile = ''
 tagFileName = ''
 cutover_routedKey = 31576670 	# Routed
@@ -1090,7 +1090,7 @@ def processPDFs():
 	    # 28495855_ag.pdf : split by '_' and then by '.'
 	    #
 
-            if isCutover == 1:
+            if isCutover == '1':
 		diagFile.write('cutover execution\n')
 
                 tokens1 = pdfFile.split('_')
@@ -1145,7 +1145,7 @@ def processPDFs():
 
 	    #
 	    # bib_workflow_data
-	    if isCutover == 1:
+	    if isCutover == '1':
 	        if extractedText.lower().find('supplemental') > 0 \
 	           or extractedText.lower().find('supplementary') > 0 \
 	           or extractedText.lower().find('supplement ') > 0 \
