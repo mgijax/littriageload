@@ -1093,7 +1093,7 @@ def processPDFs():
             try:
 		diagFile.write('cutover execution\n')
 
-                if isCutover:
+                if isCutover == 1:
 
                     tokens1 = pdfFile.split('_')
                     tokens2 = tokens1[1].split('.')
@@ -1147,7 +1147,7 @@ def processPDFs():
 
 	    #
 	    # bib_workflow_data
-	    if userPath == userGOA or isCutover:
+	    if userPath == userGOA or isCutover == 1:
 	        if extractedText.lower().find('supplemental') > 0 \
 	           or extractedText.lower().find('supplementary') > 0 \
 	           or extractedText.lower().find('supplement ') > 0 \
