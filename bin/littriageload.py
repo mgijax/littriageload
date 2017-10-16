@@ -1091,9 +1091,9 @@ def processPDFs():
 	    #
 
             try:
-		diagFile.write('cutover execution\n')
+                if isCutover:
 
-                if isCutover == 1:
+		    diagFile.write('cutover execution\n')
 
                     tokens1 = pdfFile.split('_')
                     tokens2 = tokens1[1].split('.')
