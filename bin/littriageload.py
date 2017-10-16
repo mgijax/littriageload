@@ -1147,7 +1147,18 @@ def processPDFs():
 
 	    #
 	    # bib_workflow_data
-	    if userPath == userGOA or isCutover == 1:
+	    if isCutover:
+	        if extractedText.lower().find('supplemental') > 0 \
+	           or extractedText.lower().find('supplementary') > 0 \
+	           or extractedText.lower().find('supplement ') > 0 \
+	           or extractedText.lower().find('additional file') > 0 \
+	           or extractedText.lower().find('appendix') > 0:
+	            dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
+	    	        % (refKey, hasPDF, cutover_suppfound, extractedText, userKey, userKey, loaddate, loaddate))
+	        else:
+	            dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
+	    	        % (refKey, hasPDF, cutover_suppnotfound, extractedText, userKey, userKey, loaddate, loaddate))
+	    elif userPath == userGOA:
 	        if extractedText.lower().find('supplemental') > 0 \
 	           or extractedText.lower().find('supplementary') > 0 \
 	           or extractedText.lower().find('supplement ') > 0 \
