@@ -1090,48 +1090,46 @@ def processPDFs():
 	    # 28495855_ag.pdf : split by '_' and then by '.'
 	    #
 
-            try:
-                if isCutover:
+            if isCutover == 1:
+		diagFile.write('cutover execution\n')
 
-		    diagFile.write('cutover execution\n')
+                tokens1 = pdfFile.split('_')
+                tokens2 = tokens1[1].split('.')
 
-                    tokens1 = pdfFile.split('_')
-                    tokens2 = tokens1[1].split('.')
+                for c in cutover_tag:
+                    if c in tokens2[0].lower():
+                        tagFile.write('%s|%s|%s|%s|%s|%s|%s\n' \
+                            % (tagassocKey, refKey, cutover_tag[c], userKey, userKey, loaddate, loaddate))
+                        tagassocKey += 1
+                        if c.lower() == 's':
+                            tokens2[0] = tokens2[0] + 'a'
 
-                    for c in cutover_tag:
-                        if c in tokens2[0].lower():
-                            tagFile.write('%s|%s|%s|%s|%s|%s|%s\n' \
-                                   % (tagassocKey, refKey, cutover_tag[c], userKey, userKey, loaddate, loaddate))
-                            tagassocKey += 1
-                            if c.lower() == 's':
-                                tokens2[0] = tokens2[0] + 'a'
+                for c in cutover_group:
+                    if c in tokens2[0].lower():
+                        statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+                            % (statusKey, refKey, cutover_group[c], cutover_routedKey, isCurrent, \
+                               userKey, userKey, loaddate, loaddate))
+                        statusKey += 1
+                    else:
+                        statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+                            % (statusKey, refKey, cutover_group[c], notRoutedKey, isCurrent, \
+                               userKey, userKey, loaddate, loaddate))
+                        statusKey += 1
 
-                    for c in cutover_group:
-                        if c in tokens2[0].lower():
-                            statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-                                    % (statusKey, refKey, cutover_group[c], cutover_routedKey, isCurrent, \
-                                       userKey, userKey, loaddate, loaddate))
-                            statusKey += 1
-                        else:
-                            statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-                                    % (statusKey, refKey, cutover_group[c], notRoutedKey, isCurrent, \
-                                       userKey, userKey, loaddate, loaddate))
-                            statusKey += 1
-
-                    # J:xxxx
-                    #
-                    jnumID = 'J:' + str(jnumKey)
-                    accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
-                            % (accKey, jnumID, 'J:', jnumKey, logicalDBKey, refKey, mgiTypeKey, \
-                               isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
-                    accKey += 1
-                    jnumKey += 1
-                    count_cutover += 1
+                # J:xxxx
+                #
+                jnumID = 'J:' + str(jnumKey)
+                accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
+                    % (accKey, jnumID, 'J:', jnumKey, logicalDBKey, refKey, mgiTypeKey, \
+                       isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
+                accKey += 1
+                jnumKey += 1
+                count_cutover += 1
 
             #
             # normal execution
             #
-            except:
+            else:
 		diagFile.write('normal execution\n')
 	        for groupKey in workflowGroupList:
 		    # if userGOA and group = GO, then status = Full-coded
@@ -1147,7 +1145,7 @@ def processPDFs():
 
 	    #
 	    # bib_workflow_data
-	    if isCutover:
+	    if isCutover == 1:
 	        if extractedText.lower().find('supplemental') > 0 \
 	           or extractedText.lower().find('supplementary') > 0 \
 	           or extractedText.lower().find('supplement ') > 0 \
