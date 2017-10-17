@@ -99,20 +99,20 @@ date | tee -a ${LOG_DIAG}
 echo "---------------------" | tee -a ${LOG_DIAG}
 echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG_DIAG}
 cd ${PUBLISHEDDIR}
-for i in *
-do
-for j in "${i}/*.pdf" "${i}/*.PDF"
+for i in `find . -maxdepth 2 -iname "[a-zA-Z0-9]*.pdf"`
 do
 if [ `uname -n` = "bhmgidevapp01" ]
 then
-mv -f ${j} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
+echo "mv -f ${i} ${INPUTDIR}/${i}" 2>> ${LOG_DIAG}
+mv -f ${i} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
 elif [ "${INSTALL_TYPE}" = "dev" ]
 then
-cp -f ${j} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
+echo "cp -f ${i} ${INPUTDIR}/${i}" 2>> ${LOG_DIAG}
+cp -f ${i} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
 else
-mv -f ${j} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
+echo "mv -f ${i} ${INPUTDIR}/${i}" 2>> ${LOG_DIAG}
+mv -f ${i} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
 fi
-done
 done
 
 # results of cp/mv
