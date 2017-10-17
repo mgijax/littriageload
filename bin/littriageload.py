@@ -124,7 +124,6 @@ dataTable = 'BIB_Workflow_Data'
 accKey = 0
 refKey = 0
 statusKey = 0
-tagassocKey = 0
 mgiKey = 0
 jnumKey = 0
 
@@ -134,7 +133,6 @@ mgiPrefix = 'MGI:'
 referenceTypeKey = 31576687 	# Peer Reviewed Article
 notRoutedKey = 31576669		# Not Routed
 fullCodedKey = 31576674		# Full-coded
-supplementalKey = 31576677	# not checked
 isReviewArticle = 0
 isDiscard = 0
 isCurrent = 1
@@ -142,15 +140,19 @@ hasPDF = 1
 isPrivate = 0
 isPreferred = 1
 
+# bib_workflow_data._supplemental_key values
+supplementalKey = 31576677	# Not checked
+suppfoundKey = 31576675	        # Db found supplement
+suppnotfoundKey = 31576676      # Db supplement not found
+
 # for cutover only; can be removed after production release
-tagTable = 'BIB_Workflow_Tag'
-count_cutover = 0
 isCutover = '0'
+count_cutover = 0
+tagTable = 'BIB_Workflow_Tag'
 tagFile = ''
 tagFileName = ''
+tagassocKey = 0
 cutover_routedKey = 31576670 	# Routed
-cutover_suppfound = 31576675	# Db found supplement
-cutover_suppnotfound = 31576676 # Db supplement not found
 cutover_group = { 
 'a' : '31576664',
 'e' : '31576665',
@@ -429,7 +431,8 @@ def closeFiles():
 # Returns: 0
 #
 def setPrimaryKeys():
-    global accKey, refKey, statusKey, mgiKey, tagassocKey, jnumKey
+    global accKey, refKey, statusKey, mgiKey, jnumKey
+    global tagassocKey
 
     results = db.sql('select max(_Refs_key) + 1 as maxKey from BIB_Refs', 'auto')
     refKey = results[0]['maxKey']
@@ -443,11 +446,11 @@ def setPrimaryKeys():
     results = db.sql('select max(maxNumericPart) + 1 as maxKey from ACC_AccessionMax where prefixPart = \'MGI:\'', 'auto')
     mgiKey = results[0]['maxKey']
 
-    results = db.sql('select max(_Assoc_key) + 1 as maxKey from BIB_Workflow_Tag', 'auto')
-    tagassocKey = results[0]['maxKey']
-
     results = db.sql('select max(maxNumericPart) + 1 as maxKey from ACC_AccessionMax where prefixPart = \'J:\'', 'auto')
     jnumKey = results[0]['maxKey']
+
+    results = db.sql('select max(_Assoc_key) + 1 as maxKey from BIB_Workflow_Tag', 'auto')
+    tagassocKey = results[0]['maxKey']
 
     return 0
 
@@ -936,11 +939,11 @@ def processPDFs():
     global level2error1, level2error2, level2error3, level2error4
     global level3error1, level3error2, level3error3
     global specialerror1
-    global accKey, refKey, statusKey, mgiKey
+    global accKey, refKey, statusKey, mgiKey, jnumKey
     global mvPDFtoMasterDir
     global updateSQLAll
     global count_processPDFs, count_needsreview, count_userGOA
-    global tagassocKey, jnumKey, count_cutover
+    global tagassocKey, count_cutover
 
     #
     # assumes the level1SanityChecks have passed
@@ -1152,10 +1155,10 @@ def processPDFs():
 	           or extractedText.lower().find('additional file') > 0 \
 	           or extractedText.lower().find('appendix') > 0:
 	            dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	        % (refKey, hasPDF, cutover_suppfound, extractedText, userKey, userKey, loaddate, loaddate))
+	    	        % (refKey, hasPDF, suppfoundKey, extractedText, userKey, userKey, loaddate, loaddate))
 	        else:
 	            dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	        % (refKey, hasPDF, cutover_suppnotfound, extractedText, userKey, userKey, loaddate, loaddate))
+	    	        % (refKey, hasPDF, suppnotfoundKey, extractedText, userKey, userKey, loaddate, loaddate))
 	    elif userPath == userGOA:
 	        if extractedText.lower().find('supplemental') > 0 \
 	           or extractedText.lower().find('supplementary') > 0 \
@@ -1163,10 +1166,10 @@ def processPDFs():
 	           or extractedText.lower().find('additional file') > 0 \
 	           or extractedText.lower().find('appendix') > 0:
 	            dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	        % (refKey, hasPDF, cutover_suppfound, extractedText, userKey, userKey, loaddate, loaddate))
+	    	        % (refKey, hasPDF, suppfoundKey, extractedText, userKey, userKey, loaddate, loaddate))
 	        else:
 	            dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	        % (refKey, hasPDF, cutover_suppnotfound, extractedText, userKey, userKey, loaddate, loaddate))
+	    	        % (refKey, hasPDF, suppnotfoundKey, extractedText, userKey, userKey, loaddate, loaddate))
 	    else:
 	        dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
 	    	    % (refKey, hasPDF, supplementalKey, extractedText, userKey, userKey, loaddate, loaddate))
