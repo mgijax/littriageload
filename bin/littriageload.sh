@@ -103,7 +103,7 @@ for i in `find . -maxdepth 2 -iname "[a-zA-Z0-9]*.pdf"`
 do
 if [ `uname -n` = "bhmgidevapp01" ]
 then
-echo "mv -f ${i} ${INPUTDIR}/${i}" 2>> ${LOG_DIAG}
+echo "cp/rm -f ${i} ${INPUTDIR}/${i}" 2>> ${LOG_DIAG}
 cp -f ${i} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
 rm -rf ${i} 2>> ${LOG_DIAG}
 elif [ "${INSTALL_TYPE}" = "dev" ]
@@ -111,7 +111,7 @@ then
 echo "cp -f ${i} ${INPUTDIR}/${i}" 2>> ${LOG_DIAG}
 cp -f ${i} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
 else
-echo "mv -f ${i} ${INPUTDIR}/${i}" 2>> ${LOG_DIAG}
+echo "cp/rm -f ${i} ${INPUTDIR}/${i}" 2>> ${LOG_DIAG}
 cp -f ${i} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
 rm -rf ${i} 2>> ${LOG_DIAG}
 fi
