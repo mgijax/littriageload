@@ -942,7 +942,7 @@ def processPDFs():
     global accKey, refKey, statusKey, mgiKey, jnumKey
     global mvPDFtoMasterDir
     global updateSQLAll
-    global count_processPDFs, count_needsreview, count_userGOA
+    global count_processPDFs, count_needsreview, count_userGOA, count_userPDF
     global tagassocKey, count_cutover
 
     #
@@ -1286,6 +1286,7 @@ def processUserPDF(objKey):
     global updateSQLAll
     global count_userSupplement
     global count_needsreview
+    global count_userPDF
 
     if DEBUG:
         diagFile.write('\nprocessUserPDF()\n')
