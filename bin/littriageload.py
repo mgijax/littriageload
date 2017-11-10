@@ -156,6 +156,7 @@ mvPDFtoMasterDir = {}
 
 # delete SQL commands
 deleteSQLAll = ''
+updateSQLAll = ''
 
 loaddate = loadlib.loaddate
 
@@ -317,7 +318,7 @@ def initialize():
         exist(1,  'Cannot open curator log file: ' + curatorFile)
 
     try:
-        sqllogFile = open(sqllog, 'a')
+        sqllogFile = open(sqllog, 'w')
     except:
         exist(1,  'Cannot open sqllog file: ' + sqllogFile)
 
@@ -457,18 +458,20 @@ def bcpFiles():
     # delete of BIB_Workflow_Data records
     # these will be reloaded via bcp
     #
-    diagFile.write('\nstart: delete sql commands\n')
-    sqllogFile.write('\nstart: delete sql commands\n')
+    diagFile.write('\nstart: delete/update sql commands\n')
+    sqllogFile.write('\nstart: delete/update sql commands\n')
     sqllogFile.write(deleteSQLAll)
+    sqllogFile.write(updateSQLAll)
     try:
         db.sql(deleteSQLAll, None)
+	db.sql(updateSQLAll, None)
 	db.commit()
     except:
-        diagFile.write('bcpFiles(): failed: delete sql commands\n')
-        sqllogFile.write('bcpFiles(): failed: delete sql commands\n')
+        diagFile.write('bcpFiles(): failed: delete/update sql commands\n')
+        sqllogFile.write('bcpFiles(): failed: delete/update sql commands\n')
 	return 0
-    diagFile.write('\nend: delete sql commands\n')
-    sqllogFile.write('\nend: delete sql commands\n')
+    diagFile.write('\nend: delete/update sql commands\n')
+    sqllogFile.write('\nend: delete/update sql commands\n')
 
     db.commit()
 
@@ -1212,7 +1215,7 @@ def processPDFs():
 def processUserPDF(objKey):
     global specialerror1
     global mvPDFtoMasterDir
-    global deleteSQLAll
+    global deleteSQLAll, updateSQLAll
     global count_userSupplement
     global count_needsreview
     global count_userPDF
@@ -1262,6 +1265,8 @@ def processUserPDF(objKey):
 	    	    % (existingRefKey, hasPDF, dataSuppKey, extractedText, userKey, userKey, loaddate, loaddate))
 
     deleteSQLAll = deleteSQLAll + 'delete from BIB_Workflow_Data where _Refs_key = %s;\n' % (existingRefKey)
+    updateSQLAll = updateSQLAll + 'update BIB_Refs set _ModifiedBy_key = %s, modification_date = now() where _Refs_key = %s;\n' \
+    		% (userKey, existingRefKey)
 
     # store dictionary : move pdf file from inputDir to masterPath
     newPath = Pdfpath.getPdfpath(masterDir, mgiId)
