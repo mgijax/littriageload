@@ -25,6 +25,7 @@
 #	LOG_DIAG
 #	LOG_ERROR
 #	LOG_CUR
+#	LOG_SQL
 #	MASTERTRIAGEDIR
 #	NEEDSREVIEWTRIAGEDIR
 #	PG_DBUTILS
@@ -99,6 +100,8 @@ curator = ''
 curatorFile = ''
 error = ''
 errorFile = ''
+sqllog = ''
+sqllogFile = ''
 
 inputDir = ''
 outputDir = ''
@@ -145,37 +148,14 @@ supplementalKey = 31576677	# Not checked
 suppfoundKey = 31576675	        # Db found supplement
 suppnotfoundKey = 31576676      # Db supplement not found
 
-# for cutover only; can be removed after production release
-isCutover = '0'
-count_cutover = 0
-tagTable = 'BIB_Workflow_Tag'
-tagFile = ''
-tagFileName = ''
-tagassocKey = 0
-cutover_routedKey = 31576670 	# Routed
-cutover_group = { 
-'a' : '31576664',
-'e' : '31576665',
-'g' : '31576666',
-'t' : '31576667',
-'q' : '31576668'
-}
-cutover_tag = { 
-'s' : '31576694',
-'p' : '34693808',
-'m' : '31576695',
-'n' : '34693807'
-}
-# end cutover
-
 # list of workflow groups
 workflowGroupList = []
 
 # moving input/pdfs to master dir/pdfs
 mvPDFtoMasterDir = {}
 
-# update SQL commands
-updateSQLAll = ''
+# delete SQL commands
+deleteSQLAll = ''
 
 loaddate = loadlib.loaddate
 
@@ -267,6 +247,7 @@ def initialize():
     global diag, diagFile
     global error, errorFile
     global curator, curatorFile
+    global sqllog, sqllogFile
     global inputDir, outputDir
     global masterDir, needsReviewDir
     global bcpScript
@@ -274,18 +255,17 @@ def initialize():
     global accFile, refFile, statusFile, dataFile
     global pma
     global workflowGroupList
-    global isCutover, tagFile, tagFileName
 
     litparser = os.getenv('LITPARSER')
     diag = os.getenv('LOG_DIAG')
     error = os.getenv('LOG_ERROR')
     curator = os.getenv('LOG_CUR')
+    sqllog = os.getenv('LOG_SQL')
     inputDir = os.getenv('INPUTDIR')
     outputDir = os.getenv('OUTPUTDIR')
     masterDir = os.getenv('MASTERTRIAGEDIR')
     needsReviewDir = os.getenv('NEEDSREVIEWTRIAGEDIR')
     bcpScript = os.getenv('PG_DBUTILS') + '/bin/bcpin.csh'
-    isCutover = os.getenv('CUTOVER')
 
     #
     # Make sure the required environment variables are set.
@@ -302,6 +282,9 @@ def initialize():
 
     if not curator:
         exit(1, 'Environment variable not set: LOG_CUR')
+
+    if not sqllog:
+        exit(1, 'Environment variable not set: LOG_SQL')
 
     if not inputDir:
         exit(1, 'Environment variable not set: INPUTDIR')
@@ -332,6 +315,11 @@ def initialize():
         curatorFile = open(curator, 'a')
     except:
         exist(1,  'Cannot open curator log file: ' + curatorFile)
+
+    try:
+        sqllogFile = open(sqllog, 'a')
+    except:
+        exist(1,  'Cannot open sqllog file: ' + sqllogFile)
 
     try:
         accFileName = outputDir + '/' + accTable + '.bcp'
@@ -373,16 +361,6 @@ def initialize():
     except:
         exit(1, 'Could not open file %s\n' % dataFileName)
 
-    try:
-        tagFileName = outputDir + '/' + tagTable + '.bcp'
-    except:
-        exit(1, 'Cannot create file: ' + outputDir + '/' + tagTable + '.bcp')
-
-    try:
-        tagFile = open(tagFileName, 'w')
-    except:
-        exit(1, 'Could not open file %s\n' % tagFileName)
-
     # initialized PdfParser.py
     try:
         PdfParser.setLitParserDir(litparser)
@@ -413,6 +391,8 @@ def closeFiles():
         errorFile.close()
     if curatorFile:
         curatorFile.close()
+    if sqllogFile:
+        sqllogFile.close()
     if refFile:
         refFile.close()
     if statusFile:
@@ -421,9 +401,6 @@ def closeFiles():
         dataFile.close()
     if accFile:
         accFile.close()
-    if tagFile:
-        tagFile.close()
-
     return 0
 
 #
@@ -432,7 +409,6 @@ def closeFiles():
 #
 def setPrimaryKeys():
     global accKey, refKey, statusKey, mgiKey, jnumKey
-    global tagassocKey
 
     results = db.sql('select max(_Refs_key) + 1 as maxKey from BIB_Refs', 'auto')
     refKey = results[0]['maxKey']
@@ -448,9 +424,6 @@ def setPrimaryKeys():
 
     results = db.sql('select max(maxNumericPart) + 1 as maxKey from ACC_AccessionMax where prefixPart = \'J:\'', 'auto')
     jnumKey = results[0]['maxKey']
-
-    results = db.sql('select max(_Assoc_key) + 1 as maxKey from BIB_Workflow_Tag', 'auto')
-    tagassocKey = results[0]['maxKey']
 
     return 0
 
@@ -471,8 +444,6 @@ def bcpFiles():
         dataFile.close()
     if accFile:
         accFile.close()
-    if tagFile:
-        tagFile.close()
 
     bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
     bcpII = '"|" "\\n" mgd'
@@ -481,7 +452,23 @@ def bcpFiles():
     bcp2 = '%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII)
     bcp3 = '%s %s "/" %s %s' % (bcpI, dataTable, dataFileName, bcpII)
     bcp4 = '%s %s "/" %s %s' % (bcpI, accTable, accFileName, bcpII)
-    bcp5 = '%s %s "/" %s %s' % (bcpI, tagTable, tagFileName, bcpII)
+
+    #
+    # delete of BIB_Workflow_Data records
+    # these will be reloaded via bcp
+    #
+    diagFile.write('\nstart: delete sql commands\n')
+    sqllogFile.write('\nstart: delete sql commands\n')
+    sqllogFile.write(deleteSQLAll)
+    try:
+        db.sql(deleteSQLAll, None)
+	db.commit()
+    except:
+        diagFile.write('bcpFiles(): failed: delete sql commands\n')
+        sqllogFile.write('bcpFiles(): failed: delete sql commands\n')
+	return 0
+    diagFile.write('\nend: delete sql commands\n')
+    sqllogFile.write('\nend: delete sql commands\n')
 
     db.commit()
 
@@ -492,17 +479,30 @@ def bcpFiles():
     # and can be used in the next running of the load
     #
     diagFile.write('\nstart: copy bcp files into database\n')
-    for bcpCmd in [bcp1, bcp2, bcp3, bcp4, bcp5]:
+    for bcpCmd in [bcp1, bcp2, bcp3, bcp4]:
         diagFile.write('%s\n' % bcpCmd)
         diagFile.flush()
 	if bcpon:
 	    try:
                 os.system(bcpCmd)
 	    except:
-	        diagFile.write('bcpFiles(): needs review : os.system(%s)\n' (bcpCmd))
+	        diagFile.write('bcpFiles(): failed : os.system(%s)\n' (bcpCmd))
 		return 0
     diagFile.write('\nend: copy bcp files into database\n')
     diagFile.flush()
+
+    #
+    # compare BIB_Ref with BIB_Workflow_Data
+    # the counts should match
+    # else, error
+    #
+    results = db.sql('''
+    	select r._refs_key from BIB_Refs r
+	where not exists (select 1 from BIB_Workflow_Data d where r._refs_key = d._refs_key)
+    	''', 'auto')
+    if len(results) > 0:
+    	diagFile.write('FATAL BCP ERROR:  reload database from backup/contact SE\n')
+	return 0
 
     #
     # move PDF from inputdir to master directory
@@ -527,15 +527,6 @@ def bcpFiles():
 		    #return 0
     diagFile.write('\nend: move oldPDF to newPDF\n')
 
-    diagFile.write('\nstart: update sql commands\n')
-    diagFile.write(updateSQLAll)
-    try:
-        db.sql(updateSQLAll, None)
-	db.commit()
-    except:
-        diagFile.write('bcpFiles(): needs review : update sql commands\n')
-    diagFile.write('\nend: update sql commands\n')
-
     # update the max Accession ID value
     db.sql('select * from ACC_setMax (%d)' % (count_processPDFs), None)
     db.commit()
@@ -543,11 +534,6 @@ def bcpFiles():
     # update the max Accession ID value for J:
     if count_userGOA:
         db.sql('select * from ACC_setMax (%d, \'J:\')' % (count_userGOA), None)
-        db.commit()
-
-    # update the max Accession ID value for J:
-    if count_cutover:
-        db.sql('select * from ACC_setMax (%d, \'J:\')' % (count_cutover), None)
         db.commit()
 
     diagFile.write('\nend: bcpFiles() : successful\n')
@@ -941,9 +927,7 @@ def processPDFs():
     global specialerror1
     global accKey, refKey, statusKey, mgiKey, jnumKey
     global mvPDFtoMasterDir
-    global updateSQLAll
     global count_processPDFs, count_needsreview, count_userGOA, count_userPDF
-    global tagassocKey, count_cutover
 
     #
     # assumes the level1SanityChecks have passed
@@ -1064,6 +1048,10 @@ def processPDFs():
 	    #
 	    # bib_refs
 	    #
+
+	    abstract = pubmedRef.getAbstract()
+	    abstract = abstract.replace('|', '')
+
 	    refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
 		% (refKey, referenceTypeKey, 
 		   pubmedRef.getAuthors(), \
@@ -1075,7 +1063,7 @@ def processPDFs():
 		   pubmedRef.getDate(), \
 		   pubmedRef.getYear(), \
 		   pubmedRef.getPages(), \
-		   pubmedRef.getAbstract(), \
+		   abstract, \
 		   isReviewArticle, \
 		   isDiscard, \
 		   userKey, userKey, loaddate, loaddate))
@@ -1086,80 +1074,21 @@ def processPDFs():
 	    # bib_workflow_status
 	    # 1 row per Group
 	    #
-
-	    # can be removed after cutover
-	    # start : cutover-specific processing
-	    #
-	    # 28495855_ag.pdf : split by '_' and then by '.'
-	    #
-
-            if isCutover == '1':
-		diagFile.write('cutover execution\n')
-
-                tokens1 = pdfFile.split('_')
-                tokens2 = tokens1[1].split('.')
-
-                for c in cutover_tag:
-                    if c in tokens2[0].lower():
-                        tagFile.write('%s|%s|%s|%s|%s|%s|%s\n' \
-                            % (tagassocKey, refKey, cutover_tag[c], userKey, userKey, loaddate, loaddate))
-                        tagassocKey += 1
-                        if c.lower() == 's':
-                            tokens2[0] = tokens2[0] + 'a'
-
-                for c in cutover_group:
-                    if c in tokens2[0].lower():
-                        statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-                            % (statusKey, refKey, cutover_group[c], cutover_routedKey, isCurrent, \
-                               userKey, userKey, loaddate, loaddate))
-                        statusKey += 1
-                    else:
-                        statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-                            % (statusKey, refKey, cutover_group[c], notRoutedKey, isCurrent, \
-                               userKey, userKey, loaddate, loaddate))
-                        statusKey += 1
-
-                # J:xxxx
-                #
-                jnumID = 'J:' + str(jnumKey)
-                accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
-                    % (accKey, jnumID, 'J:', jnumKey, logicalDBKey, refKey, mgiTypeKey, \
-                       isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
-                accKey += 1
-                jnumKey += 1
-                count_cutover += 1
-
-            #
-            # normal execution
-            #
-            else:
-		diagFile.write('normal execution\n')
-	        for groupKey in workflowGroupList:
-		    # if userGOA and group = GO, then status = Full-coded
-		    if userPath == userGOA and groupKey == 31576666:
-	                statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-		           % (statusKey, refKey, groupKey, fullCodedKey, isCurrent, \
+	    for groupKey in workflowGroupList:
+	        # if userGOA and group = GO, then status = Full-coded
+		if userPath == userGOA and groupKey == 31576666:
+	            statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+		        % (statusKey, refKey, groupKey, fullCodedKey, isCurrent, \
 		              userKey, userKey, loaddate, loaddate))
-		    else:
-	                statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-		           % (statusKey, refKey, groupKey, notRoutedKey, isCurrent, \
+		else:
+	            statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+		        % (statusKey, refKey, groupKey, notRoutedKey, isCurrent, \
 		              userKey, userKey, loaddate, loaddate))
-                    statusKey += 1
+                statusKey += 1
 
 	    #
 	    # bib_workflow_data
-	    if isCutover == '1':
-	        if extractedText.lower().find('supplemental') > 0 \
-	           or extractedText.lower().find('supplementary') > 0 \
-	           or extractedText.lower().find('supplement ') > 0 \
-	           or extractedText.lower().find('additional file') > 0 \
-	           or extractedText.lower().find('appendix') > 0:
-	            dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	        % (refKey, hasPDF, suppfoundKey, extractedText, userKey, userKey, loaddate, loaddate))
-	        else:
-	            dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	        % (refKey, hasPDF, suppnotfoundKey, extractedText, userKey, userKey, loaddate, loaddate))
-	    elif userPath == userGOA:
+	    if userPath == userGOA:
 	        if extractedText.lower().find('supplemental') > 0 \
 	           or extractedText.lower().find('supplementary') > 0 \
 	           or extractedText.lower().find('supplement ') > 0 \
@@ -1283,7 +1212,7 @@ def processPDFs():
 def processUserPDF(objKey):
     global specialerror1
     global mvPDFtoMasterDir
-    global updateSQLAll
+    global deleteSQLAll
     global count_userSupplement
     global count_needsreview
     global count_userPDF
@@ -1303,7 +1232,10 @@ def processUserPDF(objKey):
     pdfPath = os.path.join(inputDir, userPath)
     needsReviewPath = os.path.join(needsReviewDir, userPath)
 
-    results = db.sql('select _Refs_key from BIB_Citation_Cache where mgiID = \'%s\' ' % (mgiId), 'auto')
+    results = db.sql('''select r._Refs_key, d._Supplemental_key
+    	from BIB_Citation_Cache r, BIB_Workflow_Data d 
+	where r.mgiID = \'%s\' 
+	and r._Refs_key = d._Refs_key''' % (mgiId), 'auto')
 
     if len(results) == 0:
 	specialerror1 = specialerror1 + str(mgiId) + '<BR>\n' + \
@@ -1315,31 +1247,21 @@ def processUserPDF(objKey):
 
         return
 
-    refsKey = results[0]['_Refs_key']
+    existingRefKey = results[0]['_Refs_key']
+    suppKey = results[0]['_Supplemental_key']
     userKey = loadlib.verifyUser(userPath, 0, diagFile)
 
     if objType == userSupplement:
-        suppSQL = '_Supplemental_key = 34026997,'
+	dataSuppKey = 34026997
 	count_userSupplement += 1
     else:
-        suppSQL = ''
+	dataSuppKey = suppKey
 	count_userPDF += 1
 
-    updateSQL = '''
-    	update BIB_Workflow_Data set 
-		hasPDF = 1, 
-		%s
-    		extractedText = E'%s',
-		_ModifiedBy_key = %s,
-		modification_date = now()
-		where _Refs_key = %s
-		;
-                update BIB_Refs set _ModifiedBy_key = %s, modification_date = now() where _Refs_key = %s
-		;
+    dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
+	    	    % (existingRefKey, hasPDF, dataSuppKey, extractedText, userKey, userKey, loaddate, loaddate))
 
-	''' % (suppSQL, extractedText, userKey, refsKey, userKey, refsKey)
-
-    updateSQLAll = updateSQLAll + updateSQL
+    deleteSQLAll = deleteSQLAll + 'delete from BIB_Workflow_Data where _Refs_key = %s;\n' % (existingRefKey)
 
     # store dictionary : move pdf file from inputDir to masterPath
     newPath = Pdfpath.getPdfpath(masterDir, mgiId)

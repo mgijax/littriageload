@@ -1,3 +1,12 @@
+TAG: littriageload-6-0-11-14
+DATE: 11/10/2017
+STAFF: lec
+CHANGES:
+TR12712
+1) Abstract : remove pipes in text
+2) change supplemental/pdf from "update" to "delete/bcp"
+3) check bib_refs/bib_workflow_data counts
+
 TAG: littriageload-6-0-11-13
 TAG: littriageload-6-0-11-12
 TAG: littriageload-6-0-11-11
