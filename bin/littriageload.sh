@@ -29,10 +29,11 @@ fi
 
 #
 # Initialize the log file.
+# open LOG in append mode and redirect stdout
 #
-LOG=littriageload.log
+LOG=${LOG_FILE}
 rm -rf ${LOG}
-touch ${LOG}
+>>${LOG}
 
 #
 # Source the DLA library functions.
@@ -43,25 +44,25 @@ then
     then
         . ${DLAJOBSTREAMFUNC}
     else
-        echo "Cannot source DLA functions script: ${DLAJOBSTREAMFUNC}" | tee -a ${LOG}
+        echo "Cannot source DLA functions script: ${DLAJOBSTREAMFUNC}" >> ${LOG} 2>&1
         exit 1
     fi
 else
-    echo "Environment variable DLAJOBSTREAMFUNC has not been defined." | tee -a ${LOG}
+    echo "Environment variable DLAJOBSTREAMFUNC has not been defined." >> ${LOG} 2>&1
     exit 1
 fi
 
 #
-# clean out arhicve and logs.* after 30 days
+# clean out archive and logs.* after 30 days
 #
-find ${FILEDIR}/archive/* -type f -mtime +30 -exec rm -rf {} \; | tee -a ${LOG}
-find ${FILEDIR}/logs.* -type d -mtime +30 -exec rm -rf {} \; | tee -a ${LOG}
+find ${FILEDIR}/archive/* -type f -mtime +30 -exec rm -rf {} \; >> ${LOG} 2>&1
+find ${FILEDIR}/logs.* -type d -mtime +30 -exec rm -rf {} \; >> ${LOG} 2>&1
 
 #
 # copy the ${LOGDIR} to a separate archive
 # make sure this happens *before* next step
 #
-cp -r ${LOGDIR} ${LOGDIR}.`date '+%Y%m%d.%H%M'` | tee -a ${LOG}
+cp -r ${LOGDIR} ${LOGDIR}.`date '+%Y%m%d.%H%M'` >> ${LOG} 2>&1
 
 #
 # createArchive including OUTPUTDIR, INPUTDIR, etc.
@@ -81,13 +82,13 @@ do
 mkdir -p ${INPUTDIR}/${i}
 mkdir -p ${NEEDSREVIEWTRIAGEDIR}/${i}
 done
-date | tee -a ${LOG_DIAG}
-echo "---------------------" | tee -a ${LOG_DIAG}
-echo "input directory" | tee -a ${LOG_DIAG}
-ls -l ${INPUTDIR_DIAG} | tee -a ${LOG_DIAG}
-echo "---------------------" | tee -a ${LOG_DIAG}
-echo "needs review directory"| tee -a ${LOG_DIAG}
-ls -l ${NEEDSREVIEWTRIAGEDIR} | tee -a ${LOG_DIAG}
+date >> ${LOG}
+echo "---------------------" >> ${LOG} 2>&1
+echo "input directory" >> ${LOG} 2>&1
+ls -l ${INPUTDIR_DIAG} >> ${LOG} 2>&1
+echo "---------------------" >> ${LOG} 2>&1
+echo "needs review directory" >> ${LOG} 2>&1
+ls -l ${NEEDSREVIEWTRIAGEDIR} >> ${LOG} 2>&1
 
 #
 # if DEV, use 'cp'
@@ -95,62 +96,52 @@ ls -l ${NEEDSREVIEWTRIAGEDIR} | tee -a ${LOG_DIAG}
 #
 # cp/mv PUBLISHEDDIR/user pdf files to INPUTDIR/user
 #
-date | tee -a ${LOG_DIAG}
-echo "---------------------" | tee -a ${LOG_DIAG}
-echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}"  | tee -a ${LOG_DIAG}
+date >> ${LOG}
+echo "---------------------" >> ${LOG} 2>&1
+echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}" >> ${LOG} 2>&1
 cd ${PUBLISHEDDIR}
 for i in `find . -maxdepth 2 -iname "[a-zA-Z0-9]*.pdf"`
 do
 if [ `uname -n` = "bhmgidevapp01" ]
 then
-echo "cp/rm -f ${i} ${INPUTDIR}/${i}" 2>> ${LOG_DIAG}
-cp -f ${i} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
-rm -rf ${i} 2>> ${LOG_DIAG}
+echo "cp/rm -f ${i} ${INPUTDIR}/${i}" >> ${LOG} 2>&1
+cp -f ${i} ${INPUTDIR}/${i} >> ${LOG} 2>&1
+rm -rf ${i} >> ${LOG} 2>&1
 elif [ "${INSTALL_TYPE}" = "dev" ]
 then
-echo "cp -f ${i} ${INPUTDIR}/${i}" 2>> ${LOG_DIAG}
-cp -f ${i} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
+echo "cp -f ${i} ${INPUTDIR}/${i}" >> ${LOG} 2>&1
+cp -f ${i} ${INPUTDIR}/${i} >> ${LOG} 2>&1
 else
-echo "cp/rm -f ${i} ${INPUTDIR}/${i}" 2>> ${LOG_DIAG}
-cp -f ${i} ${INPUTDIR}/${i} 2>> ${LOG_DIAG}
-rm -rf ${i} 2>> ${LOG_DIAG}
+echo "cp/rm -f ${i} ${INPUTDIR}/${i}" >> ${LOG} 2>&1
+cp -f ${i} ${INPUTDIR}/${i} >> ${LOG} 2>&1
+rm -rf ${i} >> ${LOG} 2>&1
 fi
 done
 
 # results of cp/mv
-date | tee -a ${LOG_DIAG}
-echo "---------------------" | tee -a ${LOG_DIAG}
-echo "${PUBLISHEDDIR} listing : NOT MOVED TO INPUT DIRECTORY" | tee -a ${LOG_DIAG}
-ls -l ${PUBLISHEDDIR}/*/* | tee -a ${LOG_DIAG}
-#echo "---------------------" | tee -a ${LOG_DIAG}
-#echo "${INPUTDIR} listing : MOVED TO INPUT DIRECTORY" | tee -a ${LOG_DIAG}
-#ls -l ${INPUTDIR}/*/* | tee -a ${LOG_DIAG}
+date >> ${LOG} 2>&1
+echo "---------------------" >> ${LOG} 2>&1
+echo "${PUBLISHEDDIR} listing : NOT MOVED TO INPUT DIRECTORY" >> ${LOG} 2>&1
+ls -l ${PUBLISHEDDIR}/*/* >> ${LOG} 2>&1
 
 cd ${LITTRIAGELOAD}
-
-# update cache : must be current
-#date | tee -a ${LOG_DIAG}
-#echo "Update BIB_Citation_Cache"  | tee -a ${LOG_DIAG}
-#${MGICACHELOAD}/bibcitation.csh | tee -a ${LOG_DIAG}
-#STAT=$?
-#checkStatus ${STAT} "${MGICACHELOAD}/bibcitation.csh" | tee -a ${LOG_DIAG}
 
 #
 # run the load
 #
-date | tee -a ${LOG_DIAG}
-echo "---------------------" | tee -a ${LOG_DIAG}
-echo "Run littriageload.py"  | tee -a ${LOG_DIAG}
-${LITTRIAGELOAD}/bin/littriageload.py | tee -a ${LOG_DIAG}
+date >> ${LOG_DIAG} 2>&1
+echo "---------------------" >> ${LOG_DIAG} 2>&1
+echo "Run littriageload.py"  >> ${LOG_DIAG} 2>&1
+${LITTRIAGELOAD}/bin/littriageload.py >> ${LOG_DIAG} 2>&1
 STAT=$?
-checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" | tee -a ${LOG_DIAG}
+checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" >> ${LOG_DIAG} 2>&1
 
 # update cache
-date | tee -a ${LOG_DIAG}
-echo "Update BIB_Citation_Cache"  | tee -a ${LOG_DIAG}
-${MGICACHELOAD}/bibcitation.csh | tee -a ${LOG_DIAG}
+date >> ${LOG_DIAG} 2>&1
+echo "Update BIB_Citation_Cache"  >> ${LOG_DIAG} 2>&1
+${MGICACHELOAD}/bibcitation.csh >> ${LOG_DIAG} 2>&1
 STAT=$?
-checkStatus ${STAT} "${MGICACHELOAD}/bibcitation.csh" | tee -a ${LOG_DIAG}
+checkStatus ${STAT} "${MGICACHELOAD}/bibcitation.csh" >> ${LOG_DIAG} 2>&1
 
 # run postload cleanup and email logs
 shutDown

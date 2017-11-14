@@ -1,3 +1,10 @@
+TAG: littriageload-6-0-11-16
+DATE: 11/14/2017
+STAFF: lec
+CHANGES:
+littriageload.sh : 
+split up what is send to LOG_FILE and what is sent to LOG_DIAG
+
 TAG: littriageload-6-0-11-15
 TAG: littriageload-6-0-11-14
 DATE: 11/10/2017
