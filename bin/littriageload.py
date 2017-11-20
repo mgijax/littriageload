@@ -462,14 +462,22 @@ def bcpFiles():
     sqllogFile.write('\nstart: delete/update sql commands\n')
     sqllogFile.write(deleteSQLAll)
     sqllogFile.write(updateSQLAll)
-    try:
-        db.sql(deleteSQLAll, None)
-	db.sql(updateSQLAll, None)
-	db.commit()
-    except:
-        diagFile.write('bcpFiles(): failed: delete/update sql commands\n')
-        sqllogFile.write('bcpFiles(): failed: delete/update sql commands\n')
-	return 0
+    if len(deleteSQLAll) > 0:
+        try:
+            db.sql(deleteSQLAll, None)
+	    db.commit()
+        except:
+            diagFile.write('bcpFiles(): failed: delete sql commands\n')
+            sqllogFile.write('bcpFiles(): failed: delete sql commands\n')
+	    return 0
+    if len(updateSQLAll) > 0:
+        try:
+            db.sql(updateSQLAll, None)
+	    db.commit()
+        except:
+            diagFile.write('bcpFiles(): failed: update sql commands\n')
+            sqllogFile.write('bcpFiles(): failed: update sql commands\n')
+	    return 0
     diagFile.write('\nend: delete/update sql commands\n')
     sqllogFile.write('\nend: delete/update sql commands\n')
 
