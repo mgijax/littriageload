@@ -214,31 +214,6 @@ level3error3 = ''
 specialerror1 = ''
 
 #
-# Purpose: prints error message and exits
-# Return: sys.exit()
-#
-def exit(
-    status,          # numeric exitstatus (integer)
-    message = None   # exitmessage (string)
-    ):
-
-    if message is not None:
-        sys.stderr.write('\n' + str(message) + '\n')
-
-    try:
-        diagFile.write('\n\nEnd Date/Time: %s\n' % (mgi_utils.date()))
-        errorFile.write('\n\nEnd Date/Time: %s\n' % (mgi_utils.date()))
-        curatorFile.write('\n\nEnd Date/Time: %s\n' % (mgi_utils.date()))
-        diagFile.close()
-        errorFile.close()
-        curatorFile.close()
-    except:
-        pass
-
-    db.useOneConnection(0)
-    sys.exit(status)
-
-#
 # Purpose: Initialization
 # Returns: 0
 #
@@ -377,6 +352,8 @@ def initialize():
     for r in results:
         workflowGroupList.append(r['_Term_key'])
 
+    errorFile.write('\n\nStart Date/Time: %s\n\n' % (mgi_utils.date()))
+
     return 0
 
 
@@ -402,6 +379,7 @@ def closeFiles():
         dataFile.close()
     if accFile:
         accFile.close()
+
     return 0
 
 #
@@ -1255,6 +1233,8 @@ def processUserPDF(objKey):
 
     	if DEBUG:
             diagFile.write('userPDF/userSupplement level1 : needs review : %s, %s, %s\n' % (mgiId, userPath, pdfFile))
+
+	shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 
         return
 
