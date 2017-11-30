@@ -130,7 +130,10 @@ ls -l ${PUBLISHEDDIR}/*/* >> ${LOG} 2>&1
 # this will be used if help restart a load
 # make sure this happens *before* next step
 #
-cp -r ${INPUTDIR} ${INPUTDIR}.`date '+%Y%m%d.%H%M'` >> ${LOG} 2>&1
+timestamp=`date '+%Y%m%d.%H%M'`
+cp -r ${INPUTDIR} ${INPUTDIR}.${timestamp} >> ${LOG} 2>&1
+rm -rf ${LASTINPUTDIR} >> ${LOG} 2>&1
+ln -s ${INPUTDIR}.${timestamp} ${LASTINPUTDIR} >> ${LOG} 2>&1
 
 cd ${LITTRIAGELOAD}
 
