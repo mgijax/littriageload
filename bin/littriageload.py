@@ -195,7 +195,7 @@ level1errorStart = '**********<BR>\nLiterature Triage Level 1 Errors : parse DOI
 level2errorStart = '**********<BR>\nLiterature Triage Level 2 Errors : parse PubMed IDs from PubMed API<BR><BR>\n\n'
 level3errorStart = '**********<BR>\nLiterature Triage Level 3 Errors : check MGI for errors<BR><BR>\n\n'
 specialerrorStart = '**********<BR>\nLiterature Triage littriage_create_supplement/littriage_update_pdf Errors : check MGI for errors<BR><BR>\n\n'
-countStart = '**********\nLiterature Triage Counts<BR>\n'
+countStart = '**********<BR>\nLiterature Triage Counts<BR>\n'
 
 level1error1 = '' 
 level1error2 = ''
@@ -352,7 +352,7 @@ def initialize():
     for r in results:
         workflowGroupList.append(r['_Term_key'])
 
-    errorFile.write('\n\nStart Date/Time: %s\n\n' % (mgi_utils.date()))
+    errorFile.write('\n<BR>Start Date/Time: %s\n<BR>' % (mgi_utils.date()))
 
     return 0
 

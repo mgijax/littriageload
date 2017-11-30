@@ -53,10 +53,11 @@ else
 fi
 
 #
-# clean out archive and logs.* after 30 days
+# clean out archive, logs.*, input.* after 30 days
 #
 find ${FILEDIR}/archive/* -type f -mtime +30 -exec rm -rf {} \; >> ${LOG} 2>&1
 find ${FILEDIR}/logs.* -type d -mtime +30 -exec rm -rf {} \; >> ${LOG} 2>&1
+find ${FILEDIR}/input.* -type d -mtime +30 -exec rm -rf {} \; >> ${LOG} 2>&1
 
 #
 # copy the ${LOGDIR} to a separate archive
@@ -123,6 +124,13 @@ date >> ${LOG} 2>&1
 echo "---------------------" >> ${LOG} 2>&1
 echo "${PUBLISHEDDIR} listing : NOT MOVED TO INPUT DIRECTORY" >> ${LOG} 2>&1
 ls -l ${PUBLISHEDDIR}/*/* >> ${LOG} 2>&1
+
+#
+# copy the ${INPUTDIR} to a separate archive
+# this will be used if help restart a load
+# make sure this happens *before* next step
+#
+cp -r ${INPUTDIR} ${INPUTDIR}.`date '+%Y%m%d.%H%M'` >> ${LOG} 2>&1
 
 cd ${LITTRIAGELOAD}
 
