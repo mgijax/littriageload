@@ -37,5 +37,5 @@ LOG=${LOG_FILE}
 rm -rf ${LOG}
 >>${LOG}
 
-cp -R ${LASTINPUTDIR} ${INPUTDIR} >> ${LOG} 2>&1
+cp -R ${LASTINPUTDIR}/* ${INPUTDIR} >> ${LOG} 2>&1
 
