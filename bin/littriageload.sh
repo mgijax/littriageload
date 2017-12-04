@@ -57,7 +57,7 @@ fi
 #
 find ${FILEDIR}/archive/* -type f -mtime +30 -exec rm -rf {} \; >> ${LOG} 2>&1
 find ${FILEDIR}/logs.* -type d -mtime +30 -exec rm -rf {} \; >> ${LOG} 2>&1
-find ${FILEDIR}/input.* -type d -mtime +30 -exec rm -rf {} \; >> ${LOG} 2>&1
+find ${FILEDIR}/input.* -type d -mtime +5 -exec rm -rf {} \; >> ${LOG} 2>&1
 
 #
 # copy the ${LOGDIR} to a separate archive
