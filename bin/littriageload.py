@@ -85,7 +85,7 @@ pma = ''
 userSupplement = 'littriage_create_supplement'
 userPDF = 'littriage_update_pdf'
 userGOA = 'littriage_goa'
-userNLM = 'littriage_update_nlm' # not yet implemented
+userNLM = 'littriage_NLM_refresh'
 
 count_processPDFs = 0
 count_userSupplement = 0
@@ -520,6 +520,10 @@ def bcpFiles():
     db.sql('select * from ACC_setMax (%d)' % (count_processPDFs), None)
     db.commit()
 
+    # update bib_workflow_status serialization
+    db.sql('select setval('bib_workflow_status_serial', (select max(_Assoc_key) + 1 from BIB_Workflow_Status))', None)
+    db.commit()
+
     # update the max Accession ID value for J:
     if count_userGOA:
         db.sql('select * from ACC_setMax (%d, \'J:\')' % (count_userGOA), None)
@@ -822,19 +826,20 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 # Purpose: Level 3 Sanity Checks : check MGI for errors
 # Returns: returns 0 if successful, 1 if errors are found
 #
-#  1: input PubMed ID or DOI ID exists in MGI
-#  2: PubMed or DOI ID associated with different MGI references
+#  1 : input PubMed ID or DOI ID exists in MGI
+#  2 : PubMed or DOI ID associated with different MGI references
 #  3a: input PubMed ID exists in MGI but missing DOI ID -> add DOI ID in MGI
 #  3b: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
-#  4 : update PDF/extracted text
+#  4 : update NLM fields
 #
 def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath, ref):
     global level3error1, level3error2, level3error3
     global count_needsreview
 
-    # return 0 : will add as new reference
+    # return 0   : will add as new reference
     # return 1/2 : will skip/move to 'needs review'
-    # return 3 : will add new Accession ids
+    # return 3   : will add new Accession ids
+    # return 4   : will update NLM fields
 
     if DEBUG:
         diagFile.write('level3SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
@@ -843,11 +848,14 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
     if objType == objDOI:
         results = db.sql('''
-	    select _Refs_key, mgiID, pubmedID, doiID from BIB_Citation_Cache where pubmedID = '%s' or doiID = '%s'
+	    select c._Refs_key, c.mgiID, c.pubmedID, c.doiID from BIB_Citation_Cache c where c.pubmedID = '%s' or c.doiID = '%s'
     	    ''' % (pubmedID, objId), 'auto')
     else:
         results = db.sql('''
-	    select _Refs_key, mgiID, pubmedID, doiID from BIB_Citation_Cache where pubmedID = '%s'
+	    select c._Refs_key, c.mgiID, c.pubmedID, c.doiID, c.journal, r.title
+	    from BIB_Citation_Cache c, BIB_Refs r
+	    where c.pubmedID = '%s'
+	    and c._Refs_key = r._Refs_key
     	    ''' % (pubmedID), 'auto')
 
     # 2: input PubMed ID or DOI ID associated with different MGI references
@@ -877,6 +885,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	            return 2, results
 
             # 3a: input PubMed ID exists in MGI but missing DOI ID -> add DOI ID in MGI
+	    # needs_review but still processed
 	    if results[0]['pubmedID'] == None:
 	        diagFile.write('3: pubmedID is missing in MGI: ' + objId + ',' + pubmedID + '\n')
 	        level3error3 = level3error3 + objId + ', ' + pubmedID + ' : adding PubMed ID<BR>\n' + \
@@ -886,6 +895,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	        return 3, results
 
             # 3b: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
+	    # needs_review but still processed
 	    if results[0]['doiID'] == None:
 	        diagFile.write('3: doiid is missing in MGI:' + objId + ',' + pubmedID + '\n')
 	        level3error3 = level3error3 + objId + ', ' + pubmedID + ' : adding DOI ID<BR>\n' + \
@@ -893,6 +903,20 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 		count_needsreview += 1
 	        return 3, results
+
+	# 4 : update NLM fields
+        elif objType == userNLM:
+
+	    # journal and title match
+	    if ref.getJournals() == results[0]['journal'] and ref.getTitle() == results[0]['title']:
+	        return 4, results
+
+	    diagFile.write('4: journal/title do not match:' + objId + ',' + pubmedID + '\n')
+	    level3error3 = level3error3 + objId + ', ' + pubmedID + ' : adding DOI ID<BR>\n' + \
+	    	    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+	    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+	    count_needsreview += 1
+	    return 2, results
 
         # 1: input PubMed ID or DOI ID exists in MGI
 	diagFile.write('1: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
@@ -916,7 +940,8 @@ def processPDFs():
     global specialerror1
     global accKey, refKey, statusKey, mgiKey, jnumKey
     global mvPDFtoMasterDir
-    global count_processPDFs, count_needsreview, count_userGOA, count_userPDF
+    global count_processPDFs, count_needsreview, count_userGOA, count_userPDF, count_userNLM
+    global updateSQLAll
 
     #
     # assumes the level1SanityChecks have passed
@@ -986,6 +1011,7 @@ def processPDFs():
         # return 0 : will add as new reference
         # return 1/2 : will skip/move to 'needs review'
         # return 3 : will add new Accession ids
+        # return 4 : will update NLM fields
 	#
 	rc, mgdRef = level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath, pubmedRef)
 
@@ -1023,6 +1049,50 @@ def processPDFs():
 		   userKey, userKey, loaddate, loaddate))
 
 	    accKey += 1
+
+	#
+	# update NLM fields for existing MGI reference
+	#
+	elif rc == 4:
+
+            diagFile.write('level3SanityChecks() : successful : update NLM fields : %s, %s, %s, %s, %s\n' \
+	    	% (objId, userPath, pdfFile, pubmedID, str(mgdRef)))
+
+	    userKey = loadlib.verifyUser(userPath, 0, diagFile)
+	    objectKey = mgdRef[0]['_Refs_key']
+	    abstract = pubmedRef.getAbstract()
+	    abstract = abstract.replace('|', '')
+
+            updateSQLAll += '''
+	    	update BIB_Refs 
+	    	set 
+		authors = '%s',
+		_primary = '%s',
+		title = '%s',
+		journal = '%s',
+		vol = '%s',
+		issue = '%s',
+		date = '%s',
+		year = %s,
+		pgs = '%s',
+		abstract = '%s',
+		_ModifiedBy_key = %s, 
+		modification_date = now() 
+		where _Refs_key = %s
+		;
+		''' % (pubmedRef.getAuthors(), 
+		       pubmedRef.getPrimaryAuthor(), \
+		       pubmedRef.getTitle(), \
+		       pubmedRef.getJournal(), \
+		       pubmedRef.getVolume(), \
+		       pubmedRef.getIssue(), \
+		       pubmedRef.getDate(), \
+		       pubmedRef.getYear(), \
+		       pubmedRef.getPages(), \
+		       abstract, \
+		       userKey, objectKey)
+
+	    count_userNLM += 1
 
 	# add new MGI reference
 	#
@@ -1252,8 +1322,8 @@ def processUserPDF(objKey):
     dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
 	    	    % (existingRefKey, hasPDF, dataSuppKey, extractedText, userKey, userKey, loaddate, loaddate))
 
-    deleteSQLAll = deleteSQLAll + 'delete from BIB_Workflow_Data where _Refs_key = %s;\n' % (existingRefKey)
-    updateSQLAll = updateSQLAll + 'update BIB_Refs set _ModifiedBy_key = %s, modification_date = now() where _Refs_key = %s;\n' \
+    deleteSQLAll += 'delete from BIB_Workflow_Data where _Refs_key = %s;\n' % (existingRefKey)
+    updateSQLAll += 'update BIB_Refs set _ModifiedBy_key = %s, modification_date = now() where _Refs_key = %s;\n' \
     		% (userKey, existingRefKey)
 
     # store dictionary : move pdf file from inputDir to masterPath

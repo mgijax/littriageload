@@ -60,12 +60,19 @@ echo 'running DLAINSTALL'
 ${DLAINSTALL} ${DEV}
 
 #
-# Create the input directory.
+# Create the some directories
 #
 if [ ! -d ${INPUTDIR} ]
 then
     mkdir -p ${INPUTDIR}
 fi
+if [ ! -d ${LITTRIAGE_NEWNEW} ]
+then
+    mkdir -p ${LITTRIAGE_NEWNEW}
+fi
+echo 'littriage new_new directory'
+ls -l ${LITTRIAGE_NEWNEW}
+
 
 #
 # Create curator subdirectories in input directory
