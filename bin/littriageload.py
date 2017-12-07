@@ -933,7 +933,6 @@ def processPDFs():
     # objByUser = {('user name', 'pm', 'pmid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
-    # objByUser = {('user name', userNLM, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', userGOA, 'mgiid') : ('pdffile', 'pdftext')}
 
     for key in objByUser:
@@ -954,8 +953,16 @@ def processPDFs():
 	    processExtractedText(key)
 	    continue
 
-        # convert objId = mgi id to objId = pubmedID 
+	#
+	# userNLM (nlm refresh)
+	#
+        # convert objId = mgi id to objId = pubmed id
+        # 	objByUser = {('user name', userNLM, 'mgiid') : ('pdffile', 'pdftext')}
+	# converted to
+        # 	objByUser = {('user name', userNLM, 'pubmedid') : ('pdffile', 'pdftext')}
+	#
         if objType in (userNLM):
+	    print 'converting'
 	    results = db.sql('''
 	        select c._Refs_key, c.pubmedID
 	        from BIB_Citation_Cache c
@@ -963,8 +970,11 @@ def processPDFs():
     	        ''' % (objId), 'auto')
 	    if len(results) > 0:
 	        objId = results[0]['pubmedID']
-	    else:
-	        objId = ''
+		del objByUser[key]
+	        objByUser[(userPath, userPath, objId)] = []
+	        objByUser[(userPath, userPath, objId)].append((pdfFile, extractedText))
+		key = (userPath, userPath, objId)
+	    # else do nothing and let level2SanityChecks() report error
 
 	#
 	# level2SanityChecks()
@@ -1235,7 +1245,7 @@ def processExtractedText(objKey):
 
     # objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
-    # objByUser = {('user name', userNLM, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('user name', userNLM, 'pubmedid') : ('pdffile', 'pdftext')}
 
     pdfFile = objByUser[objKey][0][0]
     extractedText = objByUser[objKey][0][1]
@@ -1307,18 +1317,18 @@ def processNLMRefresh(objKey, ref):
     global updateSQLAll
     global count_needsreview
     global count_userNLM
+    global accKey
 
     if DEBUG:
         diagFile.write('\nprocessNLMRefresh()\n')
 
-    # objByUser = {('user name', userNLM, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('user name', userNLM, 'pubmedid') : ('pdffile', 'pdftext')}
 
     pdfFile = objByUser[objKey][0][0]
     extractedText = objByUser[objKey][0][1]
     userPath = objKey[0]
     objType = objKey[1]
-    mgiKey = objKey[2]
-    mgiId = 'MGI:' + mgiKey
+    pubmedId = objKey[2]
     pdfPath = os.path.join(inputDir, userPath)
     needsReviewPath = os.path.join(needsReviewDir, userPath)
 
@@ -1332,18 +1342,22 @@ def processNLMRefresh(objKey, ref):
     	    ''' % (pubmedID), 'auto')
 
     # matich journal/title/doi id
-    if ref.getJournal() != results[0]['journal'] \
-    	or ref.getTitle() != results[0]['title'] \
-        or (len(results[0]['doiID']) > 0 and ref.getDoiID() != results[0]['doiID']):
+    journal = results[0]['journal']
+    title = results[0]['title']
+    doiId = results[0]['doiID']
 
-        diagFile.write('4: journal/title/DOI id do not match:' + objId + '\n')
-        level3error4 = level3error4 + objId + ' : journal/title do not match<BR>\n' + \
+    if ref.getJournal() != journal \
+    	or ref.getTitle() != title \
+        or (doiId != None and ref.getDoiID() != doiId):
+
+        diagFile.write('4: journal/title/DOI id do not match:' + pubmedId + '\n')
+        level3error4 = level3error4 + pubmedId + ' : journal/title do not match<BR>\n' + \
 	        'Journal/NLM/Medline: ' + ref.getJournal() + '\n' + \
-	        'Journal/MGD: ' + results[0]['journal'] + '\n' + \
+	        'Journal/MGD: ' + journal + '\n' + \
 	        'Title/NLM/Medline: ' + ref.getTitle() + '\n' + \
-	        'Title/MGD: ' + results[0]['title'] + '\n' + \
+	        'Title/MGD: ' + title + '\n' + \
 		'DOI/NLM/Medline: ' + ref.getDoiID() + '\n' + \
-		'DOI/MGD: ' + results[0]['doiID'] + '\n' + \
+		'DOI/MGD: ' + doiId + '\n' + \
     	        linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
         shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
         count_needsreview += 1
@@ -1391,7 +1405,7 @@ def processNLMRefresh(objKey, ref):
     # add DOI id
     #
     if currentDOIid == None and len(newDOIid) > 0:
-        accFile.write('%s|%s||%s|%s|%d|%d|0|1|%s|%s|%s|%s\n' \
+        accFile.write('%s|%s|%s||%s|%d|%d|0|1|%s|%s|%s|%s\n' \
 	    % (accKey, newDOIid, newDOIid, logicalDBKey, objectKey, mgiTypeKey, \
 	       userKey, userKey, loaddate, loaddate))
         accKey += 1
@@ -1399,9 +1413,9 @@ def processNLMRefresh(objKey, ref):
     #
     # this will all be done by calling processExtractedText(objKey)
     #count_userNLM += 1
-    #newPath = Pdfpath.getPdfpath(masterDir, mgiId)
+    #newPath = Pdfpath.getPdfpath(masterDir, pubmedId)
     #mvPDFtoMasterDir[pdfPath + '/' + pdfFile] = []
-    #mvPDFtoMasterDir[pdfPath + '/' + pdfFile].append((newPath,str(mgiKey) + '.pdf'))
+    #mvPDFtoMasterDir[pdfPath + '/' + pdfFile].append((newPath,str(objKey) + '.pdf'))
 
     #
     # process extracted text
