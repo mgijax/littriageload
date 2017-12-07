@@ -76,8 +76,12 @@ MAIL_LOG_PROC="${USER}"
 export MAIL_LOG_PROC
 
 # Curator log is emailed
-#MAIL_LOG_CUR="${USER},jacqueline.finger@jax.org,richard.baldarelli@jax.org,debbie.krupke@jax.org"
-MAIL_LOG_CUR="${USER},janice.ormsby@jax.org,nancy.butler@jax.org,richard.baldarelli@jax.org,jacqueline.finger@jax.org"
+if [ "${INSTALL_TYPE}" = "dev" ]
+then
+MAIL_LOG_CUR="${USER}"
+else
+MAIL_LOG_CUR="${USER},jacqueline.finger@jax.org,richard.baldarelli@jax.org,debbie.krupke@jax.org"
+fi
 export MAIL_LOG_CUR
 
 INSTALLDIR=${LITTRIAGELOAD}
