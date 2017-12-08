@@ -189,10 +189,13 @@ linkOut = '<A HREF="%s">%s</A>'
 
 allErrors = ''
 allCounts = ''
+
 level1errorStart = '**********<BR>\nLiterature Triage Level 1 Errors : parse DOI ID from PDF files<BR><BR>\n'
 level2errorStart = '**********<BR>\nLiterature Triage Level 2 Errors : parse PubMed IDs from PubMed API<BR><BR>\n\n'
 level3errorStart = '**********<BR>\nLiterature Triage Level 3 Errors : check MGI for errors<BR><BR>\n\n'
-specialerrorStart = '**********<BR>\nLiterature Triage littriage_create_supplement/littriage_update_pdf Errors : check MGI for errors<BR><BR>\n\n'
+level4errorStart = '**********<BR>\nLiterature Triage Level 4 Errors : Suppemental/Update PDF<BR><BR>\n\n'
+level5errorStart = '**********<BR>\nLiterature Triage Level 5 Errors : Update NLM information<BR><BR>\n\n'
+
 countStart = '**********<BR>\nLiterature Triage Counts<BR>\n'
 
 level1error1 = '' 
@@ -204,13 +207,13 @@ level2error1 = ''
 level2error2 = ''
 level2error3 = ''
 level2error4 = ''
-level2error5 = ''
 
 level3error1 = '' 
 level3error2 = ''
 level3error3 = ''
 
-specialerror1 = ''
+level4error1 = ''
+level5error1 = ''
 
 #
 # Purpose: Initialization
@@ -736,9 +739,11 @@ def level1SanityChecks():
 #  2: DOI ID not found in pubmed
 #  3: error getting medline record
 #  4: missing data from required field for DOI ID
+#  5: NLM Refresh issues
 #
 def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath):
-    global level2error1, level2error2, level2error3, level2error4, level2error5
+    global level2error1, level2error2, level2error3, level2error4
+    global level5error1
 
     diagFile.write('level2SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
 
@@ -758,7 +763,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	if len(results) > 0:
 	    objId = results[0]['pubmedID']
 	else:
-            level2error5 = level2error5 + mgiID + ' : MGI ID not found or no pubmed ID<BR>\n' + \
+            level5error1 = level5error1 + mgiID + ' : MGI ID not found or no pubmed ID<BR>\n' + \
 	        linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
             return 1
 
@@ -839,7 +844,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
     	    or pubMedRef.getTitle() != title \
             or (doiId != None and pubMedRef.getDoiID() != doiId):
 
-            level2error5 = level2error5 + mgiID + ',' + pubmedID + ' : journal/title/DOI ID do not match<BR>\n' + \
+            level5error1 = level5error1 + mgiID + ',' + pubmedID + ' : journal/title/DOI ID do not match<BR>\n' + \
 	            'Journal/NLM: ' + pubMedRef.getJournal() + '<BR>\n' + \
 	            'Journal/MGD: ' + journal + '<BR>\n' + \
 	            'Title/NLM: ' + pubMedRef.getTitle() + '<BR>\n' + \
@@ -952,9 +957,9 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 #
 def processPDFs():
     global allErrors, allCounts
-    global level2error1, level2error2, level2error3, level2error4, level2error5
+    global level2error1, level2error2, level2error3, level2error4, level5error1
     global level3error1, level3error2, level3error3
-    global specialerror1
+    global level4error1
     global accKey, refKey, statusKey, mgiKey, jnumKey
     global mvPDFtoMasterDir
     global count_processPDFs, count_needsreview, count_userGOA, count_userPDF, count_userNLM
@@ -1201,8 +1206,7 @@ def processPDFs():
     level2error2 = '<B>2: DOI ID not found in pubmed</B><BR><BR>\n\n' + level2error2 + '<BR>\n\n'
     level2error3 = '<B>3: error getting medline record</B><BR><BR>\n\n' + level2error3 + '<BR>\n\n'
     level2error4 = '<B>4: missing data from required field for DOI ID</B><BR><BR>\n\n' + level2error4 + '<BR>\n\n'
-    level2error5 = '<B>5: NLM Refresh issues</B><BR><BR>\n\n' + level2error5 + '<BR>\n\n'
-    allErrors = allErrors + level2errorStart + level2error1 + level2error2 + level2error3 + level2error4 + level2error5
+    allErrors = allErrors + level2errorStart + level2error1 + level2error2 + level2error3 + level2error4
 
     level3error1 = '<B>1: PubMed ID/DOI ID exists in MGI</B><BR><BR>\n\n' + \
     	level3error1 + '<BR>\n\n'
@@ -1212,9 +1216,12 @@ def processPDFs():
     	level3error3 + '<BR>\n\n'
     allErrors = allErrors + level3errorStart + level3error1 + level3error2 + level3error3
 
-    specialerror1 = '<B>1: MGI ID in filename does not match reference in MGI</B><BR><BR>\n\n' + \
-    	specialerror1 + '<BR>\n\n'
-    allErrors = allErrors + specialerrorStart + specialerror1
+    level4error1 = '<B>1: MGI ID in filename does not match reference in MGI</B><BR><BR>\n\n' + \
+    	level4error1 + '<BR>\n\n'
+    allErrors = allErrors + level4errorStart + level4error1
+
+    level5error1 = '<B>5: NLM Refresh issues</B><BR><BR>\n\n' + level5error1 + '<BR>\n\n'
+    allErrors = allErrors + level5errorStart + level5error1
 
     # copy all errors to error log, remove html and copy to curator log
     allCounts = allCounts + countStart
@@ -1244,7 +1251,7 @@ def processPDFs():
 #	if userSupplement, _supplimental_key = 34026997/'Supplement attached'
 #
 def processExtractedText(objKey):
-    global specialerror1
+    global level4error1
     global mvPDFtoMasterDir
     global deleteSQLAll, updateSQLAll
     global count_userSupplement
@@ -1256,7 +1263,7 @@ def processExtractedText(objKey):
 
     # objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
-    # objByUser = {('user name', userNLM, 'pubmedid') : ('pdffile', 'pdftext')}
+    # objByUser = {('user name', userNLM, 'mgiid') : ('pdffile', 'pdftext')}
 
     pdfFile = objByUser[objKey][0][0]
     extractedText = objByUser[objKey][0][1]
@@ -1275,7 +1282,7 @@ def processExtractedText(objKey):
     results = db.sql(sql, 'auto')
 
     if len(results) == 0:
-	specialerror1 = specialerror1 + str(mgiID) + '<BR>\n' + \
+	level4error1 = level4error1 + str(mgiID) + '<BR>\n' + \
 		linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	count_needsreview += 1
         diagFile.write('userPDF/userSupplement/userNLM level1 : needs review : %s, %s, %s\n' % (mgiID, userPath, pdfFile))
@@ -1409,8 +1416,8 @@ if processPDFs() != 0:
     closeFiles()
     sys.exit(1)
 
-if bcpFiles() != 0:
-    sys.exit(1)
+#if bcpFiles() != 0:
+#    sys.exit(1)
 
 closeFiles()
 sys.exit(0)
