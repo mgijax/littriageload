@@ -949,14 +949,17 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 		count_needsreview += 1
 	        return 3, results
 
-        # 1: input PubMed ID or DOI ID exists in MGI
-	diagFile.write('1: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
-	level3error1 = level3error1 + objId + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
-	    	linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-	count_needsreview += 1
-        return 1, results
-
+        if objType in (userNLM):
+            return 0, results
+    	else:
+            # 1: input PubMed ID or DOI ID exists in MGI
+	    diagFile.write('1: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
+	    level3error1 = level3error1 + objId + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
+	    	    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+	    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+	    count_needsreview += 1
+            return 1, results
+		
     else:
         return 0, results
 
