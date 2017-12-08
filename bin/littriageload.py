@@ -905,12 +905,13 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
     results = db.sql(sql, 'auto')
 
-    # 2: input PubMed ID or DOI ID associated with different MGI references
-    if len(results) > 1:
+    if objType not in (userNLM) and len(results) > 1:
+
+        # 2: input PubMed ID or DOI ID associated with different MGI references
         diagFile.write('2: input PubMed ID or DOI ID associated with different MGI references: ' \
-		+ objId + ',' + pubmedID + '\n')
+	+ objId + ',' + pubmedID + '\n')
 	level3error2 = level3error2 + objId + ', ' + pubmedID + '<BR>\n' + \
-	    	linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+	    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 	count_needsreview += 1
 	return 2, results
