@@ -50,9 +50,19 @@
 #      This script will perform following steps:
 #
 #	1) initialize() : initiailze 
-#	2) level1SanityChecks() : run Level 1 Sanity Checks
+#	2) level1SanityChecks() : extracts DOI ID/text from PDF
 #	3) setPrimaryKeys() : setting global primary keys
+#
 #	4) processPDFs() : iterate thru PDF files/run level2 and level3 sanity checks
+#
+#	   if (userPDF, userSupplement):
+#	   	processExtractedText() : processes extracted text (bib_workflow_data)
+#	   else
+#		level2SanityChecks() : extracts NLM/Medline data
+#		level3SanityChecks() : creating new reference or new accession ids
+#		if (userNLM):
+#		    processNLMRefresh() : updates  bib_refs 
+#		    processExtractedText() : processes extracted text (bib_workflow_data)
 #	5) bcpFiles() : load BCP files into database
 #       6) closeFiles() : close files
 #
@@ -867,7 +877,6 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 #  2 : PubMed or DOI ID associated with different MGI references
 #  3a: input PubMed ID exists in MGI but missing DOI ID -> add DOI ID in MGI
 #  3b: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
-#  4 : update NLM fields
 #
 def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath, ref):
     global level3error1, level3error2, level3error3
@@ -906,7 +915,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
     elif len(results) == 1:
 
-        if objType == objDOI:
+        if objType in (objDOI, userNLM):
 
             # 2: input PubMed ID or DOI ID associated with different MGI references
 	    if results[0]['pubmedID'] != None and results[0]['doiID'] != None:
@@ -1023,13 +1032,6 @@ def processPDFs():
 	diagFile.write('level2SanityChecks() : successful : %s, %s, %s, %s\n' % (objId, userPath, pdfFile, pubmedID))
 
 	#
-	# specialy processing for nlm refresh
-	#
-	if objType in (userNLM):
-	    processNLMRefresh(key, pubmedRef)
-	    continue
-
-	#
 	# level3SanityChecks()
 	# check MGI for errors
 	#
@@ -1056,12 +1058,17 @@ def processPDFs():
 	    userKey = loadlib.verifyUser(userPath, 0, diagFile)
 	    objectKey = mgdRef[0]['_Refs_key']
 
+	    if objType in (userNLM):
+    		objId = pubmedRef.getDoiID()
+		if objId == None: # do nothing
+		    continue
+
 	    if mgdRef[0]['pubmedID'] == None:
 	        accID = pubmedID
 		prefixPart = ''
 		numericPart = accID
 		logicalDBKey = 29
-	    else:
+	    else: # objId = doiid
 	        accID = objId
 		prefixPart = accID
 		numericPart = ''
@@ -1199,6 +1206,12 @@ def processPDFs():
 	    refKey += 1
 	    mgiKey += 1
 
+	#
+	# processing for nlm refresh
+	#
+	if objType in (userNLM):
+	    processNLMRefresh(key, pubmedRef)
+
     #
     # write out level2 errors to both error log and curator log
     #
@@ -1327,7 +1340,6 @@ def processExtractedText(objKey):
 #
 def processNLMRefresh(objKey, ref):
     global updateSQLAll
-    global accKey
 
     diagFile.write('\nprocessNLMRefresh()\n')
 
@@ -1337,7 +1349,7 @@ def processNLMRefresh(objKey, ref):
     mgiID = 'MGI:' + objKey[2]
 
     sql = '''
-	   select c._Refs_key, c.doiID
+	   select c._Refs_key
 	   from BIB_Citation_Cache c
 	   where c.mgiID = '%s'
     	   ''' % (mgiID)
@@ -1345,11 +1357,9 @@ def processNLMRefresh(objKey, ref):
 
     userKey = loadlib.verifyUser(userPath, 0, diagFile)
     objectKey = results[0]['_Refs_key']
-    currentDOIid = results[0]['doiID']
 
     abstract = ref.getAbstract()
     abstract = abstract.replace('|', '')
-    newDOIid = ref.getDoiID()
 
     updateSQLAll += '''
 	    	update BIB_Refs 
@@ -1381,16 +1391,6 @@ def processNLMRefresh(objKey, ref):
 		       userKey, objectKey)
 
     #
-    # add DOI id
-    #
-    if currentDOIid == None and newDOIid != None:
-        logicalDBKey = 65
-        accFile.write('%s|%s|%s||%s|%d|%d|0|1|%s|%s|%s|%s\n' \
-	    % (accKey, newDOIid, newDOIid, logicalDBKey, objectKey, mgiTypeKey, \
-	       userKey, userKey, loaddate, loaddate))
-        accKey += 1
-
-    #
     # process extracted text
     #
     processExtractedText(objKey)
@@ -1415,8 +1415,8 @@ if processPDFs() != 0:
     closeFiles()
     sys.exit(1)
 
-#if bcpFiles() != 0:
-#    sys.exit(1)
+if bcpFiles() != 0:
+    sys.exit(1)
 
 closeFiles()
 sys.exit(0)
