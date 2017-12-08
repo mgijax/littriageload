@@ -931,9 +931,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 		    count_needsreview += 1
 	            return 2, results
 
-        if objType in (objDOI, userNLM):
-
-            # 3a: input PubMed ID exists in MGI but missing DOI ID -> add DOI ID in MGI
+            # 3a: input PubMed ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
 	    # needs_review but still processed
 	    if results[0]['pubmedID'] == None:
 	        diagFile.write('3: pubmedID is missing in MGI: ' + objId + ',' + pubmedID + '\n')
@@ -943,7 +941,9 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 		count_needsreview += 1
 	        return 3, results
 
-            # 3b: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
+        if objType in (objDOI) or (objType in (userNLM) and pubmedRef.getDoiID() != None):
+
+            # 3b: input DOI ID exists in MGI but missing DOI ID -> add DOI ID in MGI
 	    # needs_review but still processed
 	    if results[0]['doiID'] == None:
 	        diagFile.write('3: doiid is missing in MGI:' + objId + ',' + pubmedID + '\n')
@@ -1425,8 +1425,8 @@ if processPDFs() != 0:
     closeFiles()
     sys.exit(1)
 
-if bcpFiles() != 0:
-    sys.exit(1)
+#if bcpFiles() != 0:
+#    sys.exit(1)
 
 closeFiles()
 sys.exit(0)
