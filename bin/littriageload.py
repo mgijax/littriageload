@@ -280,6 +280,9 @@ def initialize():
     # Make sure the required environment variables are set.
     #
 
+    if not runSanityCheckOnly:
+        exit(1, 'Environment variable not set: SANITYCHECKONLY')
+
     if not litparser:
         exit(1, 'Environment variable not set: LITPARSER')
 
