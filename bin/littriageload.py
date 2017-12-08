@@ -917,7 +917,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
     elif len(results) == 1:
 
-        if objType in (objDOI, userNLM):
+        if objType in (objDOI):
 
             # 2: input PubMed ID or DOI ID associated with different MGI references
 	    if results[0]['pubmedID'] != None and results[0]['doiID'] != None:
@@ -930,6 +930,8 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 		    count_needsreview += 1
 	            return 2, results
+
+        if objType in (objDOI, userNLM):
 
             # 3a: input PubMed ID exists in MGI but missing DOI ID -> add DOI ID in MGI
 	    # needs_review but still processed
