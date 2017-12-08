@@ -1220,8 +1220,8 @@ def processPDFs():
     	level4error1 + '<BR>\n\n'
     allErrors = allErrors + level4errorStart + level4error1
 
-    level5error1 = '<B>1: NLM Refresh issues</B><BR><BR>\n\n' + level5error1 + '<BR>\n\n'
-    allErrors = allErrors + level5errorStart + level5error1
+    #level5error1 = '<B>1: NLM Refresh issues</B><BR><BR>\n\n' + level5error1 + '<BR>\n\n'
+    #allErrors = allErrors + level5errorStart + level5error1
 
     # copy all errors to error log, remove html and copy to curator log
     allCounts = allCounts + countStart
