@@ -73,8 +73,6 @@ import PubMedAgent
 import Pdfpath
 
 #db.setTrace(True)
-DEBUG = 1
-bcpon = 1
 
 # for setting where the litparser lives (see PdfParser)
 litparser = ''
@@ -211,7 +209,6 @@ level2error5 = ''
 level3error1 = '' 
 level3error2 = ''
 level3error3 = ''
-level3error4 = ''
 
 specialerror1 = ''
 
@@ -416,14 +413,20 @@ def bcpFiles():
 
     diagFile.write('\nstart: bcpFiles()\n')
 
+    bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
+    bcpII = '"|" "\\n" mgd'
+
+    #
+    # flush bcp files
+    #
     refFile.flush()
     statusFile.flush()
     dataFile.flush()
     accFile.flush()
 
-    bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
-    bcpII = '"|" "\\n" mgd'
-
+    #
+    # only execute bcp if bcp file has data
+    #
     bcpRun = []
     if refFile.tell() > 0:
         bcpRun.append('%s %s "/" %s %s' % (bcpI, refTable, refFileName, bcpII))
@@ -434,6 +437,9 @@ def bcpFiles():
     if accFile.tell() > 0:
         bcpRun.append('%s %s "/" %s %s' % (bcpI, accTable, accFileName, bcpII))
 
+    #
+    # close bcp files
+    #
     refFile.close()
     statusFile.close()
     dataFile.close()
@@ -447,6 +453,7 @@ def bcpFiles():
     sqllogFile.write('\nstart: delete/update sql commands\n')
     sqllogFile.write(deleteSQLAll)
     sqllogFile.write(updateSQLAll)
+
     if len(deleteSQLAll) > 0:
         try:
             db.sql(deleteSQLAll, None)
@@ -456,7 +463,6 @@ def bcpFiles():
             sqllogFile.write('bcpFiles(): failed: delete sql commands\n')
 	    return 0
     if len(updateSQLAll) > 0:
-	print updateSQLAll
         try:
             db.sql(updateSQLAll, None)
 	    db.commit()
@@ -464,9 +470,9 @@ def bcpFiles():
             diagFile.write('bcpFiles(): failed: update sql commands\n')
             sqllogFile.write('bcpFiles(): failed: update sql commands\n')
 	    return 0
+
     diagFile.write('\nend: delete/update sql commands\n')
     sqllogFile.write('\nend: delete/update sql commands\n')
-
     db.commit()
 
     #
@@ -480,12 +486,11 @@ def bcpFiles():
     for r in bcpRun:
         diagFile.write('%s\n' % r)
         diagFile.flush()
-	if bcpon:
-	    try:
-                os.system(r)
-	    except:
-	        diagFile.write('bcpFiles(): failed : os.system(%s)\n' (r))
-		return 0
+	try:
+            os.system(r)
+	except:
+	    diagFile.write('bcpFiles(): failed : os.system(%s)\n' (r))
+	    return 0
     diagFile.write('\nend: copy bcp files into database\n')
     diagFile.flush()
 
@@ -495,7 +500,7 @@ def bcpFiles():
     # else, error
     #
     results = db.sql('''
-    	select r._refs_key from BIB_Refs r
+    	select r._Refs_key from BIB_Refs r
 	where not exists (select 1 from BIB_Workflow_Data d where r._refs_key = d._refs_key)
     	''', 'auto')
     if len(results) > 0:
@@ -513,16 +518,15 @@ def bcpFiles():
     for oldPDF in mvPDFtoMasterDir:
 	for newFileDir, newPDF in mvPDFtoMasterDir[oldPDF]:
 	    diagFile.write(oldPDF + '\t' +  newFileDir + '\t' + newPDF + '\n')
-	    if bcpon:
-	        try:
-		    os.makedirs(newFileDir)
-		except:
-		    pass
-		try:
-                    shutil.move(oldPDF, newFileDir + '/' + newPDF)
-		except:
-	            diagFile.write('bcpFiles(): needs review : os.rename(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
-		    #return 0
+	    try:
+		os.makedirs(newFileDir)
+	    except:
+		pass
+	    try:
+                shutil.move(oldPDF, newFileDir + '/' + newPDF)
+	    except:
+	        diagFile.write('bcpFiles(): needs review : shutil.move(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
+		#return 0
     diagFile.write('\nend: move oldPDF to newPDF\n')
 
     # update the max Accession ID value
@@ -539,7 +543,7 @@ def bcpFiles():
         db.commit()
 
     diagFile.write('\nend: bcpFiles() : successful\n')
-    #diagFile.flush()
+    diagFile.flush()
 
     return 0
 
@@ -552,6 +556,7 @@ def bcpFiles():
 def replaceText(extractedText):
 
    if extractedText == None:
+       extractedText = ''
        return extractedText
 
    extractedText = re.sub(r'[^\x00-\x7F]','', extractedText)
@@ -603,8 +608,7 @@ def level1SanityChecks():
 	    # file in input directory does not end with pdf
 	    #
 	    if not pdfFile.lower().endswith('.pdf'):
-		if DEBUG:
-	            diagFile.write('file in input directory does not end with pdf: %s %s\n') % (userPath, pdfFile)
+	        diagFile.write('file in input directory does not end with pdf: %s %s\n') % (userPath, pdfFile)
 	        continue
 
 	    #
@@ -687,9 +691,8 @@ def level1SanityChecks():
 		        if doiid not in doiidById:
 		            doiidById[doiid] = []
 		            doiidById[doiid].append(pdfFile)
-	                    if DEBUG:
-			        diagFile.write('pdf.getFirstDoiID() : successful : %s/%s : %s\n' % (pdfPath, pdfFile, doiid))
-			        diagFile.flush()
+			    diagFile.write('pdf.getFirstDoiID() : successful : %s/%s : %s\n' % (pdfPath, pdfFile, doiid))
+			    diagFile.flush()
 		        else:
                             level1error3 = level1error3 + doiid + '<BR>\n' + \
 			    	linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + \
@@ -737,13 +740,27 @@ def level1SanityChecks():
 def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath):
     global level2error1, level2error2, level2error3, level2error4, level2error5
 
-    if DEBUG:
-        diagFile.write('level2SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
+    diagFile.write('level2SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
 
-    if len(objId) == 0:
-	level2error5 = level2error5 + objId + '<BR>\n' + \
-		linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	return 1
+    #
+    # userNLM : part 1
+    # convert objId = mgi to objId = pubmed id
+    if objType == userNLM:
+	mgiID = 'MGI:' + objId
+        sql = '''
+	    select c._Refs_key, c.mgiID, c.pubmedID, c.doiID, c.journal, r.title
+	    from BIB_Citation_Cache c, BIB_Refs r
+	    where c.mgiID = '%s'
+	    and c.pubmedID is not null
+	    and c._Refs_key = r._Refs_key
+    	    ''' % (mgiID)
+        results = db.sql(sql, 'auto')
+	if len(results) > 0:
+	    objId = results[0]['pubmedID']
+	else:
+            level2error5 = level2error5 + mgiID + ' : MGI ID not found or no pubmed ID<BR>\n' + \
+	        linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+            return 1
 
     if objType == objDOI:
         # mapping of objId to pubmedID, return list of references
@@ -807,6 +824,32 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 		linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	   return 1
 
+    # userNLM : part 2
+    # results() where retrieved earlier
+    # sanity check the pubmed fields
+    if objType == userNLM:
+
+        # match journal/title/doi id in MGD
+	mgiID = results[0]['mgiID']
+        journal = results[0]['journal']
+        title = results[0]['title']
+        doiId = results[0]['doiID']
+
+        if pubMedRef.getJournal() != journal \
+    	    or pubMedRef.getTitle() != title \
+            or (doiId != None and pubMedRef.getDoiID() != doiId):
+
+            level2error5 = level2error5 + mgiID + ',' + pubmedID + ' : journal/title do not match<BR>\n' + \
+	            'Journal/NLM: ' + pubMedRef.getJournal() + '<BR>\n' + \
+	            'Journal/MGD: ' + journal + '<BR>\n' + \
+	            'Title/NLM: ' + pubMedRef.getTitle() + '<BR>\n' + \
+	            'Title/MGD: ' + title + '<BR>\n' + \
+		    'DOI/NLM: ' + pubMedRef.getDoiID() + '<BR>\n' + \
+		    'DOI/MGD: ' + doiId + '<BR>\n' + \
+    	            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+
+            return 1
+
     # if successful, return 'pubMedRef' object, else return 1, continue
 
     return pubMedRef
@@ -822,29 +865,29 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 #  4 : update NLM fields
 #
 def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath, ref):
-    global level3error1, level3error2, level3error3, level3error4
+    global level3error1, level3error2, level3error3
     global count_needsreview
 
     # return 0   : add as new reference
     # return 1/2 : skip/move to 'needs review'
     # return 3   : add new Accession ids
-    # return 4   : update NLM fields
 
-    if DEBUG:
-        diagFile.write('level3SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
+    diagFile.write('level3SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
 
     pubmedID = ref.getPubMedID()
 
     if objType == objDOI:
-        results = db.sql('''
+        sql = '''
 	    select c._Refs_key, c.mgiID, c.pubmedID, c.doiID from BIB_Citation_Cache c where c.pubmedID = '%s' or c.doiID = '%s'
-    	    ''' % (pubmedID, objId), 'auto')
+    	    ''' % (pubmedID, objId)
     else:
-        results = db.sql('''
+        sql = '''
 	    select c._Refs_key, c.mgiID, c.pubmedID, c.doiID
 	    from BIB_Citation_Cache c
 	    where c.pubmedID = '%s'
-    	    ''' % (pubmedID), 'auto')
+    	    ''' % (pubmedID)
+
+    results = db.sql(sql, 'auto')
 
     # 2: input PubMed ID or DOI ID associated with different MGI references
     if len(results) > 1:
@@ -910,7 +953,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 def processPDFs():
     global allErrors, allCounts
     global level2error1, level2error2, level2error3, level2error4, level2error5
-    global level3error1, level3error2, level3error3, level3error4
+    global level3error1, level3error2, level3error3
     global specialerror1
     global accKey, refKey, statusKey, mgiKey, jnumKey
     global mvPDFtoMasterDir
@@ -926,8 +969,7 @@ def processPDFs():
     #   track pdf -> MGI numeric ####
     #
 
-    if DEBUG:
-        diagFile.write('\nprocessPDFs()\n')
+    diagFile.write('\nprocessPDFs()\n')
 
     # objByUser = {('user name', 'doi', 'doiid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', 'pm', 'pmid') : ('pdffile', 'pdftext')}
@@ -937,8 +979,7 @@ def processPDFs():
 
     for key in objByUser:
 
-	if DEBUG:
-            diagFile.write('\nobjByUser: %s\n' % (str(key)))
+        diagFile.write('\nobjByUser: %s\n' % (str(key)))
 
 	pdfFile = objByUser[key][0][0]
 	extractedText = objByUser[key][0][1]
@@ -954,29 +995,6 @@ def processPDFs():
 	    continue
 
 	#
-	# userNLM (nlm refresh)
-	#
-        # convert objId = mgi id to objId = pubmed id
-        # 	objByUser = {('user name', userNLM, 'mgiid') : ('pdffile', 'pdftext')}
-	# converted to
-        # 	objByUser = {('user name', userNLM, 'pubmedid') : ('pdffile', 'pdftext')}
-	#
-        if objType in (userNLM):
-	    print 'converting'
-	    results = db.sql('''
-	        select c._Refs_key, c.pubmedID
-	        from BIB_Citation_Cache c
-	        where c.mgiID = 'MGI:%s'
-    	        ''' % (objId), 'auto')
-	    if len(results) > 0:
-	        objId = results[0]['pubmedID']
-		del objByUser[key]
-	        objByUser[(userPath, userPath, objId)] = []
-	        objByUser[(userPath, userPath, objId)].append((pdfFile, extractedText))
-		key = (userPath, userPath, objId)
-	    # else do nothing and let level2SanityChecks() report error
-
-	#
 	# level2SanityChecks()
 	# parse PubMed IDs from PubMed API
 	#
@@ -986,8 +1004,7 @@ def processPDFs():
            continue
 
 	if pubmedRef == 1:
-	   if DEBUG:
-	       diagFile.write('level2SanityChecks() : needs review : %s, %s, %s, %s\n' % (objId, userPath, pdfFile, str(pubmedRef)))
+	   diagFile.write('level2SanityChecks() : needs review : %s, %s, %s, %s\n' % (objId, userPath, pdfFile, str(pubmedRef)))
 	   shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 	   count_needsreview += 1
            continue
@@ -998,8 +1015,7 @@ def processPDFs():
            diagFile.write('process:pubmedRef.getPubMedID()() needs review: %s, %s, %s\n' % (objId, userPath, pdfFile))
            continue
 
-	if DEBUG:
-	    diagFile.write('level2SanityChecks() : successful : %s, %s, %s, %s\n' % (objId, userPath, pdfFile, pubmedID))
+	diagFile.write('level2SanityChecks() : successful : %s, %s, %s, %s\n' % (objId, userPath, pdfFile, pubmedID))
 
 	#
 	# specialy processing for nlm refresh
@@ -1015,13 +1031,11 @@ def processPDFs():
         # return 0   : add as new reference
         # return 1/2 : skip/move to 'needs review'
         # return 3   : add new Accession ids
-	# return 4   : is userNLM
 	#
 	rc, mgdRef = level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath, pubmedRef)
 
 	if rc == 1 or rc == 2:
-	    if DEBUG:
-                diagFile.write('level3SanityChecks() : needs review : %s, %s, %s, %s\n' \
+            diagFile.write('level3SanityChecks() : needs review : %s, %s, %s, %s\n' \
 			% (objId, userPath, pdfFile, pubmedID))
 	    continue
 
@@ -1187,7 +1201,7 @@ def processPDFs():
     level2error2 = '<B>2: DOI ID not found in pubmed</B><BR><BR>\n\n' + level2error2 + '<BR>\n\n'
     level2error3 = '<B>3: error getting medline record</B><BR><BR>\n\n' + level2error3 + '<BR>\n\n'
     level2error4 = '<B>4: missing data from required field for DOI ID</B><BR><BR>\n\n' + level2error4 + '<BR>\n\n'
-    level2error5 = '<B>5: MGI ID could not be converted to PubMed ID</B><BR><BR>\n\n' + level2error5 + '<BR>\n\n'
+    level2error5 = '<B>5: NLM Refresh issues</B><BR><BR>\n\n' + level2error5 + '<BR>\n\n'
     allErrors = allErrors + level2errorStart + level2error1 + level2error2 + level2error3 + level2error4 + level2error5
 
     level3error1 = '<B>1: PubMed ID/DOI ID exists in MGI</B><BR><BR>\n\n' + \
@@ -1196,9 +1210,7 @@ def processPDFs():
     	level3error2 + '<BR>\n\n'
     level3error3 = '<B>3: missing PubMed ID or DOI ID in MGD -> will add PubMed ID or DOI ID to MGI</B><BR><BR>\n\n' + \
     	level3error3 + '<BR>\n\n'
-    level3error4 = '<B>4: NLM journal/title/DOI id does not match MGD</B><BR><BR>\n\n' + \
-    	level3error4 + '<BR>\n\n'
-    allErrors = allErrors + level3errorStart + level3error1 + level3error2 + level3error3 + level3error4
+    allErrors = allErrors + level3errorStart + level3error1 + level3error2 + level3error3
 
     specialerror1 = '<B>1: MGI ID in filename does not match reference in MGI</B><BR><BR>\n\n' + \
     	specialerror1 + '<BR>\n\n'
@@ -1240,8 +1252,7 @@ def processExtractedText(objKey):
     global count_userPDF
     global count_userNLM
 
-    if DEBUG:
-        diagFile.write('\nprocessExtractedText()\n')
+    diagFile.write('\nprocessExtractedText()\n')
 
     # objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
@@ -1252,23 +1263,22 @@ def processExtractedText(objKey):
     userPath = objKey[0]
     objType = objKey[1]
     mgiKey = objKey[2]
-    mgiId = 'MGI:' + mgiKey
+    mgiID = 'MGI:' + mgiKey
     pdfPath = os.path.join(inputDir, userPath)
     needsReviewPath = os.path.join(needsReviewDir, userPath)
 
-    results = db.sql('''select r._Refs_key, d._Supplemental_key
+    sql = '''select r._Refs_key, d._Supplemental_key
     	from BIB_Citation_Cache r, BIB_Workflow_Data d 
-	where r.mgiID = \'%s\' 
-	and r._Refs_key = d._Refs_key''' % (mgiId), 'auto')
+	where r.mgiID = '%s'
+	and r._Refs_key = d._Refs_key
+	''' % (mgiID)
+    results = db.sql(sql, 'auto')
 
     if len(results) == 0:
-	specialerror1 = specialerror1 + str(mgiId) + '<BR>\n' + \
+	specialerror1 = specialerror1 + str(mgiID) + '<BR>\n' + \
 		linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	count_needsreview += 1
-
-    	if DEBUG:
-            diagFile.write('userPDF/userSupplement/userNLM level1 : needs review : %s, %s, %s\n' % (mgiId, userPath, pdfFile))
-
+        diagFile.write('userPDF/userSupplement/userNLM level1 : needs review : %s, %s, %s\n' % (mgiID, userPath, pdfFile))
 	shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 
         return
@@ -1291,11 +1301,12 @@ def processExtractedText(objKey):
 	    	    % (existingRefKey, hasPDF, dataSuppKey, extractedText, userKey, userKey, loaddate, loaddate))
 
     deleteSQLAll += 'delete from BIB_Workflow_Data where _Refs_key = %s;\n' % (existingRefKey)
+
     updateSQLAll += 'update BIB_Refs set _ModifiedBy_key = %s, modification_date = now() where _Refs_key = %s;\n' \
     		% (userKey, existingRefKey)
 
     # store dictionary : move pdf file from inputDir to masterPath
-    newPath = Pdfpath.getPdfpath(masterDir, mgiId)
+    newPath = Pdfpath.getPdfpath(masterDir, mgiID)
     mvPDFtoMasterDir[pdfPath + '/' + pdfFile] = []
     mvPDFtoMasterDir[pdfPath + '/' + pdfFile].append((newPath,str(mgiKey) + '.pdf'))
 
@@ -1305,72 +1316,34 @@ def processExtractedText(objKey):
 # Purpose: Process NLM Refresh (userNLM)
 # Returns: nothing
 #
-# verifies NLM fields match MGD
-#	journal, title, doi id
-#
-# if match = true, then update BIB_Refs fields
+# updates BIB_Refs fields
 # call processExtractedText (extracted text & supplemental)
 #
 def processNLMRefresh(objKey, ref):
-    global level3error4
-    global mvPDFtoMasterDir
     global updateSQLAll
-    global count_needsreview
-    global count_userNLM
     global accKey
 
-    if DEBUG:
-        diagFile.write('\nprocessNLMRefresh()\n')
+    diagFile.write('\nprocessNLMRefresh()\n')
 
-    # objByUser = {('user name', userNLM, 'pubmedid') : ('pdffile', 'pdftext')}
+    # objByUser = {('user name', userNLM, 'mgiid') : ('pdffile', 'pdftext')}
 
-    pdfFile = objByUser[objKey][0][0]
-    extractedText = objByUser[objKey][0][1]
     userPath = objKey[0]
-    objType = objKey[1]
-    pubmedId = objKey[2]
-    pdfPath = os.path.join(inputDir, userPath)
-    needsReviewPath = os.path.join(needsReviewDir, userPath)
+    mgiID = 'MGI:' + objKey[2]
 
-    pubmedID = ref.getPubMedID()
-
-    results = db.sql('''
-	    select c._Refs_key, c.mgiID, c.pubmedID, c.doiID, c.journal, r.title
-	    from BIB_Citation_Cache c, BIB_Refs r
-	    where c.pubmedID = '%s'
-	    and c._Refs_key = r._Refs_key
-    	    ''' % (pubmedID), 'auto')
-
-    # matich journal/title/doi id
-    journal = results[0]['journal']
-    title = results[0]['title']
-    doiId = results[0]['doiID']
-
-    if ref.getJournal() != journal \
-    	or ref.getTitle() != title \
-        or (doiId != None and ref.getDoiID() != doiId):
-
-        diagFile.write('4: journal/title/DOI id do not match:' + pubmedId + '\n')
-        level3error4 = level3error4 + pubmedId + ' : journal/title do not match<BR>\n' + \
-	        'Journal/NLM/Medline: ' + ref.getJournal() + '\n' + \
-	        'Journal/MGD: ' + journal + '\n' + \
-	        'Title/NLM/Medline: ' + ref.getTitle() + '\n' + \
-	        'Title/MGD: ' + title + '\n' + \
-		'DOI/NLM/Medline: ' + ref.getDoiID() + '\n' + \
-		'DOI/MGD: ' + doiId + '\n' + \
-    	        linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
-        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-        count_needsreview += 1
-        return
+    sql = '''
+	   select c._Refs_key, c.doiID
+	   from BIB_Citation_Cache c
+	   where c.mgiID = '%s'
+    	   ''' % (mgiID)
+    results = db.sql(sql, 'auto')
 
     userKey = loadlib.verifyUser(userPath, 0, diagFile)
     objectKey = results[0]['_Refs_key']
+    currentDOIid = results[0]['doiID']
+
     abstract = ref.getAbstract()
     abstract = abstract.replace('|', '')
-
-    currentDOIid = results[0]['doiID']
     newDOIid = ref.getDoiID()
-    logicalDBKey = 65
 
     updateSQLAll += '''
 	    	update BIB_Refs 
@@ -1404,18 +1377,12 @@ def processNLMRefresh(objKey, ref):
     #
     # add DOI id
     #
-    if currentDOIid == None and len(newDOIid) > 0:
+    if currentDOIid == None and newDOIid != None:
+        logicalDBKey = 65
         accFile.write('%s|%s|%s||%s|%d|%d|0|1|%s|%s|%s|%s\n' \
 	    % (accKey, newDOIid, newDOIid, logicalDBKey, objectKey, mgiTypeKey, \
 	       userKey, userKey, loaddate, loaddate))
         accKey += 1
-
-    #
-    # this will all be done by calling processExtractedText(objKey)
-    #count_userNLM += 1
-    #newPath = Pdfpath.getPdfpath(masterDir, pubmedId)
-    #mvPDFtoMasterDir[pdfPath + '/' + pdfFile] = []
-    #mvPDFtoMasterDir[pdfPath + '/' + pdfFile].append((newPath,str(objKey) + '.pdf'))
 
     #
     # process extracted text
