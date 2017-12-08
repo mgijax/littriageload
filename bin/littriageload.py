@@ -223,7 +223,9 @@ level3error2 = ''
 level3error3 = ''
 
 level4error1 = ''
+
 level5error1 = ''
+level5error2 = ''
 
 #
 # Purpose: Initialization
@@ -753,7 +755,7 @@ def level1SanityChecks():
 #
 def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath):
     global level2error1, level2error2, level2error3, level2error4
-    global level5error1
+    global level5error1, level5error2
 
     diagFile.write('level2SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
 
@@ -773,7 +775,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	if len(results) > 0:
 	    objId = results[0]['pubmedID']
 	else:
-            level5error1 = level5error1 + mgiID + ' : MGI ID not found or no pubmed ID<BR>\n' + \
+            level5error1 = level5error1 + mgiID + '<BR>\n' + \
 	        linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
             return 1
 
@@ -854,7 +856,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
     	    or pubMedRef.getTitle() != title \
             or (doiId != None and pubMedRef.getDoiID() != doiId):
 
-            level5error1 = level5error1 + mgiID + ',' + pubmedID + ' : journal/title/DOI ID do not match<BR>\n' + \
+            level5error2 = level5error2 + mgiID + ',' + pubmedID + '<BR>\n' + \
 	            'Journal/NLM: ' + pubMedRef.getJournal() + '<BR>\n' + \
 	            'Journal/MGD: ' + journal + '<BR>\n' + \
 	            'Title/NLM: ' + pubMedRef.getTitle() + '<BR>\n' + \
@@ -969,9 +971,10 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 #
 def processPDFs():
     global allErrors, allCounts
-    global level2error1, level2error2, level2error3, level2error4, level5error1
+    global level2error1, level2error2, level2error3, level2error4
     global level3error1, level3error2, level3error3
     global level4error1
+    global level5error1, level5error2
     global accKey, refKey, statusKey, mgiKey, jnumKey
     global mvPDFtoMasterDir
     global count_processPDFs, count_needsreview, count_userGOA, count_userPDF, count_userNLM
@@ -1236,7 +1239,9 @@ def processPDFs():
     	level4error1 + '<BR>\n\n'
     allErrors = allErrors + level4errorStart + level4error1
 
-    allErrors = allErrors + level5errorStart + level5error1
+    level5error1 = '<B>1: MGI ID not found or no pubmedID</B><BR><BR>\n\n' + level5error1 + '<BR>\n\n'
+    level5error2 = '<B>2: journal/title/doi ID do not match</B><BR><BR>\n\n' + level5error2 + '<BR>\n\n'
+    allErrors = allErrors + level5errorStart + level5error1 + level5error2
 
     # copy all errors to error log, remove html and copy to curator log
     allCounts = allCounts + countStart
