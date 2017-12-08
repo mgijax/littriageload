@@ -12,11 +12,11 @@ fi
 
 . ${MGICONFIG}/master.config.sh
 
-# only run this once; set to 0 after migration
-CUTOVER=0
-export CUTOVER
-
 #  Path name of the archive, logs, reports and output directories
+
+# run sanity checks only
+SANITYCHECKONLY=0
+export SANITYCHECKONLY
 
 # published directory/maintained by curators
 PUBLISHEDDIR=${LITTRIAGE_NEWNEW}

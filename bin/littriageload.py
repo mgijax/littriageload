@@ -19,6 +19,7 @@
 #      The following environment variables are set by the configuration
 #      file that is sourced by the wrapper script:
 #
+#	SANITYCHECKONLY
 #	LITPARSER
 #	INPUTDIR
 #	OUTPUTDIR
@@ -96,6 +97,9 @@ import PubMedAgent
 import Pdfpath
 
 #db.setTrace(True)
+
+# run sanity checking only
+runSanityCheckOnly = 0
 
 # for setting where the litparser lives (see PdfParser)
 litparser = ''
@@ -245,6 +249,7 @@ level5error2 = ''
 # Returns: 0
 #
 def initialize():
+    global runSanityCheckOnly
     global litparser
     global createSupplement, createPDF, updateNLM
     global diag, diagFile
@@ -259,6 +264,7 @@ def initialize():
     global pma
     global workflowGroupList
 
+    runSanityCheckOnly = os.getenv('SANITYCHECKONLY')
     litparser = os.getenv('LITPARSER')
     diag = os.getenv('LOG_DIAG')
     error = os.getenv('LOG_ERROR')
@@ -439,7 +445,7 @@ def setPrimaryKeys():
 #
 def bcpFiles():
 
-    diagFile.write('\nstart: bcpFiles()\n')
+    diagFile.write('\nstart: bcpFiles(), running sanity checks only = %s\n' % (runSanityCheckOnly))
 
     bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
     bcpII = '"|" "\\n" mgd'
@@ -472,6 +478,10 @@ def bcpFiles():
     statusFile.close()
     dataFile.close()
     accFile.close()
+
+    # if only running sanity checks, return
+    if runSanityCheckOnly == 1:
+        return
 
     #
     # delete of BIB_Workflow_Data records
