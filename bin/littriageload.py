@@ -192,7 +192,7 @@ allCounts = ''
 level1errorStart = '**********<BR>\nLiterature Triage Level 1 Errors : parse DOI ID from PDF files<BR><BR>\n'
 level2errorStart = '**********<BR>\nLiterature Triage Level 2 Errors : parse PubMed IDs from PubMed API<BR><BR>\n\n'
 level3errorStart = '**********<BR>\nLiterature Triage Level 3 Errors : check MGI for errors<BR><BR>\n\n'
-specialerrorStart = '**********<BR>\nLiterature Triage littriage_create_supplement/littriage_update_pdf/littriage_NLM_refresh Errors : check MGI for errors<BR><BR>\n\n'
+specialerrorStart = '**********<BR>\nLiterature Triage littriage_create_supplement/littriage_update_pdf Errors : check MGI for errors<BR><BR>\n\n'
 countStart = '**********<BR>\nLiterature Triage Counts<BR>\n'
 
 level1error1 = '' 
