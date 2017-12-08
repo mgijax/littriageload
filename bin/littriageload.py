@@ -50,21 +50,34 @@
 #      This script will perform following steps:
 #
 #	1) initialize() : initiailze 
-#	2) level1SanityChecks() : extracts DOI ID/text from PDF
+#
+#	2) level1SanityChecks() : using PDF file...
+#		extract DOI ID/text from PDF, translate DOI ID -> PubMed ID
+#
 #	3) setPrimaryKeys() : setting global primary keys
 #
 #	4) processPDFs() : iterate thru PDF files/run level2 and level3 sanity checks
 #
 #	   if (userPDF, userSupplement):
-#	   	processExtractedText() : processes extracted text (bib_workflow_data)
-#	   else
-#		level2SanityChecks() : extracts NLM/Medline data
-#		level3SanityChecks() : creating new reference or new accession ids
+#	   	processExtractedText() : process extracted text (bib_workflow_data)
+#
+#	   else everything else:
+#
+#		level2SanityChecks() : using PubMed ID, extract NLM/Medline data
+#
+#		level3SanityChecks() : create new reference
+#				and/or new accession ids (pubmed, doiis)
+#
 #		if (userNLM):
-#		    processNLMRefresh() : updates  bib_refs 
-#		    processExtractedText() : processes extracted text (bib_workflow_data)
-#	5) bcpFiles() : load BCP files into database
+#		    processNLMRefresh()    : update bib_refs fields
+#		    processExtractedText() : process extracted text (bib_workflow_data)
+#
+#	5) bcpFiles() : load BCP files into database, runs SQL script, etc.
+#
 #       6) closeFiles() : close files
+#
+# lec	12/08/2017
+#       - TR12705/added NLM refresh pipeline
 #
 # lec	06/20/2017
 #       - TR12250/Lit Triage
