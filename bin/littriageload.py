@@ -839,7 +839,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
     	    or pubMedRef.getTitle() != title \
             or (doiId != None and pubMedRef.getDoiID() != doiId):
 
-            level2error5 = level2error5 + mgiID + ',' + pubmedID + ' : journal/title do not match<BR>\n' + \
+            level2error5 = level2error5 + mgiID + ',' + pubmedID + ' : journal/title/DOI ID do not match<BR>\n' + \
 	            'Journal/NLM: ' + pubMedRef.getJournal() + '<BR>\n' + \
 	            'Journal/MGD: ' + journal + '<BR>\n' + \
 	            'Title/NLM: ' + pubMedRef.getTitle() + '<BR>\n' + \
