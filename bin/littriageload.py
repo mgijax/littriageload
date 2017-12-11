@@ -876,17 +876,17 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	mgiID = results[0]['mgiID']
         journal = results[0]['journal']
         title = results[0]['title']
-        doiId = results[0]['doiID']
+	doiId = results[0]['doiID']
 
-        if pubMedRef.getJournal() != journal \
-    	    or pubMedRef.getTitle() != title \
-            or (doiId != None and pubMedRef.getDoiID() != doiId):
+        if lower(pubMedRef.getJournal()) != lower(journal) \
+    	    or lower(pubMedRef.getTitle()) != lower(title) \
+            or (doiId != None and lower(pubMedRef.getDoiID()) != lower(doiId)):
 
             level5error2 = level5error2 + mgiID + ',' + pubmedID + '<BR>\n' + \
 	            'Journal/NLM: ' + pubMedRef.getJournal() + '<BR>\n' + \
-	            'Journal/MGD: ' + str(journal) + '<BR>\n' + \
+	            'Journal/MGD: ' + journal + '<BR>\n' + \
 	            'Title/NLM: ' + pubMedRef.getTitle() + '<BR>\n' + \
-	            'Title/MGD: ' + str(title) + '<BR>\n' + \
+	            'Title/MGD: ' + title + '<BR>\n' + \
 		    'DOI/NLM: ' + pubMedRef.getDoiID() + '<BR>\n' + \
 		    'DOI/MGD: ' + str(doiId) + '<BR>\n' + \
     	            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
