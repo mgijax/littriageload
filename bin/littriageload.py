@@ -99,7 +99,7 @@ import Pdfpath
 #db.setTrace(True)
 
 # run sanity checking only
-runSanityCheckOnly = 0
+runSanityCheckOnly = '0'
 
 # for setting where the litparser lives (see PdfParser)
 litparser = ''
@@ -483,7 +483,7 @@ def bcpFiles():
     accFile.close()
 
     # if only running sanity checks, return
-    if runSanityCheckOnly == 1:
+    if runSanityCheckOnly == '1':
         return
 
     #
@@ -884,11 +884,11 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
             level5error2 = level5error2 + mgiID + ',' + pubmedID + '<BR>\n' + \
 	            'Journal/NLM: ' + pubMedRef.getJournal() + '<BR>\n' + \
-	            'Journal/MGD: ' + journal + '<BR>\n' + \
+	            'Journal/MGD: ' + str(journal) + '<BR>\n' + \
 	            'Title/NLM: ' + pubMedRef.getTitle() + '<BR>\n' + \
-	            'Title/MGD: ' + title + '<BR>\n' + \
+	            'Title/MGD: ' + str(title) + '<BR>\n' + \
 		    'DOI/NLM: ' + pubMedRef.getDoiID() + '<BR>\n' + \
-		    'DOI/MGD: ' + doiId + '<BR>\n' + \
+		    'DOI/MGD: ' + str(doiId) + '<BR>\n' + \
     	            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 
             return 1
