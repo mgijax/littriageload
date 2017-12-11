@@ -1119,9 +1119,8 @@ def processPDFs():
 
 	#
 	# processing for nlm refresh
-	# aka objType in (userNLM):
 	#
-	elif rc == 4: 
+	elif rc == 4 or objType in (userNLM): 
 	    processNLMRefresh(key, pubmedRef)
 
 	# add new MGI reference
