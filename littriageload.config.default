@@ -15,7 +15,7 @@ fi
 #  Path name of the archive, logs, reports and output directories
 
 # run sanity checks only
-SANITYCHECKONLY=0
+SANITYCHECKONLY=True
 export SANITYCHECKONLY
 
 # published directory/maintained by curators

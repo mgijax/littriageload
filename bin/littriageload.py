@@ -99,7 +99,7 @@ import Pdfpath
 #db.setTrace(True)
 
 # run sanity checking only
-runSanityCheckOnly = '0'
+runSanityCheckOnly = False
 
 # for setting where the litparser lives (see PdfParser)
 litparser = ''
@@ -483,7 +483,7 @@ def bcpFiles():
     accFile.close()
 
     # if only running sanity checks, return
-    if runSanityCheckOnly == '1':
+    if runSanityCheckOnly == 'True':
         return
 
     #
