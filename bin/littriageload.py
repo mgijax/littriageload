@@ -6,7 +6,7 @@
 #  Purpose:
 #
 #      This script will process Lit Triage PDF files
-#      for loading into BIB_Refs, BIB_Workflow_Status
+#      for loading into BIB_Refs, BIB_Workflow_Status, BIB_Workflow_Data
 #
 #	see wiki page:  sw:Littriageload for more information
 #
