@@ -913,6 +913,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
     # return 0   : add as new reference
     # return 1/2 : skip/move to 'needs review'
     # return 3   : add new Accession ids
+    # return 4   : userNLM
 
     diagFile.write('level3SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
 
@@ -981,7 +982,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	        return 3, results
 
         if objType in (userNLM):
-            return 0, results
+            return 4, results
     	else:
             # 1: input PubMed ID or DOI ID exists in MGI
 	    diagFile.write('1: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
@@ -1073,6 +1074,7 @@ def processPDFs():
         # return 0   : add as new reference
         # return 1/2 : skip/move to 'needs review'
         # return 3   : add new Accession ids
+	# return 4   : userNLM
 	#
 	rc, mgdRef = level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath, pubmedRef)
 
@@ -1115,9 +1117,16 @@ def processPDFs():
 
 	    accKey += 1
 
+	#
+	# processing for nlm refresh
+	# aka objType in (userNLM):
+	#
+	elif rc == 4: 
+	    processNLMRefresh(key, pubmedRef)
+
 	# add new MGI reference
 	#
-	elif rc == 0 and objType not in (userNLM):
+	elif rc == 0:
 
             diagFile.write('level3SanityChecks() : successful : add new : %s, %s, %s, %s\n' \
 	    	% (objId, userPath, pdfFile, pubmedID))
@@ -1241,12 +1250,6 @@ def processPDFs():
 
 	    refKey += 1
 	    mgiKey += 1
-
-	#
-	# processing for nlm refresh
-	#
-	if objType in (userNLM):
-	    processNLMRefresh(key, pubmedRef)
 
     #
     # write out level2 errors to both error log and curator log
