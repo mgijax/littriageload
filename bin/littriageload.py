@@ -609,6 +609,37 @@ def replaceText(extractedText):
    return extractedText
 
 #
+# Purpose: replace  pubmed reference for bcp loading
+#
+#	pdf.getAuthors() 
+#	pdf.getPrimaryAuthor()
+#	pdf.getTitle()
+#	pdf.getAbstract()
+#
+# 	remove non-ascii characters
+# 	carriage returns, etc.
+#
+# Returns:  new abstract, title value
+#
+def replacePubMedRef(authors, primaryAuthor, title, abstract):
+
+    if authors != None:
+        authors = authors.replace("'", "''")
+
+    if primaryAuthor != None:
+        primaryAuthor = primaryAuthor.replace("'", "''")
+
+    if title != None:
+        title = title.replace('|', '\\|')
+        title = title.replace("'", "''")
+
+    if abstract != None:
+        abstract = abstract.replace('|', '\\|')
+        abstract = abstract.replace("'", "''")
+
+    return authors, primaryAuthor, title, abstract
+
+#
 # Purpose: Level 1 Sanity Checks : parse DOI ID from PDF files
 # Returns: 0
 #
@@ -1138,16 +1169,16 @@ def processPDFs():
 	    # bib_refs
 	    #
 
-	    abstract = pubmedRef.getAbstract()
-	    abstract = abstract.replace('|', '')
-	    abstract = abstract.replace("'", "''")
-	    title = pubmedRef.getTitle()
-	    title = title.replace('|', '\\|')
+	    authors, primaryAuthor, title, abstract = replacePubMedRef(\
+	    	pubmedRef.getAuthors(), \
+		pubmedRef.getPrimaryAuthor(), \
+		pubmedRef.getTitle(), \
+		pubmedRef.getAbstract())
 
 	    refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
 		% (refKey, referenceTypeKey, 
-		   pubmedRef.getAuthors(), \
-		   pubmedRef.getPrimaryAuthor(), \
+		   authors, \
+		   primaryAuthor, \
 		   title, \
 		   pubmedRef.getJournal(), \
 		   pubmedRef.getVolume(), \
@@ -1401,11 +1432,11 @@ def processNLMRefresh(objKey, ref):
     userKey = loadlib.verifyUser(userPath, 0, diagFile)
     objectKey = results[0]['_Refs_key']
 
-    abstract = ref.getAbstract()
-    abstract = abstract.replace('|', '')
-    abstract = abstract.replace("'", "''")
-    title = ref.getTitle()
-    title = title.replace('|', '\\|')
+    authors, primaryAuthor, title, abstract = replacePubMedRef(\
+	ref.getAuthors(), \
+	ref.getPrimaryAuthor(), \
+	ref.getTitle(), \
+	ref.getAbstract())
 
     updateSQLAll += '''
 	    	update BIB_Refs 
@@ -1424,8 +1455,8 @@ def processNLMRefresh(objKey, ref):
 		modification_date = now() 
 		where _Refs_key = %s
 		;
-		''' % (ref.getAuthors(), 
-		       ref.getPrimaryAuthor(), \
+		''' % (authors, 
+		       primaryAuthor, \
 		       title, \
 		       ref.getJournal(), \
 		       ref.getVolume(), \
