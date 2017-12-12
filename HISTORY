@@ -1,8 +1,10 @@
+TAG: littriageload-6-0-11-26
 TAG: littriageload-6-0-11-25
 DATE: 12/11/2017
 STAFF: lec
 CHANGES:
 TR12705/add NLM refresh pipeline
+also, pipes in 'title' need to be escaped
 
 TAG: littriageload-6-0-11-24
 TAG: littriageload-6-0-11-23
