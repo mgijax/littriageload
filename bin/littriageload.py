@@ -1140,6 +1140,7 @@ def processPDFs():
 
 	    abstract = pubmedRef.getAbstract()
 	    abstract = abstract.replace('|', '')
+	    abstract = abstract.replace("'", "''")
 	    title = pubmedRef.getTitle()
 	    title = title.replace('|', '\\|')
 
@@ -1402,6 +1403,9 @@ def processNLMRefresh(objKey, ref):
 
     abstract = ref.getAbstract()
     abstract = abstract.replace('|', '')
+    abstract = abstract.replace("'", "''")
+    title = ref.getTitle()
+    title = title.replace('|', '\\|')
 
     updateSQLAll += '''
 	    	update BIB_Refs 
@@ -1422,7 +1426,7 @@ def processNLMRefresh(objKey, ref):
 		;
 		''' % (ref.getAuthors(), 
 		       ref.getPrimaryAuthor(), \
-		       ref.getTitle(), \
+		       title, \
 		       ref.getJournal(), \
 		       ref.getVolume(), \
 		       ref.getIssue(), \
