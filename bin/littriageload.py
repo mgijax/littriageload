@@ -1140,12 +1140,14 @@ def processPDFs():
 
 	    abstract = pubmedRef.getAbstract()
 	    abstract = abstract.replace('|', '')
+	    title = pubmedRef.getTitle()
+	    title = title.replace('|', '\\|')
 
 	    refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
 		% (refKey, referenceTypeKey, 
 		   pubmedRef.getAuthors(), \
 		   pubmedRef.getPrimaryAuthor(), \
-		   pubmedRef.getTitle(), \
+		   title, \
 		   pubmedRef.getJournal(), \
 		   pubmedRef.getVolume(), \
 		   pubmedRef.getIssue(), \
