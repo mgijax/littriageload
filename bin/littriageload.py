@@ -623,17 +623,22 @@ def replaceText(extractedText):
 #
 def replacePubMedRef(authors, primaryAuthor, title, abstract):
 
-    if authors != None:
-        authors = authors.replace("'", "''")
-
-    if primaryAuthor != None:
+    if authors == None or authors == '':
+        authors = ''
+        primaryAuthor = ''
+    else:
+    	authors = authors.replace("'", "''")
         primaryAuthor = primaryAuthor.replace("'", "''")
 
-    if title != None:
+    if title == None or title == '':
+        title = ''
+    else:
         title = title.replace('|', '\\|')
         title = title.replace("'", "''")
 
-    if abstract != None:
+    if abstract == None or abstract == '':
+        abstract = ''
+    else:
         abstract = abstract.replace('|', '\\|')
         abstract = abstract.replace("'", "''")
 
@@ -1438,19 +1443,39 @@ def processNLMRefresh(objKey, ref):
 	ref.getTitle(), \
 	ref.getAbstract())
 
+    #
+    # set '' to true null, not 'None'
+    #
+    if len(authors) > 0:
+        authors = ''' '%s' ''' % (authors)
+    else:
+        authors = 'null'
+    if len(primaryAuthor) > 0:
+        primaryAuthor = ''' '%s' ''' % (primaryAuthor)
+    else:
+        primaryAuthor = ' null'
+    if len(title) > 0:
+        title = ''' E'%s' ''' % (title)
+    else:
+        title = ' null'
+    if len(abstract) > 0:
+        abstract = ''' E'%s' ''' % (abstract)
+    else:
+        abstract = ' null'
+        
     updateSQLAll += '''
 	    	update BIB_Refs 
 	    	set 
-		authors = '%s',
-		_primary = '%s',
-		title = E'%s',
+		authors = %s,
+		_primary = %s,
+		title = %s,
 		journal = E'%s',
-		vol = '%s',
-		issue = '%s',
+		vol = E'%s',
+		issue = E'%s',
 		date = '%s',
 		year = %s,
-		pgs = '%s',
-		abstract = E'%s',
+		pgs = E'%s',
+		abstract = %s,
 		_ModifiedBy_key = %s, 
 		modification_date = now() 
 		where _Refs_key = %s
