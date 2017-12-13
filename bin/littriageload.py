@@ -1153,12 +1153,6 @@ def processPDFs():
 
 	    accKey += 1
 
-	#
-	# processing for nlm refresh
-	#
-	elif rc == 4 or objType in (userNLM): 
-	    processNLMRefresh(key, pubmedRef)
-
 	# add new MGI reference
 	#
 	elif rc == 0:
@@ -1288,6 +1282,15 @@ def processPDFs():
 
 	    refKey += 1
 	    mgiKey += 1
+
+	#
+	# not using 'elif' statement because this needs to be checked/run regardless
+	# of what also may have happened earlier
+	#
+	# processing for nlm refresh
+	#
+	if rc == 4 or objType in (userNLM): 
+	    processNLMRefresh(key, pubmedRef)
 
     #
     # write out level2 errors to both error log and curator log
