@@ -66,10 +66,14 @@
 #
 #		level2SanityChecks() : using PubMed ID, extract NLM/Medline data
 #
-#		level3SanityChecks() : create new reference
-#				and/or new accession ids (pubmed, doiis)
+#		level3SanityChecks() :
+# 			return 0   : add as new reference
+# 			return 1/2 : skip/move to 'needs review'
+# 			return 3   : add new accession ids (includes userNLM)
+# 			return 4   : userNLM : will call processNLMRefresh()
 #
 #		if (userNLM):
+#		    may add new DOI accession ids
 #		    processNLMRefresh()    : update bib_refs fields
 #		    processExtractedText() : process extracted text (bib_workflow_data)
 #
@@ -169,9 +173,11 @@ isPrivate = 0
 isPreferred = 1
 
 # bib_workflow_data._supplemental_key values
-supplementalKey = 31576677	# Not checked
 suppfoundKey = 31576675	        # Db found supplement
 suppnotfoundKey = 31576676      # Db supplement not found
+suppattachedKey = 34026997	# Supplemental attached
+# supplemental journal list
+suppJournalList = []
 
 # list of workflow groups
 workflowGroupList = []
@@ -263,6 +269,7 @@ def initialize():
     global accFile, refFile, statusFile, dataFile
     global pma
     global workflowGroupList
+    global suppJournalList
 
     runSanityCheckOnly = os.getenv('SANITYCHECKONLY')
     litparser = os.getenv('LITPARSER')
@@ -387,6 +394,10 @@ def initialize():
     results = db.sql('select _Term_key from VOC_Term where _Vocab_key = 127', 'auto')
     for r in results:
         workflowGroupList.append(r['_Term_key'])
+
+    results = db.sql('select term from VOC_Term where _Vocab_key = 134', 'auto')
+    for r in results:
+        suppJournalList.append(r['term'])
 
     errorFile.write('\n<BR>Start Date/Time: %s\n<BR>' % (mgi_utils.date()))
 
@@ -570,7 +581,7 @@ def bcpFiles():
 		#return 0
     diagFile.write('\nend: move oldPDF to newPDF\n')
 
-    # update the max Accession ID value
+    # update the max accession ID value
     db.sql('select * from ACC_setMax (%d)' % (count_processPDFs), None)
     db.commit()
 
@@ -578,7 +589,7 @@ def bcpFiles():
     db.sql(''' select setval('bib_workflow_status_serial', (select max(_Assoc_key) + 1 from BIB_Workflow_Status)) ''', None)
     db.commit()
 
-    # update the max Accession ID value for J:
+    # update the max accession ID value for J:
     if count_userGOA:
         db.sql('select * from ACC_setMax (%d, \'J:\')' % (count_userGOA), None)
         db.commit()
@@ -609,15 +620,18 @@ def replaceText(extractedText):
    return extractedText
 
 #
-# Purpose: replace  pubmed reference for bcp loading
+# Purpose: replace pubmed reference for bcp loading
 #
-#	pdf.getAuthors() 
-#	pdf.getPrimaryAuthor()
-#	pdf.getTitle()
-#	pdf.getAbstract()
+#	getAuthors() 
+#	getPrimaryAuthor()
+#	getTitle()
+#	getAbstract()
 #
 # 	remove non-ascii characters
 # 	carriage returns, etc.
+#	| -> \\|
+#	' (single quote) -> ''
+#	None -> null
 #
 # Returns:  new abstract, title value
 #
@@ -643,6 +657,26 @@ def replacePubMedRef(authors, primaryAuthor, title, abstract):
         abstract = abstract.replace("'", "''")
 
     return authors, primaryAuthor, title, abstract
+
+#
+# Purpose: Set the supplemental key based on extractedText or journal
+#
+# Return: supplemental key
+#
+def setSupplemental(userPath, extractedText, journal):
+
+    if extractedText.lower().find('supplemental') > 0 \
+        or extractedText.lower().find('supplementary') > 0 \
+        or extractedText.lower().find('supplement ') > 0 \
+        or extractedText.lower().find('additional file') > 0 \
+        or extractedText.lower().find('appendix') > 0:
+
+        if journal in (suppJournalList):
+            return suppattachedKey # Supplemental attached
+        else:
+            return suppfoundKey # Db found supplement
+    else:
+        return suppnotfoundKey # Db supplement not found
 
 #
 # Purpose: Level 1 Sanity Checks : parse DOI ID from PDF files
@@ -948,8 +982,8 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
     # return 0   : add as new reference
     # return 1/2 : skip/move to 'needs review'
-    # return 3   : add new Accession ids
-    # return 4   : userNLM
+    # return 3   : add new accession ids (includes userNLM)
+    # return 4   : userNLM : will call processNLMRefresh()
 
     diagFile.write('level3SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
 
@@ -1109,8 +1143,8 @@ def processPDFs():
 	#
         # return 0   : add as new reference
         # return 1/2 : skip/move to 'needs review'
-        # return 3   : add new Accession ids
-	# return 4   : userNLM
+        # return 3   : add new accession ids (userNLM included)
+        # return 4   : userNLM : will call processNLMRefresh()
 	#
 	rc, mgdRef = level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath, pubmedRef)
 
@@ -1210,20 +1244,9 @@ def processPDFs():
 
 	    #
 	    # bib_workflow_data
-	    if userPath == userGOA:
-	        if extractedText.lower().find('supplemental') > 0 \
-	           or extractedText.lower().find('supplementary') > 0 \
-	           or extractedText.lower().find('supplement ') > 0 \
-	           or extractedText.lower().find('additional file') > 0 \
-	           or extractedText.lower().find('appendix') > 0:
-	            dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	        % (refKey, hasPDF, suppfoundKey, extractedText, userKey, userKey, loaddate, loaddate))
-	        else:
-	            dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	        % (refKey, hasPDF, suppnotfoundKey, extractedText, userKey, userKey, loaddate, loaddate))
-	    else:
-	        dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	    % (refKey, hasPDF, supplementalKey, extractedText, userKey, userKey, loaddate, loaddate))
+	    suppKey = setSupplemental(userPath, extractedText, pubmedRef.getJournal())
+	    dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
+	    	% (refKey, hasPDF, suppKey, extractedText, userKey, userKey, loaddate, loaddate))
 
 	    # MGI:xxxx
 	    #
