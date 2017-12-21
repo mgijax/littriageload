@@ -51,8 +51,8 @@ LOG_CUR=${LOGDIR}/littriageload.cur.log
 LOG_VAL=${LOGDIR}/littriageload.val.log
 LOG_ERROR=${LOGDIR}/littriageload.error.shtml
 LOG_SQL=${LOGDIR}/littriageload.sql.log
-LOG_DUPLICATE=${LOGDIR}/litrriageload.dups.log
-LOG_PUBTYPE=${LOGDIR}/litrriageload.pubtype.log
+LOG_DUPLICATE=${LOGDIR}/littriageload.dups.log
+LOG_PUBTYPE=${LOGDIR}/littriageload.pubtype.log
 
 export LOG_FILE LOG_PROC LOG_DIAG LOG_CUR LOG_VAL LOG_ERROR LOG_SQL LOG_DUPLICATE LOG_PUBTYPE
 
