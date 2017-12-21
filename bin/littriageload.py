@@ -27,6 +27,8 @@
 #	LOG_ERROR
 #	LOG_CUR
 #	LOG_SQL
+#	LOG_DUPLICATE
+#	LOG_PUBLICATIONTYPE
 #	MASTERTRIAGEDIR
 #	NEEDSREVIEWTRIAGEDIR
 #	PG_DBUTILS
@@ -122,6 +124,7 @@ count_userPDF = 0
 count_userGOA = 0
 count_userNLM = 0
 count_needsreview = 0
+count_duplicate = 0
 
 diag = ''
 diagFile = ''
@@ -131,6 +134,10 @@ error = ''
 errorFile = ''
 sqllog = ''
 sqllogFile = ''
+duplicatelog = ''
+duplicatelogFile = ''
+pubtypelog = ''
+pubtypelogFile = ''
 
 inputDir = ''
 outputDir = ''
@@ -243,7 +250,6 @@ level2error4 = ''
 
 level3error1 = '' 
 level3error2 = ''
-level3error3 = ''
 
 level4error1 = ''
 
@@ -262,6 +268,8 @@ def initialize():
     global error, errorFile
     global curator, curatorFile
     global sqllog, sqllogFile
+    global duplicatelog, duplicatelogFile
+    global pubtypelog, pubtypelogFile
     global inputDir, outputDir
     global masterDir, needsReviewDir
     global bcpScript
@@ -277,6 +285,8 @@ def initialize():
     error = os.getenv('LOG_ERROR')
     curator = os.getenv('LOG_CUR')
     sqllog = os.getenv('LOG_SQL')
+    duplicatelog = os.getenv('LOG_DUPLICATE')
+    pubtypelog = os.getenv('LOG_PUBTYPE')
     inputDir = os.getenv('INPUTDIR')
     outputDir = os.getenv('OUTPUTDIR')
     masterDir = os.getenv('MASTERTRIAGEDIR')
@@ -304,6 +314,12 @@ def initialize():
 
     if not sqllog:
         exit(1, 'Environment variable not set: LOG_SQL')
+
+    if not duplicatelog:
+        exit(1, 'Environment variable not set: LOG_DUPLICATE')
+
+    if not pubtypelog:
+        exit(1, 'Environment variable not set: LOG_PUBTYPE')
 
     if not inputDir:
         exit(1, 'Environment variable not set: INPUTDIR')
@@ -339,6 +355,16 @@ def initialize():
         sqllogFile = open(sqllog, 'w')
     except:
         exist(1,  'Cannot open sqllog file: ' + sqllogFile)
+
+    try:
+        duplicatelogFile = open(duplicatelog, 'w')
+    except:
+        exist(1,  'Cannot open duplicate file: ' + duplicatelogFile)
+
+    try:
+        pubtypelogFile = open(pubtypelog, 'w')
+    except:
+        exist(1,  'Cannot open pubtypelog file: ' + pubtypelogFile)
 
     try:
         accFileName = outputDir + '/' + accTable + '.bcp'
@@ -401,6 +427,13 @@ def initialize():
 
     errorFile.write('\n<BR>Start Date/Time: %s\n<BR>' % (mgi_utils.date()))
 
+    duplicatelogFile.write('Literature Triage Duplicates\n\n')
+    duplicatelogFile.write('Note : duplicate pdfs are deleted and are not moved to needs_review folder\n\n')
+    duplicatelogFile.write('1: PubMed ID/DOI ID exists in MGI\n\n')
+
+    pubtypelogFile.write('Literature Triage Excluded Publication Types\n\n')
+    pubtypelogFile.write('Note : excluded publication type pdfs are deleted and are not moved to needs_review folder\n\n')
+
     return 0
 
 
@@ -418,6 +451,10 @@ def closeFiles():
         curatorFile.close()
     if sqllogFile:
         sqllogFile.close()
+    if duplicatelogFile:
+        duplicatelogFile.close()
+    if pubtypelogFile:
+        pubtypelogFile.close()
     if refFile:
         refFile.close()
     if statusFile:
@@ -852,6 +889,7 @@ def level1SanityChecks():
 def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath):
     global level2error1, level2error2, level2error3, level2error4
     global level5error1, level5error2
+    global pubtypelogFile
 
     diagFile.write('level2SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
 
@@ -918,6 +956,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	# TA - journal
 	# DP - date
 	# YR - year
+	# PT - Comment|Editorial|News
 
 	requiredDict = {}
 	missingList = []
@@ -927,6 +966,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	requiredDict['journal'] = pubMedRef.getJournal()
 	requiredDict['date'] = pubMedRef.getDate()
 	requiredDict['year'] = pubMedRef.getYear()
+	requiredDict['publicationType'] = pubMedRef.getPublicationType()
 
         #  4: missing data from required field for DOI ID
 	for reqLabel in requiredDict:
@@ -936,6 +976,13 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	   level2error4 = level2error4 + str(objId) + ', ' + str(pubmedID) + '<BR>\n' + \
 		linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	   return 1
+
+	# skip & delete these publication types
+        diagFile.write(requiredDict['publicationType'] + '\n')
+        if requiredDict['publicationType'] in ('Comment', 'Editorial', 'News'):
+	   pubtypelogFile.write(requiredDict['publicationType'] + ',' + objId + ',' + pubmedID + '\n')
+	   os.remove(os.path.join(pdfPath, pdfFile))
+	   return -1
 
     # userNLM : part 2
     # results() where retrieved earlier
@@ -957,7 +1004,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	            'Journal/MGD: ' + journal + '<BR>\n' + \
 	            'Title/NLM: ' + pubMedRef.getTitle() + '<BR>\n' + \
 	            'Title/MGD: ' + title + '<BR>\n' + \
-		    'DOI/NLM: ' + pubMedRef.getDoiID() + '<BR>\n' + \
+		    'DOI/NLM: ' + str(pubMedRef.getDoiID()) + '<BR>\n' + \
 		    'DOI/MGD: ' + str(doiId) + '<BR>\n' + \
     	            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 
@@ -971,14 +1018,14 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 # Purpose: Level 3 Sanity Checks : check MGI for errors
 # Returns: returns 0 if successful, 1 if errors are found
 #
-#  1 : input PubMed ID or DOI ID exists in MGI
-#  2 : PubMed or DOI ID associated with different MGI references
-#  3a: input PubMed ID exists in MGI but missing DOI ID -> add DOI ID in MGI
-#  3b: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
+#  1 : PubMed or DOI ID associated with different MGI references
+#  2a: input PubMed ID exists in MGI but missing DOI ID -> add DOI ID in MGI
+#  2b: input DOI ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
 #
 def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath, ref):
-    global level3error1, level3error2, level3error3
+    global level3error1, level3error2
     global count_needsreview
+    global count_duplicate
 
     # return 0   : add as new reference
     # return 1/2 : skip/move to 'needs review'
@@ -1004,10 +1051,10 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
     if objType not in (userNLM) and len(results) > 1:
 
-        # 2: input PubMed ID or DOI ID associated with different MGI references
+        # 1: input PubMed ID or DOI ID associated with different MGI references
         diagFile.write('2: input PubMed ID or DOI ID associated with different MGI references: ' \
 	+ objId + ',' + pubmedID + '\n')
-	level3error2 = level3error2 + objId + ', ' + pubmedID + '<BR>\n' + \
+	level3error1 = level3error1 + objId + ', ' + pubmedID + '<BR>\n' + \
 	    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 	count_needsreview += 1
@@ -1017,23 +1064,23 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
         if objType in (objDOI):
 
-            # 2: input PubMed ID or DOI ID associated with different MGI references
+            # 1: input PubMed ID or DOI ID associated with different MGI references
 	    if results[0]['pubmedID'] != None and results[0]['doiID'] != None:
 	        if (pubmedID == results[0]['pubmedID'] and objId != results[0]['doiID']) or \
 	           (pubmedID != results[0]['pubmedID'] and objId == results[0]['doiID']):
-                    diagFile.write('2: input PubMed ID or DOI ID associated with different MGI references: ' \
+                    diagFile.write('1: input PubMed ID or DOI ID associated with different MGI references: ' \
 		            + objId + ',' + pubmedID + '\n')
-	            level3error2 = level3error2 + objId + ', ' + pubmedID + '<BR>\n' + \
+	            level3error1 = level3error1 + objId + ', ' + pubmedID + '<BR>\n' + \
 	    	            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 		    count_needsreview += 1
 	            return 2, results
 
-            # 3a: input PubMed ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
+            # 2a: input PubMed ID exists in MGI but missing PubMed ID -> add PubMed ID in MGI
 	    # needs_review but still processed
 	    if results[0]['pubmedID'] == None:
-	        diagFile.write('3: pubmedID is missing in MGI: ' + objId + ',' + pubmedID + '\n')
-	        level3error3 = level3error3 + objId + ', ' + pubmedID + ' : adding PubMed ID<BR>\n' + \
+	        diagFile.write('2: pubmedID is missing in MGI: ' + objId + ',' + pubmedID + '\n')
+	        level3error2 = level3error2 + objId + ', ' + pubmedID + ' : adding PubMed ID<BR>\n' + \
 	    	    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 		count_needsreview += 1
@@ -1041,11 +1088,11 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
         if objType in (objDOI) or (objType in (userNLM) and ref.getDoiID() != None):
 
-            # 3b: input DOI ID exists in MGI but missing DOI ID -> add DOI ID in MGI
+            # 2b: input DOI ID exists in MGI but missing DOI ID -> add DOI ID in MGI
 	    # needs_review but still processed
 	    if results[0]['doiID'] == None:
-	        diagFile.write('3: doiid is missing in MGI:' + objId + ',' + pubmedID + '\n')
-	        level3error3 = level3error3 + objId + ', ' + pubmedID + ' : adding DOI ID<BR>\n' + \
+	        diagFile.write('2: doiid is missing in MGI:' + objId + ',' + pubmedID + '\n')
+	        level3error2 = level3error2 + objId + ', ' + pubmedID + ' : adding DOI ID<BR>\n' + \
 	    	    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 		count_needsreview += 1
@@ -1054,12 +1101,11 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
         if objType in (userNLM):
             return 4, results
     	else:
-            # 1: input PubMed ID or DOI ID exists in MGI
-	    diagFile.write('1: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
-	    level3error1 = level3error1 + objId + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
-	    	    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-	    count_needsreview += 1
+	    # duplicates are logged in duplicatelogFile and deleted/not moved to needs_review
+	    diagFile.write('duplicate: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
+	    duplicatelogFile.write(objId + ', ' + str(ref.getPubMedID()) + '\n')
+	    os.remove(os.path.join(pdfPath, pdfFile))
+	    count_duplicate += 1
             return 1, results
 		
     else:
@@ -1072,13 +1118,14 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 def processPDFs():
     global allErrors, allCounts
     global level2error1, level2error2, level2error3, level2error4
-    global level3error1, level3error2, level3error3
+    global level3error1, level3error2
     global level4error1
     global level5error1, level5error2
     global accKey, refKey, statusKey, mgiKey, jnumKey
     global mvPDFtoMasterDir
     global count_processPDFs, count_needsreview, count_userGOA, count_userPDF, count_userNLM
     global updateSQLAll
+    global isReviewArticle
 
     #
     # assumes the level1SanityChecks have passed
@@ -1208,6 +1255,9 @@ def processPDFs():
 		pubmedRef.getTitle(), \
 		pubmedRef.getAbstract())
 
+	    if pubmedRef.getPublicationType() in ('Review'):
+	        isReviewArticle = 1
+
 	    refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
 		% (refKey, referenceTypeKey, 
 		   authors, \
@@ -1324,13 +1374,11 @@ def processPDFs():
     level2error4 = '<B>4: missing data from required field for DOI ID</B><BR><BR>\n\n' + level2error4 + '<BR>\n\n'
     allErrors = allErrors + level2errorStart + level2error1 + level2error2 + level2error3 + level2error4
 
-    level3error1 = '<B>1: PubMed ID/DOI ID exists in MGI</B><BR><BR>\n\n' + \
+    level3error1 = '<B>1: PubMed ID/DOI ID is associated with different MGI references</B><BR><BR>\n\n' + \
     	level3error1 + '<BR>\n\n'
-    level3error2 = '<B>2: PubMed ID/DOI ID is associated with different MGI references</B><BR><BR>\n\n' + \
+    level3error2 = '<B>2: missing PubMed ID or DOI ID in MGD -> will add PubMed ID or DOI ID to MGI</B><BR><BR>\n\n' + \
     	level3error2 + '<BR>\n\n'
-    level3error3 = '<B>3: missing PubMed ID or DOI ID in MGD -> will add PubMed ID or DOI ID to MGI</B><BR><BR>\n\n' + \
-    	level3error3 + '<BR>\n\n'
-    allErrors = allErrors + level3errorStart + level3error1 + level3error2 + level3error3
+    allErrors = allErrors + level3errorStart + level3error1 + level3error2
 
     level4error1 = '<B>1: MGI ID in filename does not match reference in MGI</B><BR><BR>\n\n' + \
     	level4error1 + '<BR>\n\n'
@@ -1347,6 +1395,7 @@ def processPDFs():
     allCounts = allCounts + 'Records with Updated PDF\'s: ' + str(count_userPDF) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Updated NLM information: ' + str(count_userNLM) + '<BR>\n\n'
     allCounts = allCounts + 'Records with GOA information: ' + str(count_userGOA) + '<BR>\n\n'
+    allCounts = allCounts + 'Records with Duplicates: ' + str(count_duplicate) + '<BR>\n\n'
     allCounts = allCounts + 'New Failed PDF\'s in Needs_Review folder: ' + str(count_needsreview) + '<BR><BR>\n\n'
 
     errorFile.write(allCounts)
