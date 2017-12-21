@@ -1123,7 +1123,7 @@ def processPDFs():
     global level5error1, level5error2
     global accKey, refKey, statusKey, mgiKey, jnumKey
     global mvPDFtoMasterDir
-    global count_processPDFs, count_needsreview, count_userGOA, count_userPDF, count_userNLM
+    global count_processPDFs, count_needsreview, count_userGOA, count_userPDF, count_userNLM, count_duplicate
     global updateSQLAll
     global isReviewArticle
 
