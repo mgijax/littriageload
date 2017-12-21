@@ -1103,7 +1103,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
     	else:
 	    # duplicates are logged in duplicatelogFile and deleted/not moved to needs_review
 	    diagFile.write('duplicate: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
-	    duplicatelogFile.write(objId + ', ' + str(ref.getPubMedID()) + '\n')
+            duplicatelogFile.write(objId + ', ' + pubmedID + '\n')
 	    os.remove(os.path.join(pdfPath, pdfFile))
 	    count_duplicate += 1
             return 1, results
@@ -1395,7 +1395,7 @@ def processPDFs():
     allCounts = allCounts + 'Records with Updated PDF\'s: ' + str(count_userPDF) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Updated NLM information: ' + str(count_userNLM) + '<BR>\n\n'
     allCounts = allCounts + 'Records with GOA information: ' + str(count_userGOA) + '<BR>\n\n'
-    #allCounts = allCounts + 'Records with Duplicates: ' + str(count_duplicate) + '<BR>\n\n'
+    allCounts = allCounts + 'Records with Duplicates: ' + str(count_duplicate) + '<BR>\n\n'
     allCounts = allCounts + 'New Failed PDF\'s in Needs_Review folder: ' + str(count_needsreview) + '<BR><BR>\n\n'
 
     errorFile.write(allCounts)
