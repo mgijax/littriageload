@@ -1255,8 +1255,10 @@ def processPDFs():
 		pubmedRef.getTitle(), \
 		pubmedRef.getAbstract())
 
-	    #if pubmedRef.getPublicationType() in ('Review'):
-	    #    isReviewArticle = 1
+	    if pubmedRef.getPublicationType() in ('Review'):
+	        isReviewArticle = 1
+	    else:
+	        isReviewArticle = 0
 
 	    refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
 		% (refKey, referenceTypeKey, 
