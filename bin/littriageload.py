@@ -476,7 +476,7 @@ def setPrimaryKeys():
     results = db.sql('select max(_Refs_key) + 1 as maxKey from BIB_Refs', 'auto')
     refKey = results[0]['maxKey']
 
-    results = db.sql('select max(_Assoc_key) + 1 as maxKey from BIB_Workflow_Status', 'auto')
+    results = db.sql(''' select nextval('bib_workflow_status_seq') as maxKey ''', 'auto')
     statusKey = results[0]['maxKey']
 
     results = db.sql('select max(_Accession_key) + 1 as maxKey from ACC_Accession', 'auto')
