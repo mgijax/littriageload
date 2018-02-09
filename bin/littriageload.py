@@ -278,6 +278,8 @@ def initialize():
     global pma
     global workflowGroupList
     global suppJournalList
+    
+    db.set_sqlLogFunction(db.sqlLogAll)
 
     runSanityCheckOnly = os.getenv('SANITYCHECKONLY')
     litparser = os.getenv('LITPARSER')
