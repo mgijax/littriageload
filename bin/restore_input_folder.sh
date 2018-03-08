@@ -40,5 +40,5 @@ rm -rf ${LOG}
 cp -R ${LASTINPUTDIR}/* ${INPUTDIR} >> ${LOG} 2>&1
 
 # to add more input folders....
-#cp -R ${FILEDIR}/input.xxxx.xxxx ${INPUTDIR} >> ${LOG} 2>&1
+#cp -R ${FILEDIR}/input.xxxx.xxxx/* ${INPUTDIR} >> ${LOG} 2>&1
 
