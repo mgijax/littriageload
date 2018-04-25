@@ -228,7 +228,7 @@ doiidById = {}
 # linkOut : link URL
 linkOut = '<A HREF="%s">%s</A>' 
 
-# error logs for level1, level2, level3
+# error logs for level1, level2, level3, etc.
 
 allErrors = ''
 allCounts = ''
@@ -238,6 +238,7 @@ level2errorStart = '**********<BR>\nLiterature Triage Level 2 Errors : parse Pub
 level3errorStart = '**********<BR>\nLiterature Triage Level 3 Errors : check MGI for errors<BR><BR>\n\n'
 level4errorStart = '**********<BR>\nLiterature Triage Level 4 Errors : Supplemental/Update PDF<BR><BR>\n\n'
 level5errorStart = '**********<BR>\nLiterature Triage Level 5 Errors : Update NLM information<BR><BR>\n\n'
+level6errorStart = '**********<BR>\nLiterature Triage Level 6 Errors : Possible mismatch citation - citation title not found in extracted text<BR><BR>\n\n'
 
 countStart = '**********<BR>\nLiterature Triage Counts<BR>\n'
 
@@ -1594,24 +1595,150 @@ def processNLMRefresh(objKey, ref):
     return
 
 #
+# Purpose: Post-Sanity Check tasks
+# Returns: title or extractedText
+#
+# title = title.replace('omega', 'x')
+# cannot replace omega since 'omega' is this word is also used in non-greek letter wording
+# for example, "cytomegalovirus"
+#
+def postSanityCheck_replaceTitle1(r):
+    title = r['title']
+    title = title.replace('.', '')
+    title = title.replace('-', '')
+    title = title.replace('(', '')
+    title = title.replace(')', '')
+    title = title.replace('\'', '')
+    title = title.replace('alpha', '')
+    title = title.replace('-beta-', '-b-')
+    title = title.replace('beta', '')
+    title = title.replace('gamma', '')
+    title = title.replace('delta', '')
+    title = title.replace('epsilon', '')
+    title = title.replace('kappa', '')
+    title = title.replace('lambda', '')
+    title = title.replace('theta', '')
+    title = title.replace('zeta', '')
+    title = title.replace('....', '')
+    title = title.replace('+', '')
+    title = title.replace('editor\'s highlight:', '')
+    title = title.replace('editors highlight:', '')
+    title = title[:10]
+    return title
+
+def postSanityCheck_replaceTitle2(r):
+    title = r['title']
+    title = title.replace('.', '')
+    title = title.replace('-', '')
+    title = title.replace('(', '')
+    title = title.replace(')', '')
+    title = title.replace('\'', '')
+    title = title.replace('alpha', 'a')
+    title = title.replace('-beta-', '-b-')
+    title = title.replace('beta', 'b')
+    title = title.replace('gamma', 'g')
+    title = title.replace('delta', 'd')
+    title = title.replace('epsilon', 'e')
+    title = title.replace('kappa', 'k')
+    title = title.replace('lambda', 'L')
+    title = title.replace('theta', 't')
+    title = title.replace('zeta', 'z')
+    title = title.replace('....', '')
+    title = title.replace('+', '')
+    title = title.replace('editor\'s highlight:', '')
+    title = title.replace('editors highlight:', '')
+    title = title[:10]
+    return title
+
+def postSanityCheck_replaceExtracted(r):
+    extractedText = r['extractedText']
+    extractedText = extractedText.replace('\n', ' ')
+    extractedText = extractedText.replace('\r', ' ')
+    extractedText = extractedText.replace('.', '')
+    extractedText = extractedText.replace('-', '')
+    extractedText = extractedText.replace('(', '')
+    extractedText = extractedText.replace(')', '')
+    extractedText = extractedText.replace('\'', '')
+    extractedText = extractedText.replace('alpha', '')
+    extractedText = extractedText.replace('beta', '')
+    extractedText = extractedText.replace('delta', '')
+    extractedText = extractedText.replace('gamma', '')
+    extractedText = extractedText.replace('kappa', '')
+    #extractedText = extractedText.replace('omega', 'x')
+    extractedText = extractedText.replace('theta', '')
+    extractedText = extractedText.replace('zeta', '')
+    extractedText = extractedText.replace('....', '')
+    extractedText = extractedText.replace('+', '')
+    return extractedText
+
+#
+# Purpose: Query database to check for potential mismatches (TR12836)
+# Returns: nothing
+#
+def postSanityCheck():
+
+    querydate = mgi_utils.date('%m/%d/%Y')
+
+    level6errors = level6errorStart
+
+    cmd = '''
+    select a.accID as mgiID,
+    lower(substring(r.title,1,20)) as title,
+    lower(d.extractedText) as extractedText
+    from acc_accession a, bib_refs r, bib_workflow_data d
+    where r._referencetype_key = 31576687
+    and r._refs_key = a._object_key
+    and a._logicaldb_key = 1
+    and a._mgitype_key = 1
+    and a.prefixpart = 'MGI:'
+    and a._object_key = d._refs_key
+    and d.extractedText is not null
+    and r.journal not in ('J Virol', 'J Neurochem')
+    and (r.creation_date between '%s' and ('%s'::date + '1 day'::interval))
+    ''' % (querydate, querydate)
+
+    results = db.sql(cmd, 'auto')
+    for r in results:
+        title = postSanityCheck_replaceTitle1(r)
+        extractedText = postSanityCheck_replaceExtracted(r)
+
+        if extractedText.find(title) < 0:
+            title = postSanityCheck_replaceTitle2(r)
+            if extractedText.find(title) < 0:
+                level6errors = level6errors + r['mgiID'] + '\n'
+
+    errorFile.write(level6errors)
+    curatorFile.write(re.sub('<.*?>', '', level6errors))
+    return 0
+
+#
 #  MAIN
 #
 
+#print 'initialize'
 if initialize() != 0:
     sys.exit(1)
 
+#print 'level1SanityChecks'
 if level1SanityChecks() != 0:
     closeFiles()
     sys.exit(1)
 
+#print 'setPrimaryKeys'
 if setPrimaryKeys() != 0:
     sys.exit(1)
 
+#print 'processPDFs'
 if processPDFs() != 0:
     closeFiles()
     sys.exit(1)
 
+#print 'bcpFiles'
 if bcpFiles() != 0:
+    sys.exit(1)
+
+#print 'postSanityCheck'
+if postSanityCheck() != 0:
     sys.exit(1)
 
 closeFiles()
