@@ -98,7 +98,7 @@ ls -l ${NEEDSREVIEWTRIAGEDIR} >> ${LOG} 2>&1
 #
 date >> ${LOG}
 echo "running findNLMrefresh.sh..." >> ${LOG} 2>&1
-./findNLMrefresh.sh >> ${LOG} 2>&1
+${LITTRIAGELOAD}/bin/findNLMrefresh.sh >> ${LOG} 2>&1
 
 #
 # if DEV, use 'cp'
