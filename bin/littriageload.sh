@@ -92,6 +92,15 @@ echo "needs review directory" >> ${LOG} 2>&1
 ls -l ${NEEDSREVIEWTRIAGEDIR} >> ${LOG} 2>&1
 
 #
+# run findNLMrefres.sh to find references that are mising DOI ids
+# this will copy the pdfs for this set (if pdf exists)
+# into the ${LITTRIAGE_NEWNEW}/littriage_NLM_refresh directory
+#
+date >> ${LOG}
+echo "running findNLMrefresh.sh..." >> ${LOG} 2>&1
+./findNLMrefresh.sh >> ${LOG} 2>&1
+
+#
 # if DEV, use 'cp'
 # else use 'mv'
 #
