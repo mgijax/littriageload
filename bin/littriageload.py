@@ -225,6 +225,12 @@ objByUser = {}
 # doiidById = {'doiid' : 'pdf file'}
 doiidById = {}
 
+# to track list of existing reference keys
+# so that duplicates do not get created
+# see processExtractedText
+#
+existingRefKeyList = []
+
 # linkOut : link URL
 linkOut = '<A HREF="%s">%s</A>' 
 
@@ -682,6 +688,9 @@ def replaceText(extractedText):
 #	getPrimaryAuthor()
 #	getTitle()
 #	getAbstract()
+#	getVolumn()
+#	getIssue()
+#	getPages()
 #
 # 	remove non-ascii characters
 # 	carriage returns, etc.
@@ -691,7 +700,7 @@ def replaceText(extractedText):
 #
 # Returns:  new abstract, title value
 #
-def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract):
+def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract, vol, issue, pgs):
 
     if authors == None or authors == '':
         authors = ''
@@ -714,7 +723,28 @@ def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract):
     else:
         abstract = abstract.replace('|', '\\|')
 
-    return authors, primaryAuthor, title, abstract
+    if vol == None or vol == '':
+        vol = ''
+    elif isSQL:
+        vol = vol.replace("'", "''")
+    else:
+        vol = vol.replace('|', '\\|')
+
+    if issue == None or issue == '':
+        issue = ''
+    elif isSQL:
+        issue = issue.replace("'", "''")
+    else:
+        issue = issue.replace('|', '\\|')
+
+    if pgs == None or pgs == '':
+        pgs = ''
+    elif isSQL:
+        pgs = pgs.replace("'", "''")
+    else:
+        pgs = pgs.replace('|', '\\|')
+
+    return authors, primaryAuthor, title, abstract, vol, issue, pgs
 
 #
 # Purpose: Set the supplemental key based on extractedText or journal
@@ -1271,7 +1301,10 @@ def processPDFs():
 		pubmedRef.getAuthors(), \
 		pubmedRef.getPrimaryAuthor(), \
 		pubmedRef.getTitle(), \
-		pubmedRef.getAbstract())
+		pubmedRef.getAbstract(),
+		pubmedRef.getVolume(),
+		pubmedRef.getIssue(),
+		pubmedRef.getPages())
 
 	    if pubmedRef.getPublicationType() in ('Review'):
 	        isReviewArticle = 1
@@ -1443,6 +1476,7 @@ def processExtractedText(objKey):
     global count_needsreview
     global count_userPDF
     global count_userNLM
+    global existingRefKeyList
 
     diagFile.write('\nprocessExtractedText()\n')
 
@@ -1478,6 +1512,13 @@ def processExtractedText(objKey):
     existingRefKey = results[0]['_Refs_key']
     suppKey = results[0]['_Supplemental_key']
     userKey = loadlib.verifyUser(userPath, 0, diagFile)
+
+    if existingRefKey not in existingRefKeyList:
+        existingRefKeyList.append(existingRefKey)
+    #
+    # log issue/do nothing/leave in input dir to retry next day
+    #else:
+    #    return
 
     if objType == userSupplement:
 	dataSuppKey = 34026997
@@ -1531,12 +1572,15 @@ def processNLMRefresh(objKey, ref):
     userKey = loadlib.verifyUser(userPath, 0, diagFile)
     objectKey = results[0]['_Refs_key']
 
-    authors, primaryAuthor, title, abstract = replacePubMedRef(\
+    authors, primaryAuthor, title, abstract, vol, issue, pgs = replacePubMedRef(\
 	1,
 	ref.getAuthors(), \
 	ref.getPrimaryAuthor(), \
 	ref.getTitle(), \
-	ref.getAbstract())
+	ref.getAbstract(),
+	ref.getVolume(),
+	ref.getIssue(),
+	ref.getPages())
 
     #
     # set '' to true null, not 'None'
@@ -1557,6 +1601,18 @@ def processNLMRefresh(objKey, ref):
         abstract = ''' E'%s' ''' % (abstract)
     else:
         abstract = ' null'
+    if len(vol) > 0:
+        vol = ''' E'%s' ''' % (vol)
+    else:
+        vol = ' null'
+    if len(issue) > 0:
+        issue = ''' E'%s' ''' % (issue)
+    else:
+        issue = ' null'
+    if len(pgs) > 0:
+        pgs = ''' E'%s' ''' % (pgs)
+    else:
+        pgs = ' null'
         
     updateSQLAll += '''
 	    	update BIB_Refs 
@@ -1565,11 +1621,11 @@ def processNLMRefresh(objKey, ref):
 		_primary = %s,
 		title = %s,
 		journal = E'%s',
-		vol = E'%s',
-		issue = E'%s',
+		vol = %s,
+		issue = %s,
 		date = '%s',
 		year = %s,
-		pgs = E'%s',
+		pgs = %s,
 		abstract = %s,
 		_ModifiedBy_key = %s, 
 		modification_date = now() 
@@ -1579,11 +1635,11 @@ def processNLMRefresh(objKey, ref):
 		       primaryAuthor, \
 		       title, \
 		       ref.getJournal(), \
-		       ref.getVolume(), \
-		       ref.getIssue(), \
+		       vol, \
+		       issue, \
 		       ref.getDate(), \
 		       ref.getYear(), \
-		       ref.getPages(), \
+		       pgs, \
 		       abstract, \
 		       userKey, objectKey)
 
