@@ -1048,9 +1048,15 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
         title = results[0]['title']
 	doiId = results[0]['doiID']
 
+	print pubMedRef.getJournal()
+	print journal
+	print pubMedRef.getTitle()
+	print title
+	print pubMedRef.getDoiID()
+
         if pubMedRef.getJournal().lower() != journal.lower() \
     	    or pubMedRef.getTitle().lower() != title.lower() \
-            or (doiId != None and pubMedRef.getDoiID().lower() != doiId.lower()):
+            or (doiId != None and pubMedRef.getDoiID() != doiId):
 
             level5error2 = level5error2 + mgiID + ',' + pubmedID + '<BR>\n' + \
 	            'Journal/NLM: ' + pubMedRef.getJournal() + '<BR>\n' + \
