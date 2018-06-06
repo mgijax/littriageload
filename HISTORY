@@ -1,5 +1,6 @@
+TAG: littriageload-6-0-12-7
 TAG: littriageload-6-0-12-6
-DATE: 06/05/2018
+DATE: 06/05/2018, 06/06/2018
 STAFF: lec
 CHANGES: TR12881
 add vol, issue, pgs to "None" -> null
