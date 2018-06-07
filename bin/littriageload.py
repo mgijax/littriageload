@@ -1296,7 +1296,7 @@ def processPDFs():
 	    # bib_refs
 	    #
 
-	    authors, primaryAuthor, title, abstract = replacePubMedRef(\
+	    authors, primaryAuthor, title, abstract, vol, issue, pgs = replacePubMedRef(\
 	    	0,
 		pubmedRef.getAuthors(), \
 		pubmedRef.getPrimaryAuthor(), \
