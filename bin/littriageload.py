@@ -169,6 +169,9 @@ statusKey = 0
 mgiKey = 0
 jnumKey = 0
 
+# to track duplicates
+refKeyList = []
+
 objDOI = 'doi'
 mgiTypeKey = 1
 mgiPrefix = 'MGI:'
@@ -191,6 +194,9 @@ suppJournalList = []
 
 # list of workflow groups
 workflowGroupList = []
+
+# lif of refFile keys for checking duplicates
+refFileList = []
 
 # moving input/pdfs to master dir/pdfs
 mvPDFtoMasterDir = {}
@@ -244,7 +250,8 @@ level2errorStart = '**********<BR>\nLiterature Triage Level 2 Errors : parse Pub
 level3errorStart = '**********<BR>\nLiterature Triage Level 3 Errors : check MGI for errors<BR><BR>\n\n'
 level4errorStart = '**********<BR>\nLiterature Triage Level 4 Errors : Supplemental/Update PDF<BR><BR>\n\n'
 level5errorStart = '**********<BR>\nLiterature Triage Level 5 Errors : Update NLM information<BR><BR>\n\n'
-level6errorStart = '**********<BR>\nLiterature Triage Level 6 Errors : Possible mismatch citation - citation title not found in extracted text<BR><BR>\n\n'
+level6errorStart = '**********<BR>\nLiterature Triage Level 6 Errors : Erratum/corrections/retractions<BR><BR>\n\n'
+level7errorStart = '**********<BR>\nLiterature Triage Level 7 Errors : Possible mismatch citation - citation title not found in extracted text<BR><BR>\n\n'
 
 countStart = '**********<BR>\nLiterature Triage Counts<BR>\n'
 
@@ -264,6 +271,8 @@ level4error1 = ''
 
 level5error1 = ''
 level5error2 = ''
+
+level6error1 = ''
 
 #
 # Purpose: Initialization
@@ -940,6 +949,7 @@ def level1SanityChecks():
 def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath):
     global level2error1, level2error2, level2error3, level2error4
     global level5error1, level5error2
+    global level6error1
     global pubtypelogFile
 
     diagFile.write('level2SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
@@ -1007,7 +1017,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	# TA - journal
 	# DP - date
 	# YR - year
-	# PT - Comment|Editorial|News
+	# PT - Comment|Editorial|News|Published Erratum|Retracetion of Publication
 
 	requiredDict = {}
 	missingList = []
@@ -1036,6 +1046,15 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	   pubtypelogFile.write(requiredDict['publicationType'] + ',' + objId + ',' + pubmedID + '\n')
 	   os.remove(os.path.join(pdfPath, pdfFile))
 	   return -1
+
+	# TR12871/on hold/needs more analsys from jackie
+	# report & skip these publication types
+        #if requiredDict['publicationType'] in ('Published Erratum', 'Retracetion of Publication'):
+        #   diagFile.write(str(requiredDict))
+        #   diagFile.write('\n')
+	#   level6error1 = level6error1 + str(objId) + ', ' + str(pubmedID) + '<BR>\n' + \
+	#	linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+	#   return 1
 
     # userNLM : part 2
     # results() where retrieved earlier
@@ -1146,7 +1165,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
     	else:
 	    # duplicates are logged in duplicatelogFile and deleted/not moved to needs_review
 	    diagFile.write('duplicate: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
-            duplicatelogFile.write(objId + ', ' + pubmedID + '\n')
+            duplicatelogFile.write(userPath + ',' + objId + ', ' + pubmedID + '\n')
 	    os.remove(os.path.join(pdfPath, pdfFile))
 	    count_duplicate += 1
             return 1, results
@@ -1164,6 +1183,7 @@ def processPDFs():
     global level3error1
     global level4error1
     global level5error1, level5error2
+    global level6error1
     global accKey, refKey, statusKey, mgiKey, jnumKey
     global mvPDFtoMasterDir
     global count_processPDFs, count_needsreview, count_userGOA
@@ -1171,6 +1191,7 @@ def processPDFs():
     global updateSQLAll
     global isReviewArticle
     global doipubmedaddedlogFile, count_doipubmedadded
+    global refKeyList
 
     #
     # assumes the level1SanityChecks have passed
@@ -1301,9 +1322,9 @@ def processPDFs():
 		pubmedRef.getAuthors(), \
 		pubmedRef.getPrimaryAuthor(), \
 		pubmedRef.getTitle(), \
-		pubmedRef.getAbstract(),
-		pubmedRef.getVolume(),
-		pubmedRef.getIssue(),
+		pubmedRef.getAbstract(), \
+		pubmedRef.getVolume(), \
+		pubmedRef.getIssue(), \
 		pubmedRef.getPages())
 
 	    if pubmedRef.getPublicationType() in ('Review'):
@@ -1311,22 +1332,30 @@ def processPDFs():
 	    else:
 	        isReviewArticle = 0
 
+	    #
+	    # if same pdf is placed in userSupplement,userPDF,userGOA,userNLM
+	    # skip, no need to report this as an error
+	    #
+	    if refKey in refKeyList:
+	        continue
+
 	    refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
 		% (refKey, referenceTypeKey, 
 		   authors, \
 		   primaryAuthor, \
 		   title, \
 		   pubmedRef.getJournal(), \
-		   pubmedRef.getVolume(), \
-		   pubmedRef.getIssue(), \
+		   vol, \
+		   issue, \
 		   pubmedRef.getDate(), \
 		   pubmedRef.getYear(), \
-		   pubmedRef.getPages(), \
+		   pgs, \
 		   abstract, \
 		   isReviewArticle, \
 		   isDiscard, \
 		   userKey, userKey, loaddate, loaddate))
 
+	    refKeyList.append(refKey)
 	    count_processPDFs += 1
 
 	    #
@@ -1438,6 +1467,9 @@ def processPDFs():
     level5error1 = '<B>1: MGI ID not found or no pubmedID</B><BR><BR>\n\n' + level5error1 + '<BR>\n\n'
     level5error2 = '<B>2: journal/title/doi ID do not match</B><BR><BR>\n\n' + level5error2 + '<BR>\n\n'
     allErrors = allErrors + level5errorStart + level5error1 + level5error2
+
+    level6error1 = '<B>1: Medline publication type = erratum, correction, or retraction</B><BR><BR>\n\n' + level6error1 + '<BR>\n\n'
+    allErrors = allErrors + level6errorStart + level6error1
 
     # copy all errors to error log, remove html and copy to curator log
     allCounts = allCounts + countStart
@@ -1735,7 +1767,7 @@ def postSanityCheck():
 
     querydate = mgi_utils.date('%m/%d/%Y')
 
-    level6errors = level6errorStart
+    level7errors = level7errorStart
 
     cmd = '''
     select a.accID as mgiID,
@@ -1761,10 +1793,10 @@ def postSanityCheck():
         if extractedText.find(title) < 0:
             title = postSanityCheck_replaceTitle2(r)
             if extractedText.find(title) < 0:
-                level6errors = level6errors + r['mgiID'] + '<B>\n'
+                level7errors = level7errors + r['mgiID'] + '<B>\n'
 
-    errorFile.write(level6errors)
-    curatorFile.write(re.sub('<.*?>', '', level6errors))
+    errorFile.write(level7errors)
+    curatorFile.write(re.sub('<.*?>', '', level7errors))
     return 0
 
 #

@@ -1,3 +1,10 @@
+TAG: littriageload-6-0-12-10
+DATE: 06/20/2018
+STAFF: lec
+CHANGES: 
+1) TR12844/ignore duplicates in processPDFs()
+2) TR12881/add vol, issue, pgs to "None" -> null
+
 TAG: littriageload-6-0-12-9
 TAG: littriageload-6-0-12-8
 TAG: littriageload-6-0-12-7
