@@ -55,6 +55,7 @@
 #	1) initialize() : initiailze 
 #
 #	2) level1SanityChecks() : using PDF file...
+#		check for duplicate PDF file names
 #		extract DOI ID/text from PDF, translate DOI ID -> PubMed ID
 #
 #	3) setPrimaryKeys() : setting global primary keys
@@ -245,6 +246,7 @@ linkOut = '<A HREF="%s">%s</A>'
 allErrors = ''
 allCounts = ''
 
+level0errorStart = '**********<BR>\nLiterature Triage Level 0 Errors : duplicate PDF file name<BR><BR>\n'
 level1errorStart = '**********<BR>\nLiterature Triage Level 1 Errors : parse DOI ID from PDF files<BR><BR>\n'
 level2errorStart = '**********<BR>\nLiterature Triage Level 2 Errors : parse PubMed IDs from PubMed API<BR><BR>\n\n'
 level3errorStart = '**********<BR>\nLiterature Triage Level 3 Errors : check MGI for errors<BR><BR>\n\n'
@@ -254,6 +256,8 @@ level6errorStart = '**********<BR>\nLiterature Triage Level 6 Errors : Erratum/c
 level7errorStart = '**********<BR>\nLiterature Triage Level 7 Errors : Possible mismatch citation - citation title not found in extracted text<BR><BR>\n\n'
 
 countStart = '**********<BR>\nLiterature Triage Counts<BR>\n'
+
+level0error1 = '' 
 
 level1error1 = '' 
 level1error2 = ''
@@ -782,6 +786,10 @@ def setSupplemental(userPath, extractedText, journal):
 # if successful, pdf stays in the 'input' directory
 # if needs review, pdf is moved to the 'needs review' directory
 #
+# level 0
+# 1: duplicate PDF file names
+#
+# level 1
 # 1: not in PDF format
 # 2: cannot extract/find DOI ID
 # 3: duplicate published refs (same DOI ID)
@@ -790,10 +798,15 @@ def level1SanityChecks():
     global userDict
     global objByUser
     global doiidById
-    global allErrors, level1error1, level1error2, level1error3, level1error4
+    global allErrors, level0error1, level1error1, level1error2, level1error3, level1error4
     global count_needsreview
 
-    # iterate thru input directory by user
+    nodupFileName = []
+    dupFileName = []
+
+    # step 1 : iterate thru input directory by user 
+    # determine if pdf file name is a duplicate
+    # add to dupFileName list
     for userPath in os.listdir(inputDir):
 
 	pdfPath = inputDir + '/' + userPath + '/'
@@ -819,8 +832,34 @@ def level1SanityChecks():
 	        diagFile.write('file in input directory does not end with pdf: %s %s\n') % (userPath, pdfFile)
 	        continue
 
+    	    #
+	    # is fileName a duplicate?
 	    #
-	    # userDict of all pdfFiles by user
+	    if pdfFile not in nodupFileName:
+	        nodupFileName.append(pdfFile)
+	    else:
+	        dupFileName.append(pdfFile)
+
+    # step 2: iterate thru input directory by user
+    for userPath in os.listdir(inputDir):
+
+	pdfPath = inputDir + '/' + userPath + '/'
+	needsReviewPath = os.path.join(needsReviewDir, userPath)
+
+	for pdfFile in os.listdir(pdfPath):
+
+    	    #
+	    # if fileName is a duplicate, move to needsReviewPath
+	    # do not add userPath info to userDict
+	    #
+	    if pdfFile in dupFileName:
+		level0error1 = level0error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+		shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+		count_needsreview += 1
+		continue
+
+	    #
+	    # Add userPath info to userDict dictionary
 	    #
 	    if userPath not in userDict:
 	        userDict[userPath] = []
@@ -928,11 +967,12 @@ def level1SanityChecks():
     #
     # write out level1 errors to both error log and curator log
     #
+    level0error1 = '<B>1: same filename in more than one folder</B><BR><BR>\n\n' + level0error1 + '<BR>\n\n'
     level1error1 = '<B>1: not in PDF format</B><BR><BR>\n\n' + level1error1 + '<BR>\n\n'
     level1error2 = '<B>2: cannot extract/find DOI ID</B><BR><BR>\n\n' + level1error2 + '<BR>\n\n'
     level1error3 = '<B>3: duplicate published refs (same DOI ID)</B><BR><BR>\n\n' + level1error3 + '<BR>\n\n'
     level1error4 = '<B>4: cannot extract PMID</B><BR><BR>\n\n' + level1error4 + '<BR>\n\n'
-    allErrors = allErrors + level1errorStart + level1error1 + level1error2 + level1error3 + level1error4
+    allErrors = allErrors + level0errorStart + level0error1 + level1errorStart + level1error1 + level1error2 + level1error3 + level1error4
 
     return 0
 
