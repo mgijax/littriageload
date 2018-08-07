@@ -1833,7 +1833,7 @@ def postSanityCheck():
         if extractedText.find(title) < 0:
             title = postSanityCheck_replaceTitle2(r)
             if extractedText.find(title) < 0:
-                level7errors = level7errors + r['mgiID'] + '<B>\n'
+                level7errors = level7errors + r['mgiID'] + '<BR>\n'
 
     errorFile.write(level7errors)
     curatorFile.write(re.sub('<.*?>', '', level7errors))
