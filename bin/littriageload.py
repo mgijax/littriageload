@@ -127,6 +127,7 @@ count_userNLM = 0
 count_needsreview = 0
 count_duplicate = 0
 count_doipubmedadded = 0
+count_mismatchedtitles = 0
 
 diag = ''
 diagFile = ''
@@ -1520,6 +1521,7 @@ def processPDFs():
     allCounts = allCounts + 'Records with GOA information: ' + str(count_userGOA) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Duplicates: ' + str(count_duplicate) + '<BR>\n\n'
     allCounts = allCounts + 'Records with DOI or Pubmed Ids added: ' + str(count_doipubmedadded) + '<BR>\n\n'
+    allCounts = allCounts + 'Records ith Mismatched titles: ' + str(count_mismatchedtitles) + '<BR>\n\n'
     allCounts = allCounts + 'New Failed PDF\'s in Needs_Review folder: ' + str(count_needsreview) + '<BR><BR>\n\n'
 
     errorFile.write(allCounts)
@@ -1805,6 +1807,8 @@ def postSanityCheck_replaceExtracted(r):
 #
 def postSanityCheck():
 
+    global count_mismatchedtitles
+
     querydate = mgi_utils.date('%m/%d/%Y')
 
     level7errors = level7errorStart
@@ -1834,6 +1838,7 @@ def postSanityCheck():
             title = postSanityCheck_replaceTitle2(r)
             if extractedText.find(title) < 0:
                 level7errors = level7errors + r['mgiID'] + '<BR>\n'
+		count_mismatchedtitles += count_mismatchedtitles
 
     errorFile.write(level7errors)
     curatorFile.write(re.sub('<.*?>', '', level7errors))
