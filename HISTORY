@@ -1,3 +1,10 @@
+TAG: littriageload-6-0-12-?
+DATE: 08/16/2018
+STAFF: lec
+CHANGES: TR12929
+1) input directory archived fro 14 days
+2) added Mismatch counts to top of curator log
+
 TAG: littriageload-6-0-12-11
 DATE: 07/30/2018
 STAFF: lec
