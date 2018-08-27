@@ -259,25 +259,20 @@ level7errorStart = '**********<BR>\nLiterature Triage Level 7 Errors : Possible 
 countStart = '**********<BR>\nLiterature Triage Counts<BR>\n'
 
 level0error1 = '' 
-
 level1error1 = '' 
 level1error2 = ''
 level1error3 = ''
 level1error4 = ''
-
 level2error1 = '' 
 level2error2 = ''
 level2error3 = ''
 level2error4 = ''
-
 level3error1 = '' 
-
 level4error1 = ''
-
 level5error1 = ''
 level5error2 = ''
-
 level6error1 = ''
+level7error1 = ''
 
 #
 # Purpose: Initialization
@@ -1219,20 +1214,19 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 # Returns: 0
 #
 def processPDFs():
-    global allErrors, allCounts
-    global level2error1, level2error2, level2error3, level2error4
-    global level3error1
-    global level4error1
-    global level5error1, level5error2
-    global level6error1
     global accKey, refKey, statusKey, mgiKey, jnumKey
     global mvPDFtoMasterDir
-    global count_processPDFs, count_needsreview, count_userGOA
-    global count_userPDF, count_userNLM, count_duplicate
     global updateSQLAll
     global isReviewArticle
-    global doipubmedaddedlogFile, count_doipubmedadded
     global refKeyList
+    global count_processPDFs
+    global count_needsreview
+    global count_userGOA
+    global count_userPDF
+    global count_userNLM
+    global count_duplicate
+    global doipubmedaddedlogFile
+    global count_doipubmedadded
 
     #
     # assumes the level1SanityChecks have passed
@@ -1259,9 +1253,9 @@ def processPDFs():
 	extractedText = objByUser[key][0][1]
 	userPath = key[0]
 	objType = key[1]
-	objId = key[2]
-        pdfPath = os.path.join(inputDir, userPath)
-        needsReviewPath = os.path.join(needsReviewDir, userPath)
+	objId = key[2] 
+	pdfPath = os.path.join(inputDir, userPath) 
+	needsReviewPath = os.path.join(needsReviewDir, userPath)
 
 	# process pdf/supplement
 	if objType in (userPDF, userSupplement):
@@ -1488,49 +1482,6 @@ def processPDFs():
 	if rc == 4 or objType in (userNLM): 
 	    processNLMRefresh(key, pubmedRef)
 
-    #
-    # write out level2 errors to both error log and curator log
-    #
-    level2error1 = '<B>1: DOI ID maps to multiple pubmed IDs</B><BR><BR>\n\n' + level2error1 + '<BR>\n\n'
-    level2error2 = '<B>2: DOI ID not found in pubmed</B><BR><BR>\n\n' + level2error2 + '<BR>\n\n'
-    level2error3 = '<B>3: error getting medline record</B><BR><BR>\n\n' + level2error3 + '<BR>\n\n'
-    level2error4 = '<B>4: missing data from required field for DOI ID</B><BR><BR>\n\n' + level2error4 + '<BR>\n\n'
-    allErrors = allErrors + level2errorStart + level2error1 + level2error2 + level2error3 + level2error4
-
-    level3error1 = '<B>1: PubMed ID/DOI ID is associated with different MGI references</B><BR><BR>\n\n' + \
-    	level3error1 + '<BR>\n\n'
-    allErrors = allErrors + level3errorStart + level3error1
-
-    level4error1 = '<B>1: MGI ID in filename does not match reference in MGI</B><BR><BR>\n\n' + \
-    	level4error1 + '<BR>\n\n'
-    allErrors = allErrors + level4errorStart + level4error1
-
-    level5error1 = '<B>1: MGI ID not found or no pubmedID</B><BR><BR>\n\n' + level5error1 + '<BR>\n\n'
-    level5error2 = '<B>2: journal/title/doi ID do not match</B><BR><BR>\n\n' + level5error2 + '<BR>\n\n'
-    allErrors = allErrors + level5errorStart + level5error1 + level5error2
-
-    level6error1 = '<B>1: Medline publication type = erratum, correction, or retraction</B><BR><BR>\n\n' + level6error1 + '<BR>\n\n'
-    allErrors = allErrors + level6errorStart + level6error1
-
-    # copy all errors to error log, remove html and copy to curator log
-    allCounts = allCounts + countStart
-    allCounts = allCounts + 'Successful PDF\'s processed (All New_Newcurrent curator & PDF download directories): ' + str(count_processPDFs) + '<BR>\n\n'
-    allCounts = allCounts + 'Records with Supplemental data added: ' + str(count_userSupplement) + '<BR>\n\n'
-    allCounts = allCounts + 'Records with Updated PDF\'s: ' + str(count_userPDF) + '<BR>\n\n'
-    allCounts = allCounts + 'Records with Updated NLM information: ' + str(count_userNLM) + '<BR>\n\n'
-    allCounts = allCounts + 'Records with GOA information: ' + str(count_userGOA) + '<BR>\n\n'
-    allCounts = allCounts + 'Records with Duplicates: ' + str(count_duplicate) + '<BR>\n\n'
-    allCounts = allCounts + 'Records with DOI or Pubmed Ids added: ' + str(count_doipubmedadded) + '<BR>\n\n'
-    allCounts = allCounts + 'Records ith Mismatched titles: ' + str(count_mismatchedtitles) + '<BR>\n\n'
-    allCounts = allCounts + 'New Failed PDF\'s in Needs_Review folder: ' + str(count_needsreview) + '<BR><BR>\n\n'
-
-    errorFile.write(allCounts)
-    errorFile.write(allErrors)
-    curatorFile.write(re.sub('<.*?>', '', allCounts))
-    curatorFile.write(re.sub('<.*?>', '', allErrors))
-
-    diagFile.flush()
-
     return 0
 
 #
@@ -1725,6 +1676,74 @@ def processNLMRefresh(objKey, ref):
     return
 
 #
+# PurposeWrite errors
+# Returns: nothing
+#
+def writeErrors():
+    global allErrors, allCounts
+    global level2error1, level2error2, level2error3, level2error4
+    global level3error1
+    global level4error1
+    global level5error1, level5error2
+    global level6error1
+    global level7error1
+    global count_processPDFs
+    global count_needsreview
+    global count_userGOA
+    global count_userPDF
+    global count_userNLM
+    global count_duplicate
+    global count_doipubmedadded
+    global count_mismatchedtitles
+
+    #
+    # write out level2 errors to both error log and curator log
+    #
+    level2error1 = '<B>1: DOI ID maps to multiple pubmed IDs</B><BR><BR>\n\n' + level2error1 + '<BR>\n\n'
+    level2error2 = '<B>2: DOI ID not found in pubmed</B><BR><BR>\n\n' + level2error2 + '<BR>\n\n'
+    level2error3 = '<B>3: error getting medline record</B><BR><BR>\n\n' + level2error3 + '<BR>\n\n'
+    level2error4 = '<B>4: missing data from required field for DOI ID</B><BR><BR>\n\n' + level2error4 + '<BR>\n\n'
+    allErrors = allErrors + level2errorStart + level2error1 + level2error2 + level2error3 + level2error4
+
+    level3error1 = '<B>1: PubMed ID/DOI ID is associated with different MGI references</B><BR><BR>\n\n' + \
+    	level3error1 + '<BR>\n\n'
+    allErrors = allErrors + level3errorStart + level3error1
+
+    level4error1 = '<B>1: MGI ID in filename does not match reference in MGI</B><BR><BR>\n\n' + \
+    	level4error1 + '<BR>\n\n'
+    allErrors = allErrors + level4errorStart + level4error1
+
+    level5error1 = '<B>1: MGI ID not found or no pubmedID</B><BR><BR>\n\n' + level5error1 + '<BR>\n\n'
+    level5error2 = '<B>2: journal/title/doi ID do not match</B><BR><BR>\n\n' + level5error2 + '<BR>\n\n'
+    allErrors = allErrors + level5errorStart + level5error1 + level5error2
+
+    level6error1 = '<B>1: Medline publication type = erratum, correction, or retraction</B><BR><BR>\n\n' + level6error1 + '<BR>\n\n'
+    allErrors = allErrors + level6errorStart + level6error1
+
+    allErrors = allErrors + level7errorStart + level7error1
+
+    # copy all errors to error log, remove html and copy to curator log
+    allCounts = allCounts + countStart
+    allCounts = allCounts + 'Successful PDF\'s processed (All New_Newcurrent curator & PDF download directories): ' + str(count_processPDFs) + '<BR>\n\n'
+    allCounts = allCounts + 'Records with Supplemental data added: ' + str(count_userSupplement) + '<BR>\n\n'
+    allCounts = allCounts + 'Records with Updated PDF\'s: ' + str(count_userPDF) + '<BR>\n\n'
+    allCounts = allCounts + 'Records with Updated NLM information: ' + str(count_userNLM) + '<BR>\n\n'
+    allCounts = allCounts + 'Records with GOA information: ' + str(count_userGOA) + '<BR>\n\n'
+    allCounts = allCounts + 'Records with Duplicates: ' + str(count_duplicate) + '<BR>\n\n'
+    allCounts = allCounts + 'Records with DOI or Pubmed Ids added: ' + str(count_doipubmedadded) + '<BR>\n\n'
+    allCounts = allCounts + 'Records with Mismatched titles: ' + str(count_mismatchedtitles) + '<BR>\n\n'
+    allCounts = allCounts + 'New Failed PDF\'s in Needs_Review folder: ' + str(count_needsreview) + '<BR><BR>\n\n'
+
+    errorFile.write(allCounts)
+    errorFile.write(allErrors)
+    curatorFile.write(re.sub('<.*?>', '', allCounts))
+    curatorFile.write(re.sub('<.*?>', '', allErrors))
+
+    diagFile.flush()
+
+    return 0
+
+#
 # Purpose: Post-Sanity Check tasks
 # Returns: title or extractedText
 #
@@ -1807,11 +1826,10 @@ def postSanityCheck_replaceExtracted(r):
 #
 def postSanityCheck():
 
+    global level7error1
     global count_mismatchedtitles
 
     querydate = mgi_utils.date('%m/%d/%Y')
-
-    level7errors = level7errorStart
 
     cmd = '''
     select a.accID as mgiID,
@@ -1837,11 +1855,9 @@ def postSanityCheck():
         if extractedText.find(title) < 0:
             title = postSanityCheck_replaceTitle2(r)
             if extractedText.find(title) < 0:
-                level7errors = level7errors + r['mgiID'] + '<BR>\n'
-		count_mismatchedtitles += count_mismatchedtitles
+                level7error1 = level7error1 + r['mgiID'] + '<BR>\n'
+		count_mismatchedtitles += 1
 
-    errorFile.write(level7errors)
-    curatorFile.write(re.sub('<.*?>', '', level7errors))
     return 0
 
 #
@@ -1874,6 +1890,9 @@ if bcpFiles() != 0:
 if postSanityCheck() != 0:
     sys.exit(1)
 
+if writeErrors() != 0:
+    sys.exit(1)
+    
 closeFiles()
 sys.exit(0)
 
