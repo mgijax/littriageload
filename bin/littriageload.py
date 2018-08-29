@@ -477,10 +477,6 @@ def closeFiles():
 
     if diagFile:
         diagFile.close()
-    if errorFile:
-        errorFile.close()
-    if curatorFile:
-        curatorFile.close()
     if sqllogFile:
         sqllogFile.close()
     if duplicatelogFile:
@@ -566,7 +562,7 @@ def bcpFiles():
 
     # if only running sanity checks, return
     if runSanityCheckOnly == 'True':
-        return
+        return 0
 
     #
     # delete of BIB_Workflow_Data records
@@ -585,6 +581,7 @@ def bcpFiles():
             diagFile.write('bcpFiles(): failed: delete sql commands\n')
             sqllogFile.write('bcpFiles(): failed: delete sql commands\n')
 	    return 0
+
     if len(updateSQLAll) > 0:
         try:
             db.sql(updateSQLAll, None)
@@ -1482,6 +1479,7 @@ def processPDFs():
 	if rc == 4 or objType in (userNLM): 
 	    processNLMRefresh(key, pubmedRef)
 
+    diagFile.flush()
     return 0
 
 #
@@ -1568,6 +1566,7 @@ def processExtractedText(objKey):
     mvPDFtoMasterDir[pdfPath + '/' + pdfFile] = []
     mvPDFtoMasterDir[pdfPath + '/' + pdfFile].append((newPath,str(mgiKey) + '.pdf'))
 
+    diagFile.flush()
     return
 
 #
@@ -1673,10 +1672,11 @@ def processNLMRefresh(objKey, ref):
     #
     processExtractedText(objKey)
 
+    diagFile.flush()
     return
 
 #
-# PurposeWrite errors
+# Purpose: write errors to error log
 # Returns: nothing
 #
 def writeErrors():
@@ -1739,7 +1739,10 @@ def writeErrors():
     curatorFile.write(re.sub('<.*?>', '', allCounts))
     curatorFile.write(re.sub('<.*?>', '', allErrors))
 
-    diagFile.flush()
+    if errorFile:
+        errorFile.close()
+    if curatorFile:
+        curatorFile.close()
 
     return 0
 
