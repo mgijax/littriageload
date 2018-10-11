@@ -118,6 +118,7 @@ userSupplement = 'littriage_create_supplement'
 userPDF = 'littriage_update_pdf'
 userGOA = 'littriage_goa'
 userNLM = 'littriage_NLM_refresh'
+userDiscard = 'littriage_discard'
 
 count_processPDFs = 0
 count_userSupplement = 0
@@ -493,6 +494,10 @@ def closeFiles():
         dataFile.close()
     if accFile:
         accFile.close()
+    if errorFile:
+        errorFile.close()
+    if curatorFile:
+        curatorFile.close()
 
     return 0
 
@@ -953,7 +958,12 @@ def level1SanityChecks():
 		    continue
 
 	        # store by doiid
-		if (userPath, objDOI, doiid) not in objByUser:
+
+		if userPath in (userDiscard):
+	           if (userPath, userPath, doiid) not in objByUser:
+	              objByUser[(userPath, userPath, doiid)] = []
+	              objByUser[(userPath, userPath, doiid)].append((pdfFile, pdftext))
+		elif (userPath, objDOI, doiid) not in objByUser:
 	            objByUser[(userPath, objDOI, doiid)] = []
 	            objByUser[(userPath, objDOI, doiid)].append((pdfFile, pdftext))
 
@@ -966,6 +976,7 @@ def level1SanityChecks():
     level1error3 = '<B>3: duplicate published refs (same DOI ID)</B><BR><BR>\n\n' + level1error3 + '<BR>\n\n'
     level1error4 = '<B>4: cannot extract PMID</B><BR><BR>\n\n' + level1error4 + '<BR>\n\n'
     allErrors = allErrors + level0errorStart + level0error1 + level1errorStart + level1error1 + level1error2 + level1error3 + level1error4
+
 
     return 0
 
@@ -1007,7 +1018,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	        linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
             return 1
 
-    if objType == objDOI:
+    if objType in (objDOI, userDiscard):
         # mapping of objId to pubmedID, return list of references
         try:
             mapping = pma.getReferences([objId])
@@ -1214,6 +1225,7 @@ def processPDFs():
     global accKey, refKey, statusKey, mgiKey, jnumKey
     global mvPDFtoMasterDir
     global updateSQLAll
+    global isDiscard
     global isReviewArticle
     global refKeyList
     global count_processPDFs
@@ -1241,6 +1253,7 @@ def processPDFs():
     # objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('user name', userGOA, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('user name', userDiscard, 'mgiid') : ('pdffile', 'pdftext')}
 
     for key in objByUser:
 
@@ -1363,6 +1376,12 @@ def processPDFs():
 	        isReviewArticle = 1
 	    else:
 	        isReviewArticle = 0
+
+	    # TR12958/userDiscard folder
+	    if objType in (userDiscard):
+	        isDiscard = 1
+	    else:
+	        isDiscard = 0
 
 	    #
 	    # if same pdf is placed in userSupplement,userPDF,userGOA,userNLM
@@ -1893,6 +1912,7 @@ if bcpFiles() != 0:
 if postSanityCheck() != 0:
     sys.exit(1)
 
+#print 'writeErrors'
 if writeErrors() != 0:
     sys.exit(1)
     

@@ -80,6 +80,7 @@ fi
 cd ${PUBLISHEDDIR}
 for i in *
 do
+ls -l $i
 mkdir -p ${INPUTDIR}/${i}
 mkdir -p ${NEEDSREVIEWTRIAGEDIR}/${i}
 done
