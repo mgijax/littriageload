@@ -1455,7 +1455,7 @@ def processPDFs():
 	    #
 	    # doiId only
 	    #
-	    if objType == objDOI:
+            if objType in (objDOI, userDiscard):
 	    	accID = objId
 	    	prefixPart = accID
 	    	numericPart = ''
