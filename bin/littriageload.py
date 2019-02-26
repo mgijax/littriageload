@@ -168,6 +168,7 @@ dataTable = 'BIB_Workflow_Data'
 
 accKey = 0
 refKey = 0
+dataKey = 0
 statusKey = 0
 mgiKey = 0
 jnumKey = 0
@@ -187,6 +188,10 @@ isCurrent = 1
 hasPDF = 1
 isPrivate = 0
 isPreferred = 1
+
+# bib_workflow_data._extractedtext_key values
+#bodySectionKey = 48804490
+bodySectionKey = 48734895
 
 # bib_workflow_data._supplemental_key values
 suppfoundKey = 31576675	        # Db found supplement
@@ -506,10 +511,13 @@ def closeFiles():
 # Returns: 0
 #
 def setPrimaryKeys():
-    global accKey, refKey, statusKey, mgiKey, jnumKey
+    global accKey, refKey, dataKey, statusKey, mgiKey, jnumKey
 
     results = db.sql('select max(_Refs_key) + 1 as maxKey from BIB_Refs', 'auto')
     refKey = results[0]['maxKey']
+
+    results = db.sql(''' select nextval('bib_workflow_data_seq') as maxKey ''', 'auto')
+    dataKey = results[0]['maxKey']
 
     results = db.sql(''' select nextval('bib_workflow_status_seq') as maxKey ''', 'auto')
     statusKey = results[0]['maxKey']
@@ -656,6 +664,10 @@ def bcpFiles():
 
     # update the max accession ID value
     db.sql('select * from ACC_setMax (%d)' % (count_processPDFs), None)
+    db.commit()
+
+    # update bib_workflow_data serialization
+    db.sql(''' select setval('bib_workflow_data_seq', (select max(_Assoc_key) from BIB_Workflow_Data)) ''', None)
     db.commit()
 
     # update bib_workflow_status serialization
@@ -1236,6 +1248,7 @@ def processPDFs():
     global count_duplicate
     global doipubmedaddedlogFile
     global count_doipubmedadded
+    global dataKey
 
     #
     # assumes the level1SanityChecks have passed
@@ -1426,10 +1439,15 @@ def processPDFs():
                 statusKey += 1
 
 	    #
-	    # bib_workflow_data
+	    # bib_workflow_data/body
 	    suppKey = setSupplemental(userPath, extractedText, pubmedRef.getJournal())
-	    dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	% (refKey, hasPDF, suppKey, extractedText, userKey, userKey, loaddate, loaddate))
+	    dataFile.write('%s|%s|%s|%s|%s||%s|%s|%s|%s|%s\n' \
+	    	% (dataKey, refKey, hasPDF, suppKey, bodySectionKey, extractedText, userKey, userKey, loaddate, loaddate))
+	    dataKey += 1
+
+	    #####
+	    # add other extracted text sections here
+	    #####
 
 	    # MGI:xxxx
 	    #
@@ -1519,6 +1537,7 @@ def processExtractedText(objKey):
     global count_userPDF
     global count_userNLM
     global existingRefKeyList
+    global dataKey
 
     diagFile.write('\nprocessExtractedText()\n')
 
@@ -1572,8 +1591,9 @@ def processExtractedText(objKey):
 	dataSuppKey = suppKey
 	count_userNLM += 1
 
-    dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	    % (existingRefKey, hasPDF, dataSuppKey, extractedText, userKey, userKey, loaddate, loaddate))
+    dataFile.write('%s|%s|%s|%s|%s||%s|%s|%s|%s|%s\n' \
+	    	% (dataKey, existingRefKey, hasPDF, dataSuppKey, bodySectionKey, extractedText, userKey, userKey, loaddate, loaddate))
+    dataKey += 1
 
     deleteSQLAll += 'delete from BIB_Workflow_Data where _Refs_key = %s;\n' % (existingRefKey)
 
