@@ -102,6 +102,7 @@ import loadlib
 import PdfParser
 import PubMedAgent
 import Pdfpath
+#import refSectionLib
 
 #db.setTrace(True)
 
@@ -112,6 +113,8 @@ runSanityCheckOnly = False
 litparser = ''
 # for setting the PubMedAgent
 pma = ''
+# for using extracted text section splitter
+textSplitter = ''
 
 # special processing for specific cases
 userSupplement = 'littriage_create_supplement'
@@ -190,8 +193,7 @@ isPrivate = 0
 isPreferred = 1
 
 # bib_workflow_data._extractedtext_key values
-#bodySectionKey = 48804490
-bodySectionKey = 48734895
+bodySectionKey = 48804490
 
 # bib_workflow_data._supplemental_key values
 suppfoundKey = 31576675	        # Db found supplement
@@ -301,6 +303,7 @@ def initialize():
     global accFileName, refFileName, statusFileName, dataFileName
     global accFile, refFile, statusFile, dataFile
     global pma
+    global textSplitter
     global workflowGroupList
     global suppJournalList
     
@@ -451,7 +454,12 @@ def initialize():
     try:
         pma = PubMedAgent.PubMedAgentMedline()
     except:
-        exit(1, 'PubMedAgent.PubMedAgentMedline() needs review')
+        exit(1, 'PubMedAgent.PubMedAgentMedline() could not be found')
+
+    try:
+    	textSplitter = refSectionLib.RefSectionRemover()
+    except:
+        exit(1, 'refSectionLib.RefSectionRemover() could not be found')
 
     results = db.sql('select _Term_key from VOC_Term where _Vocab_key = 127', 'auto')
     for r in results:
@@ -776,11 +784,11 @@ def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract, vol, issue,
 #
 def setSupplemental(userPath, extractedText, journal):
 
-    if extractedText.lower().find('supplemental') > 0 \
-        or extractedText.lower().find('supplementary') > 0 \
-        or extractedText.lower().find('supplement ') > 0 \
-        or extractedText.lower().find('additional file') > 0 \
-        or extractedText.lower().find('appendix') > 0:
+    if extractedText.lower().find('supplemental') >= 0 \
+        or extractedText.lower().find('supplementary') >= 0 \
+        or extractedText.lower().find('supplement ') >= 0 \
+        or extractedText.lower().find('additional file') >= 0 \
+        or extractedText.lower().find('appendix') >= 0:
 
         if journal in (suppJournalList):
             return suppattachedKey # Supplemental attached
@@ -830,7 +838,7 @@ def level1SanityChecks():
 
 	    origFile = pdfFile
 
-	    if pdfFile.find(' ') > 0 or pdfFile.find('.PDF') > 0:
+	    if pdfFile.find(' ') >= 0 or pdfFile.find('.PDF') >= 0:
                 pdfFile = pdfFile.replace(' ', '')
                 pdfFile = pdfFile.replace('.PDF', '.pdf')
 		shutil.move(os.path.join(pdfPath, origFile), os.path.join(pdfPath, pdfFile))
@@ -1280,6 +1288,23 @@ def processPDFs():
 	pdfPath = os.path.join(inputDir, userPath) 
 	needsReviewPath = os.path.join(needsReviewDir, userPath)
 
+	isDiscard = 0
+
+	#
+	# run splitter
+	# bodyText = textSplitter.getBody
+	# refText = textSplitter.getReference
+	# supplText = textSplitter.getSupplimental
+	# methodsText = textSplitter.getStarMethods
+	#
+        #if refText.lower().find('mice') >= 0
+        #	and bodyText.lower().find('mice') < 0
+        #	and supplText.lower().find('mice') < 0
+        #	and methodsText.lower().find('mice') < 0 then
+	#	
+	#	isDisard = 1
+	#
+
 	# process pdf/supplement
 	if objType in (userPDF, userSupplement):
 	    processExtractedText(key)
@@ -1393,8 +1418,8 @@ def processPDFs():
 	    # TR12958/userDiscard folder
 	    if objType in (userDiscard):
 	        isDiscard = 1
-	    else:
-	        isDiscard = 0
+	    #else:
+	    #    isDiscard = 0
 
 	    #
 	    # if same pdf is placed in userSupplement,userPDF,userGOA,userNLM
