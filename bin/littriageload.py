@@ -192,15 +192,17 @@ hasPDF = 1
 isPrivate = 0
 isPreferred = 1
 
+# text check for 'mice'
+checkMice = 'mice'
+
 # bib_workflow_data._extractedtext_key values
 bodySectionKey = 48804490
 
 # bib_workflow_data._supplemental_key values
-suppfoundKey = 31576675	        # Db found supplement
-suppnotfoundKey = 31576676      # Db supplement not found
-suppattachedKey = 34026997	# Supplemental attached
-# supplemental journal list
-suppJournalList = []
+suppFoundKey = 31576675	        # Db found supplement
+suppNotFoundKey = 31576676      # Db supplement not found
+suppAttachedKey = 34026997	# Supplemental attached
+suppNotApplKey = 48874093	# Not Applicable
 
 # list of workflow groups
 workflowGroupList = []
@@ -305,7 +307,6 @@ def initialize():
     global pma
     global textSplitter
     global workflowGroupList
-    global suppJournalList
     
     db.set_sqlLogFunction(db.sqlLogAll)
 
@@ -456,18 +457,14 @@ def initialize():
     except:
         exit(1, 'PubMedAgent.PubMedAgentMedline() could not be found')
 
-    try:
-    	textSplitter = refSectionLib.RefSectionRemover()
-    except:
-        exit(1, 'refSectionLib.RefSectionRemover() could not be found')
+    #try:
+    #	textSplitter = refSectionLib.RefSectionRemover()
+    #except:
+    #    exit(1, 'refSectionLib.RefSectionRemover() could not be found')
 
     results = db.sql('select _Term_key from VOC_Term where _Vocab_key = 127', 'auto')
     for r in results:
         workflowGroupList.append(r['_Term_key'])
-
-    results = db.sql('select term from VOC_Term where _Vocab_key = 134', 'auto')
-    for r in results:
-        suppJournalList.append(r['term'])
 
     errorFile.write('\n<BR>Start Date/Time: %s\n<BR>' % (mgi_utils.date()))
 
@@ -778,24 +775,24 @@ def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract, vol, issue,
     return authors, primaryAuthor, title, abstract, vol, issue, pgs
 
 #
-# Purpose: Set the supplemental key based on extractedText or journal
+# Purpose: Set the supplemental key based on extractedText
+#
+# at present, this is only called for new references only
 #
 # Return: supplemental key
 #
-def setSupplemental(userPath, extractedText, journal):
+def setSupplemental(userPath, extractedText):
 
     if extractedText.lower().find('supplemental') >= 0 \
         or extractedText.lower().find('supplementary') >= 0 \
         or extractedText.lower().find('supplement ') >= 0 \
         or extractedText.lower().find('additional file') >= 0 \
-        or extractedText.lower().find('appendix') >= 0:
+        or extractedText.lower().find('appendix') >= 0 \
+        or extractedText.lower().find('supporting information') >= 0:
 
-        if journal in (suppJournalList):
-            return suppattachedKey # Supplemental attached
-        else:
-            return suppfoundKey # Db found supplement
+        return suppFoundKey # Db found supplement
     else:
-        return suppnotfoundKey # Db supplement not found
+        return suppNotFoundKey # Db supplement not found
 
 #
 # Purpose: Level 1 Sanity Checks : parse DOI ID from PDF files
@@ -1297,13 +1294,23 @@ def processPDFs():
 	# supplText = textSplitter.getSupplimental
 	# methodsText = textSplitter.getStarMethods
 	#
-        #if refText.lower().find('mice') >= 0
-        #	and bodyText.lower().find('mice') < 0
-        #	and supplText.lower().find('mice') < 0
-        #	and methodsText.lower().find('mice') < 0 then
-	#	
-	#	isDisard = 1
+
 	#
+	# only interested in running checkMice for curator folders, etc.
+	# if refText is the only section that checkMice == true, then set isDiscard = 1
+	#
+        #if objectType not in (userSupplement, userPDF, userGOA, userNLM, userDiscard):
+        #    if refText.lower().find(checkMice) >= 0
+        #	    and bodyText.lower().find('checkMice) < 0
+        #	    and supplText.lower().find('checkMice) < 0
+        #	    and methodsText.lower().find('checkMice) < 0 then
+	#	
+	#	    isDiscard = 1
+	#
+
+        if objType not in (userSupplement, userPDF, userGOA, userNLM, userDiscard):
+	    if extractedText.lower().find(checkMice) < 0:
+	        isDiscard = 1
 
 	# process pdf/supplement
 	if objType in (userPDF, userSupplement):
@@ -1465,10 +1472,16 @@ def processPDFs():
 
 	    #
 	    # bib_workflow_data/body
-	    suppKey = setSupplemental(userPath, extractedText, pubmedRef.getJournal())
+	    suppKey = setSupplemental(userPath, extractedText)
 	    dataFile.write('%s|%s|%s|%s|%s||%s|%s|%s|%s|%s\n' \
 	    	% (dataKey, refKey, hasPDF, suppKey, bodySectionKey, extractedText, userKey, userKey, loaddate, loaddate))
 	    dataKey += 1
+    	    # for any other section...i.e. not 'body'
+    	    #hasPDF = 0
+    	    #suppKey = suppNotApplKey
+	    #dataFile.write('%s|%s|%s|%s|%s||%s|%s|%s|%s|%s\n' \
+	    	#% (dataKey, refKey, hasPDF, suppKey, bodySectionKey, extractedText, userKey, userKey, loaddate, loaddate))
+    	    #dataKey += 1
 
 	    #####
 	    # add other extracted text sections here
@@ -1607,7 +1620,7 @@ def processExtractedText(objKey):
     #    return
 
     if objType == userSupplement:
-	dataSuppKey = 34026997
+	dataSuppKey = suppAttachedKey
 	count_userSupplement += 1
     elif objType == userPDF:
 	dataSuppKey = suppKey
@@ -1616,9 +1629,18 @@ def processExtractedText(objKey):
 	dataSuppKey = suppKey
 	count_userNLM += 1
 
+    # body
     dataFile.write('%s|%s|%s|%s|%s||%s|%s|%s|%s|%s\n' \
 	    	% (dataKey, existingRefKey, hasPDF, dataSuppKey, bodySectionKey, extractedText, userKey, userKey, loaddate, loaddate))
     dataKey += 1
+
+    # for any other section...i.e. not 'body'
+    #hasPDF = 0
+    #dataSuppKey = suppNotApplKey
+    #dataFile.write('%s|%s|%s|%s|%s||%s|%s|%s|%s|%s\n' \
+	    	#% (dataKey, existingRefKey, hasPDF, dataSuppKey, bodySectionKey, extractedText, userKey, userKey, loaddate, loaddate))
+    #dataKey += 1
+
 
     deleteSQLAll += 'delete from BIB_Workflow_Data where _Refs_key = %s;\n' % (existingRefKey)
 
