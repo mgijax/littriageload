@@ -102,6 +102,7 @@ import loadlib
 import PdfParser
 import PubMedAgent
 import Pdfpath
+#import refSectionLib
 
 #db.setTrace(True)
 
@@ -112,6 +113,8 @@ runSanityCheckOnly = False
 litparser = ''
 # for setting the PubMedAgent
 pma = ''
+# for using extracted text section splitter
+textSplitter = ''
 
 # special processing for specific cases
 userSupplement = 'littriage_create_supplement'
@@ -168,6 +171,7 @@ dataTable = 'BIB_Workflow_Data'
 
 accKey = 0
 refKey = 0
+dataKey = 0
 statusKey = 0
 mgiKey = 0
 jnumKey = 0
@@ -187,6 +191,12 @@ isCurrent = 1
 hasPDF = 1
 isPrivate = 0
 isPreferred = 1
+
+# text check for 'mice'
+checkMice = 'mice'
+
+# bib_workflow_data._extractedtext_key values
+bodySectionKey = 48804490
 
 # bib_workflow_data._supplemental_key values
 suppfoundKey = 31576675	        # Db found supplement
@@ -296,6 +306,7 @@ def initialize():
     global accFileName, refFileName, statusFileName, dataFileName
     global accFile, refFile, statusFile, dataFile
     global pma
+    global textSplitter
     global workflowGroupList
     global suppJournalList
     
@@ -446,7 +457,12 @@ def initialize():
     try:
         pma = PubMedAgent.PubMedAgentMedline()
     except:
-        exit(1, 'PubMedAgent.PubMedAgentMedline() needs review')
+        exit(1, 'PubMedAgent.PubMedAgentMedline() could not be found')
+
+    #try:
+    #	textSplitter = refSectionLib.RefSectionRemover()
+    #except:
+    #    exit(1, 'refSectionLib.RefSectionRemover() could not be found')
 
     results = db.sql('select _Term_key from VOC_Term where _Vocab_key = 127', 'auto')
     for r in results:
@@ -506,10 +522,13 @@ def closeFiles():
 # Returns: 0
 #
 def setPrimaryKeys():
-    global accKey, refKey, statusKey, mgiKey, jnumKey
+    global accKey, refKey, dataKey, statusKey, mgiKey, jnumKey
 
     results = db.sql('select max(_Refs_key) + 1 as maxKey from BIB_Refs', 'auto')
     refKey = results[0]['maxKey']
+
+    results = db.sql(''' select nextval('bib_workflow_data_seq') as maxKey ''', 'auto')
+    dataKey = results[0]['maxKey']
 
     results = db.sql(''' select nextval('bib_workflow_status_seq') as maxKey ''', 'auto')
     statusKey = results[0]['maxKey']
@@ -658,6 +677,10 @@ def bcpFiles():
     db.sql('select * from ACC_setMax (%d)' % (count_processPDFs), None)
     db.commit()
 
+    # update bib_workflow_data serialization
+    db.sql(''' select setval('bib_workflow_data_seq', (select max(_Assoc_key) from BIB_Workflow_Data)) ''', None)
+    db.commit()
+
     # update bib_workflow_status serialization
     db.sql(''' select setval('bib_workflow_status_seq', (select max(_Assoc_key) from BIB_Workflow_Status)) ''', None)
     db.commit()
@@ -764,12 +787,11 @@ def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract, vol, issue,
 #
 def setSupplemental(userPath, extractedText, journal):
 
-    if extractedText.lower().find('supplemental') > 0 \
-        or extractedText.lower().find('supplementary') > 0 \
-        or extractedText.lower().find('supplement ') > 0 \
-        or extractedText.lower().find('additional file') > 0 \
-        or extractedText.lower().find('appendix') > 0 \
-	or extractedText.lower().find('supporting information') >= 0:
+    if extractedText.lower().find('supplemental') >= 0 \
+        or extractedText.lower().find('supplementary') >= 0 \
+        or extractedText.lower().find('supplement ') >= 0 \
+        or extractedText.lower().find('additional file') >= 0 \
+        or extractedText.lower().find('appendix') >= 0:
 
         if journal in (suppJournalList):
             return suppattachedKey # Supplemental attached
@@ -819,7 +841,7 @@ def level1SanityChecks():
 
 	    origFile = pdfFile
 
-	    if pdfFile.find(' ') > 0 or pdfFile.find('.PDF') > 0:
+	    if pdfFile.find(' ') >= 0 or pdfFile.find('.PDF') >= 0:
                 pdfFile = pdfFile.replace(' ', '')
                 pdfFile = pdfFile.replace('.PDF', '.pdf')
 		shutil.move(os.path.join(pdfPath, origFile), os.path.join(pdfPath, pdfFile))
@@ -1237,6 +1259,7 @@ def processPDFs():
     global count_duplicate
     global doipubmedaddedlogFile
     global count_doipubmedadded
+    global dataKey
 
     #
     # assumes the level1SanityChecks have passed
@@ -1267,6 +1290,26 @@ def processPDFs():
 	objId = key[2] 
 	pdfPath = os.path.join(inputDir, userPath) 
 	needsReviewPath = os.path.join(needsReviewDir, userPath)
+
+	isDiscard = 0
+
+	#
+	# run splitter
+	# bodyText = textSplitter.getBody
+	# refText = textSplitter.getReference
+	# supplText = textSplitter.getSupplimental
+	# methodsText = textSplitter.getStarMethods
+	#
+        #if refText.lower().find(checkMice) >= 0
+        #	and bodyText.lower().find('checkMice) < 0
+        #	and supplText.lower().find('checkMice) < 0
+        #	and methodsText.lower().find('checkMice) < 0 then
+	#	
+	#	isDisard = 1
+	#
+        if objectType not in (userSupplement, userPDF, userGOA, userNLM, userDiscard):
+	    if extractedText.lower().find(checkMice) < 0:
+	        isDiscard = 1
 
 	# process pdf/supplement
 	if objType in (userPDF, userSupplement):
@@ -1381,8 +1424,8 @@ def processPDFs():
 	    # TR12958/userDiscard folder
 	    if objType in (userDiscard):
 	        isDiscard = 1
-	    else:
-	        isDiscard = 0
+	    #else:
+	    #    isDiscard = 0
 
 	    #
 	    # if same pdf is placed in userSupplement,userPDF,userGOA,userNLM
@@ -1427,10 +1470,15 @@ def processPDFs():
                 statusKey += 1
 
 	    #
-	    # bib_workflow_data
+	    # bib_workflow_data/body
 	    suppKey = setSupplemental(userPath, extractedText, pubmedRef.getJournal())
-	    dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	% (refKey, hasPDF, suppKey, extractedText, userKey, userKey, loaddate, loaddate))
+	    dataFile.write('%s|%s|%s|%s|%s||%s|%s|%s|%s|%s\n' \
+	    	% (dataKey, refKey, hasPDF, suppKey, bodySectionKey, extractedText, userKey, userKey, loaddate, loaddate))
+	    dataKey += 1
+
+	    #####
+	    # add other extracted text sections here
+	    #####
 
 	    # MGI:xxxx
 	    #
@@ -1520,6 +1568,7 @@ def processExtractedText(objKey):
     global count_userPDF
     global count_userNLM
     global existingRefKeyList
+    global dataKey
 
     diagFile.write('\nprocessExtractedText()\n')
 
@@ -1564,7 +1613,7 @@ def processExtractedText(objKey):
     #    return
 
     if objType == userSupplement:
-	dataSuppKey = 34026997
+	dataSuppKey = suppattachedKey
 	count_userSupplement += 1
     elif objType == userPDF:
 	dataSuppKey = suppKey
@@ -1573,8 +1622,9 @@ def processExtractedText(objKey):
 	dataSuppKey = suppKey
 	count_userNLM += 1
 
-    dataFile.write('%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	    % (existingRefKey, hasPDF, dataSuppKey, extractedText, userKey, userKey, loaddate, loaddate))
+    dataFile.write('%s|%s|%s|%s|%s||%s|%s|%s|%s|%s\n' \
+	    	% (dataKey, existingRefKey, hasPDF, dataSuppKey, bodySectionKey, extractedText, userKey, userKey, loaddate, loaddate))
+    dataKey += 1
 
     deleteSQLAll += 'delete from BIB_Workflow_Data where _Refs_key = %s;\n' % (existingRefKey)
 
