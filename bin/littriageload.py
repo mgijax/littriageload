@@ -102,7 +102,7 @@ import loadlib
 import PdfParser
 import PubMedAgent
 import Pdfpath
-#import refSectionLib
+import extractedTextSplitter
 
 #db.setTrace(True)
 
@@ -163,15 +163,19 @@ statusFile = ''
 statusFileName = ''
 dataFile = ''
 dataFileName = ''
+tagFile = ''
+tagFileName = ''
 
 accTable = 'ACC_Accession'
 refTable = 'BIB_Refs'
 statusTable = 'BIB_Workflow_Status'
 dataTable = 'BIB_Workflow_Data'
+tagTable = 'BIB_Workflow_Tag'
 
 accKey = 0
 refKey = 0
 dataKey = 0
+tagKey = 0
 statusKey = 0
 mgiKey = 0
 jnumKey = 0
@@ -185,6 +189,7 @@ mgiPrefix = 'MGI:'
 referenceTypeKey = 31576687 	# Peer Reviewed Article
 notRoutedKey = 31576669		# Not Routed
 fullCodedKey = 31576674		# Full-coded
+miceInRefOnlyKey = 49170000	# MGI:Mice in reference only
 isReviewArticle = 0
 isDiscard = 0
 isCurrent = 1
@@ -197,6 +202,10 @@ checkMice = 'mice'
 
 # bib_workflow_data._extractedtext_key values
 bodySectionKey = 48804490
+refSectionKey = 48804491
+suppSectionKey = 48804492
+starMethodSectionKey = 48804493
+figureSectionKey = 48804494
 
 # bib_workflow_data._supplemental_key values
 suppFoundKey = 31576675	        # Db found supplement
@@ -207,7 +216,10 @@ suppNotApplKey = 48874093	# Not Applicable
 # list of workflow groups
 workflowGroupList = []
 
-# lif of refFile keys for checking duplicates
+# list of supplemental words
+suppWordList = []
+
+# list of refFile keys for checking duplicates
 refFileList = []
 
 # moving input/pdfs to master dir/pdfs
@@ -227,13 +239,13 @@ userDict = {}
 #
 # objByUser will process 'doi' or 'pm' objects
 #
-# objByUser = {('user name', 'object type', 'object id') : ('pdffile', 'pdftext')}
-# objByUser = {('user name', 'doi', 'doiid') : ('pdffile', 'pdftext')}
-# objByUser = {('user name', 'pm', 'pmid') : ('pdffile', 'pdftext')}
-# objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
-# objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
-# objByUser = {('user name', userGOA, 'mgiid') : ('pdffile', 'pdftext')}
-# objByUser = {('user name', userNLM, 'mgiid') : ('pdffile', 'pdftext')}
+# objByUser = {('user name', 'object type', 'object id') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('user name', 'doi', 'doiid') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('user name', 'pm', 'pmid') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('user name', userGOA, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('user name', userNLM, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
 # {('cms, 'doi', '10.112xxx'): ['10.112xxx.pdf, 'text'']}
 # {('cms, 'pm', 'PMID_14440025'): ['PDF_14440025.pdf', 'text'']}
 objByUser = {}
@@ -279,6 +291,7 @@ level2error3 = ''
 level2error4 = ''
 level3error1 = '' 
 level4error1 = ''
+level4error2 = ''
 level5error1 = ''
 level5error2 = ''
 level6error1 = ''
@@ -302,11 +315,12 @@ def initialize():
     global inputDir, outputDir
     global masterDir, needsReviewDir
     global bcpScript
-    global accFileName, refFileName, statusFileName, dataFileName
-    global accFile, refFile, statusFile, dataFile
+    global accFileName, refFileName, statusFileName, dataFileName, tagFileName
+    global accFile, refFile, statusFile, dataFile, tagFile
     global pma
     global textSplitter
     global workflowGroupList
+    global suppWordList
     
     db.set_sqlLogFunction(db.sqlLogAll)
 
@@ -427,6 +441,11 @@ def initialize():
         exit(1, 'Cannot create file: ' + outputDir + '/' + dataTable + '.bcp')
 
     try:
+        tagFileName = outputDir + '/' + tagTable + '.bcp'
+    except:
+        exit(1, 'Cannot create file: ' + outputDir + '/' + tagTable + '.bcp')
+
+    try:
         accFile = open(accFileName, 'w')
     except:
         exit(1, 'Could not open file %s\n' % accFileName)
@@ -446,6 +465,11 @@ def initialize():
     except:
         exit(1, 'Could not open file %s\n' % dataFileName)
 
+    try:
+        tagFile = open(tagFileName, 'w')
+    except:
+        exit(1, 'Could not open file %s\n' % tagFileName)
+
     # initialized PdfParser.py
     try:
         PdfParser.setLitParserDir(litparser)
@@ -457,14 +481,18 @@ def initialize():
     except:
         exit(1, 'PubMedAgent.PubMedAgentMedline() could not be found')
 
-    #try:
-    #	textSplitter = refSectionLib.RefSectionRemover()
-    #except:
-    #    exit(1, 'refSectionLib.RefSectionRemover() could not be found')
+    try:
+    	textSplitter = extractedTextSplitter.ExtTextSplitter()
+    except:
+        exit(1, 'lib_py_littriage/extractedTextSplitter.ExtTextSplitter() could not be found')
 
     results = db.sql('select _Term_key from VOC_Term where _Vocab_key = 127', 'auto')
     for r in results:
         workflowGroupList.append(r['_Term_key'])
+
+    results = db.sql('select _Term_key from VOC_Term where _Vocab_key = 143', 'auto')
+    for r in results:
+        suppWordList.append(['_Term_key'])
 
     errorFile.write('\n<BR>Start Date/Time: %s\n<BR>' % (mgi_utils.date()))
 
@@ -502,6 +530,8 @@ def closeFiles():
         statusFile.close()
     if dataFile:
         dataFile.close()
+    if tagFile:
+        tagFile.close()
     if accFile:
         accFile.close()
     if errorFile:
@@ -523,6 +553,9 @@ def setPrimaryKeys():
 
     results = db.sql(''' select nextval('bib_workflow_data_seq') as maxKey ''', 'auto')
     dataKey = results[0]['maxKey']
+
+    results = db.sql(''' select nextval('bib_workflow_tag_seq') as maxKey ''', 'auto')
+    tagKey = results[0]['maxKey']
 
     results = db.sql(''' select nextval('bib_workflow_status_seq') as maxKey ''', 'auto')
     statusKey = results[0]['maxKey']
@@ -555,6 +588,7 @@ def bcpFiles():
     refFile.flush()
     statusFile.flush()
     dataFile.flush()
+    tagFile.flush()
     accFile.flush()
 
     #
@@ -567,6 +601,8 @@ def bcpFiles():
         bcpRun.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
     if dataFile.tell() > 0:
         bcpRun.append('%s %s "/" %s %s' % (bcpI, dataTable, dataFileName, bcpII))
+    if tagFile.tell() > 0:
+        bcpRun.append('%s %s "/" %s %s' % (bcpI, dataTable, tagFileName, bcpII))
     if accFile.tell() > 0:
         bcpRun.append('%s %s "/" %s %s' % (bcpI, accTable, accFileName, bcpII))
 
@@ -576,6 +612,7 @@ def bcpFiles():
     refFile.close()
     statusFile.close()
     dataFile.close()
+    tagFile.close()
     accFile.close()
 
     # if only running sanity checks, return
@@ -783,16 +820,18 @@ def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract, vol, issue,
 #
 def setSupplemental(userPath, extractedText):
 
-    if extractedText.lower().find('supplemental') >= 0 \
-        or extractedText.lower().find('supplementary') >= 0 \
-        or extractedText.lower().find('supplement ') >= 0 \
-        or extractedText.lower().find('additional file') >= 0 \
-        or extractedText.lower().find('appendix') >= 0 \
-        or extractedText.lower().find('supporting information') >= 0:
+    #if len(extractedText) == 0:
+    #    return suppNotFoundKey
 
-        return suppFoundKey # Db found supplement
-    else:
-        return suppNotFoundKey # Db supplement not found
+    extractedText = extractedText.lower()
+
+    #for s in suppWordList:
+    #    if extractedText.lower().find(s) >= 0:
+    #        return suppFoundKey # Db found supplement
+    #    else:
+    #        return suppNotFoundKey # Db supplement not found
+
+    return suppNotFoundKey
 
 #
 # Purpose: Level 1 Sanity Checks : parse DOI ID from PDF files
@@ -884,6 +923,7 @@ def level1SanityChecks():
     #
     # iterate thru userDict
     #
+
     for userPath in userDict:
 
 	pdfPath = os.path.join(inputDir, userPath)
@@ -913,7 +953,8 @@ def level1SanityChecks():
 	            # store by mgiid
 	            tokens = pdfFile.replace('.pdf', '').split('_')
 	            mgiid = tokens[0]
-	            pdftext = replaceText(pdf.getText())
+	            pdftext = pdf.getText()
+	            #pdftext = replaceText(pdf.getText())
 	            if (userPath, userPath, mgiid) not in objByUser:
 	                objByUser[(userPath, userPath, mgiid)] = []
 	                objByUser[(userPath, userPath, mgiid)].append((pdfFile, pdftext))
@@ -931,7 +972,8 @@ def level1SanityChecks():
 	            # store by pmid
 	            pmid = pdfFile.lower().replace('pmid_', '')
 	            pmid = pmid.replace('.pdf', '')
-	            pdftext = replaceText(pdf.getText())
+	            pdftext = pdf.getText()
+	            #pdftext = replaceText(pdf.getText())
 	            if (userPath, 'pm', pmid) not in objByUser:
 	                objByUser[(userPath, 'pm', pmid)] = []
 	                objByUser[(userPath, 'pm', pmid)].append((pdfFile, pdftext))
@@ -947,7 +989,8 @@ def level1SanityChecks():
 	    else:
 	        try:
                     doiid = pdf.getFirstDoiID()
-	            pdftext = replaceText(pdf.getText())
+	            pdftext = pdf.getText()
+	            #pdftext = replaceText(pdf.getText())
 
 		    if doiid:
 		        if doiid not in doiidById:
@@ -1239,7 +1282,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 # Returns: 0
 #
 def processPDFs():
-    global accKey, refKey, statusKey, mgiKey, jnumKey
+    global accKey, refKey, statusKey, mgiKey, jnumKey, dataKey, tagKey
     global mvPDFtoMasterDir
     global updateSQLAll
     global isDiscard
@@ -1253,7 +1296,7 @@ def processPDFs():
     global count_duplicate
     global doipubmedaddedlogFile
     global count_doipubmedadded
-    global dataKey
+    global level4error2
 
     #
     # assumes the level1SanityChecks have passed
@@ -1286,35 +1329,57 @@ def processPDFs():
 	needsReviewPath = os.path.join(needsReviewDir, userPath)
 
 	isDiscard = 0
+	isMice = 0
 
 	#
 	# run splitter
-	# bodyText = textSplitter.getBody
-	# refText = textSplitter.getReference
-	# supplText = textSplitter.getSupplimental
-	# methodsText = textSplitter.getStarMethods
 	#
+	(bodyText, refText, figureText, starMethodText, suppText)  = textSplitter.splitSections(extractedText)
+	#(bodyInfo, refInfo, figureInfo, starMethodInfo, suppInfo)  = textSplitter.findSections(extractedText)
+
+	bodyText = replaceText(bodyText)
+	refText = replaceText(refText)
+	figureText = replaceText(figureText)
+	starMethodText = replaceText(starMethodText)
+	suppText = replaceText(suppText)
+
+	#if len(bodyText):
+	#    print 'FOUND BODY'
+	#if len(refText):
+	#    print 'FOUND REF'
+	#if len(figureText):
+	#    print 'FOUND FIGURE'
+	#if len(starMethodText):
+	#    print 'FOUND STAR'
+	#if len(suppText):
+	#    print 'FOUND SUPP'
 
 	#
 	# only interested in running checkMice for curator folders, etc.
 	# if refText is the only section that checkMice == true, then set isDiscard = 1
 	#
-        #if objectType not in (userSupplement, userPDF, userGOA, userNLM, userDiscard):
-        #    if refText.lower().find(checkMice) >= 0
-        #	    and bodyText.lower().find('checkMice) < 0
-        #	    and supplText.lower().find('checkMice) < 0
-        #	    and methodsText.lower().find('checkMice) < 0 then
-	#	
-	#	    isDiscard = 1
-	#
-
         if objType not in (userSupplement, userPDF, userGOA, userNLM, userDiscard):
-	    if extractedText.lower().find(checkMice) < 0:
-	        isDiscard = 1
+            if refText.lower().find(checkMice) >= 0 \
+        	    and bodyText.lower().find(checkMice) < 0 \
+        	    and suppText.lower().find(checkMice) < 0 \
+        	    and starMethodText.lower().find(checkMice) < 0:
+		
+		    isDiscard = 1
+		    isMice = 1
+
+
+	# process supplemental but suppText not found
+	if objType in (userSupplement) and len(suppText) == 0:
+	    level4error2 = level4error2 + str(objId) + '<BR>\n' + \
+		    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+	    count_needsreview += 1
+            diagFile.write('userSupplement : needs review : %s, %s, %s\n' % (objId, userPath, pdfFile))
+	    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+            continue
 
 	# process pdf/supplement
 	if objType in (userPDF, userSupplement):
-	    processExtractedText(key)
+	    processExtractedText(key, bodyText, refText, figureText, starMethodText, suppText)
 	    continue
 
 	#
@@ -1472,16 +1537,39 @@ def processPDFs():
 
 	    #
 	    # bib_workflow_data/body
+	    # check full extracted text to set supplemental key
+    	    hasPDF = 1
 	    suppKey = setSupplemental(userPath, extractedText)
-	    dataFile.write('%s|%s|%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	% (dataKey, refKey, hasPDF, suppKey, bodySectionKey, extractedText, userKey, userKey, loaddate, loaddate))
+	    dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+	    	% (dataKey, refKey, hasPDF, suppKey, bodySectionKey, bodyText, userKey, userKey, loaddate, loaddate))
 	    dataKey += 1
+
     	    # for any other section...i.e. not 'body'
-    	    #hasPDF = 0
-    	    #suppKey = suppNotApplKey
-	    #dataFile.write('%s|%s|%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	#% (dataKey, refKey, hasPDF, suppKey, bodySectionKey, extractedText, userKey, userKey, loaddate, loaddate))
-    	    #dataKey += 1
+    	    hasPDF = 0
+    	    suppKey = suppNotApplKey
+	    if len(refText) > 0:
+	        dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+	    	    % (dataKey, refKey, hasPDF, suppKey, refSectionKey, refText, userKey, userKey, loaddate, loaddate))
+    	        dataKey += 1
+	    if len(figureText) > 0:
+	        dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+	    	    % (dataKey, refKey, hasPDF, suppKey, figureSectionKey, figureText, userKey, userKey, loaddate, loaddate))
+    	        dataKey += 1
+	    if len(starMethodText) > 0:
+	        dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+	    	    % (dataKey, refKey, hasPDF, suppKey, starMethodSectionKey, starMethodText, userKey, userKey, loaddate, loaddate))
+    	        dataKey += 1
+	    if len(suppText) > 0:
+	        dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+	    	    % (dataKey, refKey, hasPDF, suppKey, suppSectionKey, suppText, userKey, userKey, loaddate, loaddate))
+    	        dataKey += 1
+
+	    #
+	    # bib_workflow_tag/mice is in reference only
+	    if isMice == 1:
+	        tagFile.write('%s|%s|%s|%s|%s|%s|%s\n' \
+	        	%(tagKey, refKey, miceInRefOnlyKey, userKey, userKey, loaddate, loaddate))
+		tagKey += 1
 
 	    #####
 	    # add other extracted text sections here
@@ -1552,7 +1640,7 @@ def processPDFs():
 	# processing for nlm refresh
 	#
 	if rc == 4 or objType in (userNLM): 
-	    processNLMRefresh(key, pubmedRef)
+	    processNLMRefresh(key, pubmedRef, bodyText, refText, figureText, starMethodText, suppText)
 
     diagFile.flush()
     return 0
@@ -1566,7 +1654,7 @@ def processPDFs():
 #	hasPDF = 1
 #	if userSupplement, _supplimental_key = 34026997/'Supplement attached'
 #
-def processExtractedText(objKey):
+def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, suppText):
     global level4error1
     global mvPDFtoMasterDir
     global deleteSQLAll, updateSQLAll
@@ -1629,18 +1717,30 @@ def processExtractedText(objKey):
 	dataSuppKey = suppKey
 	count_userNLM += 1
 
-    # body
+    # re-add body
     dataFile.write('%s|%s|%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	% (dataKey, existingRefKey, hasPDF, dataSuppKey, bodySectionKey, extractedText, userKey, userKey, loaddate, loaddate))
-    dataKey += 1
+        % (dataKey, existingRefKey, hasPDF, dataSuppKey, bodySectionKey, bodyText, userKey, userKey, loaddate, loaddate))
+    dataKey += 1 
 
     # for any other section...i.e. not 'body'
-    #hasPDF = 0
-    #dataSuppKey = suppNotApplKey
-    #dataFile.write('%s|%s|%s|%s|%s||%s|%s|%s|%s|%s\n' \
-	    	#% (dataKey, existingRefKey, hasPDF, dataSuppKey, bodySectionKey, extractedText, userKey, userKey, loaddate, loaddate))
-    #dataKey += 1
-
+    hasPDF = 0
+    dataSuppKey = suppNotApplKey
+    if len(refText) > 0: 
+        dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+            % (dataKey, existingRefKey, hasPDF, dataSuppKey, refSectionKey, refText, userKey, userKey, loaddate, loaddate))
+        dataKey += 1 
+    if len(figureText) > 0: 
+        dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+            % (dataKey, existingRefKey, hasPDF, dataSuppKey, figureSectionKey, figureText, userKey, userKey, loaddate, loaddate))
+        dataKey += 1 
+    if len(starMethodText) > 0: 
+        dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+            % (dataKey, existingRefKey, hasPDF, dataSuppKey, starMethodSectionKey, starMethodText, userKey, userKey, loaddate, loaddate))
+        dataKey += 1 
+    if len(suppText) > 0: 
+        dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+            % (dataKey, existingRefKey, hasPDF, dataSuppKey, suppSectionKey, suppText, userKey, userKey, loaddate, loaddate))
+        dataKey += 1 
 
     deleteSQLAll += 'delete from BIB_Workflow_Data where _Refs_key = %s;\n' % (existingRefKey)
 
@@ -1662,7 +1762,7 @@ def processExtractedText(objKey):
 # updates BIB_Refs fields
 # call processExtractedText (extracted text & supplemental)
 #
-def processNLMRefresh(objKey, ref):
+def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText, suppText):
     global updateSQLAll
 
     diagFile.write('\nprocessNLMRefresh()\n')
@@ -1724,6 +1824,11 @@ def processNLMRefresh(objKey, ref):
     else:
         pgs = ' null'
         
+    if ref.getPublicationType() in ('Review'):
+        isReviewArticle = 1
+    else:
+        isReviewArticle = 0
+
     updateSQLAll += '''
 	    	update BIB_Refs 
 	    	set 
@@ -1736,6 +1841,7 @@ def processNLMRefresh(objKey, ref):
 		date = '%s',
 		year = %s,
 		pgs = %s,
+		isReviewArticle = %s,
 		abstract = %s,
 		_ModifiedBy_key = %s, 
 		modification_date = now() 
@@ -1750,13 +1856,14 @@ def processNLMRefresh(objKey, ref):
 		       ref.getDate(), \
 		       ref.getYear(), \
 		       pgs, \
+		       isReviewArticle, \
 		       abstract, \
 		       userKey, objectKey)
 
     #
     # process extracted text
     #
-    processExtractedText(objKey)
+    processExtractedText(objKey, bodyText, refText, figureText, starMethodText, suppText)
 
     diagFile.flush()
     return
@@ -1770,6 +1877,7 @@ def writeErrors():
     global level2error1, level2error2, level2error3, level2error4
     global level3error1
     global level4error1
+    global level4error2
     global level5error1, level5error2
     global level6error1
     global level7error1
@@ -1795,9 +1903,9 @@ def writeErrors():
     	level3error1 + '<BR>\n\n'
     allErrors = allErrors + level3errorStart + level3error1
 
-    level4error1 = '<B>1: MGI ID in filename does not match reference in MGI</B><BR><BR>\n\n' + \
-    	level4error1 + '<BR>\n\n'
-    allErrors = allErrors + level4errorStart + level4error1
+    level4error1 = '<B>1: MGI ID in filename does not match reference in MGI</B><BR><BR>\n\n' + level4error1 + '<BR>\n\n'
+    level4error2 = '<B>2: PDF does not contain the text "MGI Lit Triage Supplemental Data".  Cannot find the Supllmental data section.</B><BR><BR>\n\n' + level4error2 + '<BR>\n\n'
+    allErrors = allErrors + level4errorStart + level4error1 + level4error2
 
     level5error1 = '<B>1: MGI ID not found or no pubmedID</B><BR><BR>\n\n' + level5error1 + '<BR>\n\n'
     level5error2 = '<B>2: journal/title/doi ID do not match</B><BR><BR>\n\n' + level5error2 + '<BR>\n\n'
