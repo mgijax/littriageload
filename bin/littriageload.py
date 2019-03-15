@@ -205,7 +205,7 @@ bodySectionKey = 48804490
 refSectionKey = 48804491
 suppSectionKey = 48804492
 starMethodSectionKey = 48804493
-figureSectionKey = 48804494
+figureSectionKey = 48986625
 
 # bib_workflow_data._supplemental_key values
 suppFoundKey = 31576675	        # Db found supplement
@@ -490,9 +490,9 @@ def initialize():
     for r in results:
         workflowGroupList.append(r['_Term_key'])
 
-    results = db.sql('select _Term_key from VOC_Term where _Vocab_key = 143', 'auto')
+    results = db.sql('select term from VOC_Term where _Vocab_key = 143', 'auto')
     for r in results:
-        suppWordList.append(['_Term_key'])
+        suppWordList.append(r['term'])
 
     errorFile.write('\n<BR>Start Date/Time: %s\n<BR>' % (mgi_utils.date()))
 
@@ -820,16 +820,11 @@ def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract, vol, issue,
 #
 def setSupplemental(userPath, extractedText):
 
-    #if len(extractedText) == 0:
-    #    return suppNotFoundKey
-
-    extractedText = extractedText.lower()
-
-    #for s in suppWordList:
-    #    if extractedText.lower().find(s) >= 0:
-    #        return suppFoundKey # Db found supplement
-    #    else:
-    #        return suppNotFoundKey # Db supplement not found
+    for i in suppWordList:
+        if extractedText.lower().find(i) >= 0:
+            return suppFoundKey # Db found supplement
+        else:
+            return suppNotFoundKey # Db supplement not found
 
     return suppNotFoundKey
 
