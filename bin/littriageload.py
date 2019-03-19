@@ -23,12 +23,7 @@
 #	LITPARSER
 #	INPUTDIR
 #	OUTPUTDIR
-#	LOG_DIAG
-#	LOG_ERROR
-#	LOG_CUR
-#	LOG_SQL
-#	LOG_DUPLICATE
-#	LOG_PUBLICATIONTYPE
+#	LOG_*
 #	MASTERTRIAGEDIR
 #	NEEDSREVIEWTRIAGEDIR
 #	PG_DBUTILS
@@ -147,6 +142,8 @@ pubtypelog = ''
 pubtypelogFile = ''
 doipubmedaddedlog = ''
 doipubmedaddedlogFile = ''
+splitterlog = ''
+splitterlogFile = ''
 
 inputDir = ''
 outputDir = ''
@@ -312,6 +309,7 @@ def initialize():
     global duplicatelog, duplicatelogFile
     global pubtypelog, pubtypelogFile
     global doipubmedaddedlog, doipubmedaddedlogFile
+    global splitterlog, splitterlogFile
     global inputDir, outputDir
     global masterDir, needsReviewDir
     global bcpScript
@@ -333,6 +331,7 @@ def initialize():
     duplicatelog = os.getenv('LOG_DUPLICATE')
     pubtypelog = os.getenv('LOG_PUBTYPE')
     doipubmedaddedlog = os.getenv('LOG_DOIPUBMEDADDED')
+    splitterlog = os.getenv('LOG_SPLITTER')
     inputDir = os.getenv('INPUTDIR')
     outputDir = os.getenv('OUTPUTDIR')
     masterDir = os.getenv('MASTERTRIAGEDIR')
@@ -369,6 +368,9 @@ def initialize():
 
     if not doipubmedaddedlog:
         exit(1, 'Environment variable not set: LOG_DOIPUBMEDADDED')
+
+    if not splitterlog:
+        exit(1, 'Environment variable not set: LOG_SPLITTER')
 
     if not inputDir:
         exit(1, 'Environment variable not set: INPUTDIR')
@@ -419,6 +421,11 @@ def initialize():
         doipubmedaddedlogFile = open(doipubmedaddedlog, 'w')
     except:
         exist(1,  'Cannot open doipubmedaddedlog file: ' + doipubmedaddedlogFile)
+
+    try:
+        splitterlogFile = open(splitterlog, 'w')
+    except:
+        exist(1,  'Cannot open splitterlog file: ' + splitterlogFile)
 
     try:
         accFileName = outputDir + '/' + accTable + '.bcp'
@@ -505,6 +512,9 @@ def initialize():
 
     doipubmedaddedlogFile.write('Literature Triage DOI ID/Pubmed ID Added\n\n')
 
+    splitterlogFile.write('Literature Triage Splitter Info\n\n')
+    splitterlogFile.write('pubmed id, mgi id, body count, ref count, figure count, star method count, supplement count, reference section issue reason\n\n')
+
     return 0
 
 
@@ -524,6 +534,8 @@ def closeFiles():
         pubtypelogFile.close()
     if doipubmedaddedlogFile:
         doipubmedaddedlogFile.close()
+    if splitterlogFile:
+        splitterlogFile.close()
     if refFile:
         refFile.close()
     if statusFile:
@@ -1290,6 +1302,7 @@ def processPDFs():
     global count_userNLM
     global count_duplicate
     global doipubmedaddedlogFile
+    global splitterlogFile
     global count_doipubmedadded
     global level4error2
 
@@ -1330,7 +1343,6 @@ def processPDFs():
 	# run splitter
 	#
 	(bodyText, refText, figureText, starMethodText, suppText)  = textSplitter.splitSections(extractedText)
-	#(bodyInfo, refInfo, figureInfo, starMethodInfo, suppInfo)  = textSplitter.findSections(extractedText)
 
 	bodyText = replaceText(bodyText)
 	refText = replaceText(refText)
@@ -1620,6 +1632,15 @@ def processPDFs():
 		jnumKey += 1
 		count_userGOA += 1
 
+	    #
+	    # if splitter does not find reference section
+	    #
+	    if len(refText) == 0:
+	        (bodyInfo, refInfo, figureInfo, starMethodInfo, suppInfo)  = textSplitter.findSections(extractedText)
+                splitterlogFile.write('%s, %s, %s, %s, %s, %s, %s, %s\n' \
+			% (pubmedID, mgiID, str(len(bodyText)), str(len(refText)), str(len(figureText)), \
+			   str(len(starMethodText)), str(len(suppText)), refInfo))
+
 	    # store dictionary : move pdf file from inputDir to masterPath
 	    newPath = Pdfpath.getPdfpath(masterDir, mgiID)
 	    mvPDFtoMasterDir[pdfPath + '/' + pdfFile] = []
@@ -1713,7 +1734,8 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
 	count_userNLM += 1
 
     # re-add body
-    dataFile.write('%s|%s|%s|%s|%s||%s|%s|%s|%s|%s\n' \
+    hasPDF = 1
+    dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
         % (dataKey, existingRefKey, hasPDF, dataSuppKey, bodySectionKey, bodyText, userKey, userKey, loaddate, loaddate))
     dataKey += 1 
 
@@ -1899,7 +1921,7 @@ def writeErrors():
     allErrors = allErrors + level3errorStart + level3error1
 
     level4error1 = '<B>1: MGI ID in filename does not match reference in MGI</B><BR><BR>\n\n' + level4error1 + '<BR>\n\n'
-    level4error2 = '<B>2: PDF does not contain the text "MGI Lit Triage Supplemental Data".  Cannot find the Supllmental data section.</B><BR><BR>\n\n' + level4error2 + '<BR>\n\n'
+    level4error2 = '<B>2: PDF does not contain the text "MGI Lit Triage Supplemental Data".  Cannot find the Supplmental data section.</B><BR><BR>\n\n' + level4error2 + '<BR>\n\n'
     allErrors = allErrors + level4errorStart + level4error1 + level4error2
 
     level5error1 = '<B>1: MGI ID not found or no pubmedID</B><BR><BR>\n\n' + level5error1 + '<BR>\n\n'

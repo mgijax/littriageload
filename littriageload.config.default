@@ -56,9 +56,11 @@ LOG_PUBTYPE=${LOGDIR}/littriageload.pubtype.log
 LOG_DOIPUBMEDADDED=${LOGDIR}/littriageload.doipubmedadded.log
 LOG_NLMREFRESHFIND=${LOGDIR}/littriageload.nlmrefreshfind.log
 LOG_NLMREFRESHPDF=${LOGDIR}/littriageload.nlmrefreshpdf.log
+LOG_SPLITTER=${LOGDIR}/littriageload.splitter.log
 
 export LOG_FILE LOG_PROC LOG_DIAG LOG_CUR LOG_VAL LOG_ERROR LOG_SQL LOG_DUPLICATE LOG_PUBTYPE LOG_DOIPUBMEDADDED
 export LOG_NLMREFRESHFIND LOG_NLMREFRESHPDF
+export LOG_SPLITTER
 
 #  The name of the job stream for the load
 JOBSTREAM=littriageload

@@ -157,11 +157,11 @@ STAT=$?
 checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" >> ${LOG_DIAG} 2>&1
 
 # update cache
-#date >> ${LOG_DIAG} 2>&1
-#echo "Update BIB_Citation_Cache"  >> ${LOG_DIAG} 2>&1
-#${MGICACHELOAD}/bibcitation.csh >> ${LOG_DIAG} 2>&1
-#STAT=$?
-#checkStatus ${STAT} "${MGICACHELOAD}/bibcitation.csh" >> ${LOG_DIAG} 2>&1
+date >> ${LOG_DIAG} 2>&1
+echo "Update BIB_Citation_Cache"  >> ${LOG_DIAG} 2>&1
+${MGICACHELOAD}/bibcitation.csh >> ${LOG_DIAG} 2>&1
+STAT=$?
+checkStatus ${STAT} "${MGICACHELOAD}/bibcitation.csh" >> ${LOG_DIAG} 2>&1
 
 # run postload cleanup and email logs
 shutDown
