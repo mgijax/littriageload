@@ -1363,14 +1363,14 @@ def processPDFs():
 
 	#
 	# only interested in running checkMice for curator folders, etc.
-	# if refText is the only section that checkMice == true, then set isDiscard = 1
+	# if non-refText section checkMice = false, then isDiscard = 1
 	#
         if objType not in (userSupplement, userPDF, userGOA, userNLM, userDiscard):
-            if refText.lower().find(checkMice) >= 0 \
-        	    and bodyText.lower().find(checkMice) < 0 \
-        	    and suppText.lower().find(checkMice) < 0 \
-        	    and starMethodText.lower().find(checkMice) < 0:
-		
+            if bodyText.lower().find(checkMice) < 0 \
+                and figureText.lower().find(checkMice) < 0 \
+                and suppText.lower().find(checkMice) < 0 \
+                and starMethodText.lower().find(checkMice) < 0 :
+
 		    isDiscard = 1
 		    isMice = 1
 
@@ -2056,6 +2056,7 @@ def postSanityCheck():
     and a._mgitype_key = 1
     and a.prefixpart = 'MGI:'
     and a._object_key = d._refs_key
+    and d._extractedtext_key = 48804490
     and d.extractedText is not null
     and r.journal not in ('J Virol', 'J Neurochem')
     and (r.creation_date between '%s' and ('%s'::date + '1 day'::interval))
