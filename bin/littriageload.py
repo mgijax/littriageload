@@ -1365,7 +1365,7 @@ def processPDFs():
 	# only interested in running checkMice for curator folders, etc.
 	# if non-refText section checkMice = false, then isDiscard = 1
 	#
-        if objType not in (userSupplement, userPDF, userGOA, userNLM, userDiscard):
+        if objType not in (userSupplement, userPDF, userGOA, userNLM, userDiscard, objDOI):
             if bodyText.lower().find(checkMice) < 0 \
                 and figureText.lower().find(checkMice) < 0 \
                 and suppText.lower().find(checkMice) < 0 \
@@ -1506,6 +1506,11 @@ def processPDFs():
 	    #
 	    if refKey in refKeyList:
 	        continue
+
+	    print '2:xxxxx'
+	    print objType
+	    print isDiscard
+	    print '2:xxxx'
 
 	    refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
 		% (refKey, referenceTypeKey, 
