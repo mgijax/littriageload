@@ -236,13 +236,13 @@ userDict = {}
 #
 # objByUser will process 'doi' or 'pm' objects
 #
-# objByUser = {('user name', 'object type', 'object id') : ('pdffile', 'pdftext', 'splittext')}
-# objByUser = {('user name', 'doi', 'doiid') : ('pdffile', 'pdftext', 'splittext')}
-# objByUser = {('user name', 'pm', 'pmid') : ('pdffile', 'pdftext', 'splittext')}
-# objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
-# objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
-# objByUser = {('user name', userGOA, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
-# objByUser = {('user name', userNLM, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('userPath', 'object type', 'object id') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('userPath', 'doi', 'doiid') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('userPath', 'pm', 'pmid') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('userPath', userPDF, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('userPath', userSupplement, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('userPath', userGOA, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('userPath', userNLM, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
 # {('cms, 'doi', '10.112xxx'): ['10.112xxx.pdf, 'text'']}
 # {('cms, 'pm', 'PMID_14440025'): ['PDF_14440025.pdf', 'text'']}
 objByUser = {}
@@ -558,7 +558,7 @@ def closeFiles():
 # Returns: 0
 #
 def setPrimaryKeys():
-    global accKey, refKey, dataKey, statusKey, mgiKey, jnumKey
+    global accKey, refKey, dataKey, statusKey, mgiKey, jnumKey, tagKey
 
     results = db.sql('select max(_Refs_key) + 1 as maxKey from BIB_Refs', 'auto')
     refKey = results[0]['maxKey']
@@ -614,7 +614,7 @@ def bcpFiles():
     if dataFile.tell() > 0:
         bcpRun.append('%s %s "/" %s %s' % (bcpI, dataTable, dataFileName, bcpII))
     if tagFile.tell() > 0:
-        bcpRun.append('%s %s "/" %s %s' % (bcpI, dataTable, tagFileName, bcpII))
+        bcpRun.append('%s %s "/" %s %s' % (bcpI, tagTable, tagFileName, bcpII))
     if accFile.tell() > 0:
         bcpRun.append('%s %s "/" %s %s' % (bcpI, accTable, accFileName, bcpII))
 
@@ -1317,12 +1317,12 @@ def processPDFs():
 
     diagFile.write('\nprocessPDFs()\n')
 
-    # objByUser = {('user name', 'doi', 'doiid') : ('pdffile', 'pdftext')}
-    # objByUser = {('user name', 'pm', 'pmid') : ('pdffile', 'pdftext')}
-    # objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
-    # objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
-    # objByUser = {('user name', userGOA, 'mgiid') : ('pdffile', 'pdftext')}
-    # objByUser = {('user name', userDiscard, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('userPath', 'doi', 'doiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('userPath', 'pm', 'pmid') : ('pdffile', 'pdftext')}
+    # objByUser = {('userPath', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('userPath', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('userPath', userGOA, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('userPath', userDiscard, 'mgiid') : ('pdffile', 'pdftext')}
 
     for key in objByUser:
 
@@ -1365,7 +1365,7 @@ def processPDFs():
 	# only interested in running checkMice for curator folders, etc.
 	# if non-refText section checkMice = false, then isDiscard = 1
 	#
-        if objType not in (userSupplement, userPDF, userGOA, userNLM, userDiscard, objDOI):
+        if userPath not in (userSupplement, userPDF, userGOA, userNLM, userDiscard):
             if bodyText.lower().find(checkMice) < 0 \
                 and figureText.lower().find(checkMice) < 0 \
                 and suppText.lower().find(checkMice) < 0 \
@@ -1376,7 +1376,7 @@ def processPDFs():
 
 
 	# process supplemental but suppText not found
-	if objType in (userSupplement) and len(suppText) == 0:
+	if userPath in (userSupplement) and len(suppText) == 0:
 	    level4error2 = level4error2 + str(objId) + '<BR>\n' + \
 		    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 	    count_needsreview += 1
@@ -1385,7 +1385,7 @@ def processPDFs():
             continue
 
 	# process pdf/supplement
-	if objType in (userPDF, userSupplement):
+	if userPath in (userPDF, userSupplement):
 	    processExtractedText(key, bodyText, refText, figureText, starMethodText, suppText)
 	    continue
 
@@ -1688,9 +1688,9 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
 
     diagFile.write('\nprocessExtractedText()\n')
 
-    # objByUser = {('user name', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
-    # objByUser = {('user name', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
-    # objByUser = {('user name', userNLM, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('userPath', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('userPath', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('userPath', userNLM, 'mgiid') : ('pdffile', 'pdftext')}
 
     pdfFile = objByUser[objKey][0][0]
     extractedText = objByUser[objKey][0][1]
@@ -1789,7 +1789,7 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
 
     diagFile.write('\nprocessNLMRefresh()\n')
 
-    # objByUser = {('user name', userNLM, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('userPath', userNLM, 'mgiid') : ('pdffile', 'pdftext')}
 
     userPath = objKey[0]
     mgiID = 'MGI:' + objKey[2]
