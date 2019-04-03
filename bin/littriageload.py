@@ -57,6 +57,13 @@
 #
 #	4) processPDFs() : iterate thru PDF files/run level2 and level3 sanity checks
 #
+#	   split text into sections
+#
+#          if not (userSupplement, userPDF, userGOA, userNLM, userDiscard):
+#		run mice check
+#
+#	   supplmental check
+#
 #	   if (userPDF, userSupplement):
 #	   	processExtractedText() : process extracted text (bib_workflow_data)
 #
