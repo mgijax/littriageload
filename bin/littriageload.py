@@ -1349,7 +1349,15 @@ def processPDFs():
 	#
 	# run splitter
 	#
-	(bodyText, refText, figureText, starMethodText, suppText)  = textSplitter.splitSections(extractedText)
+	
+	bodyText = ''
+	refText = ''
+	figureText = ''
+	starMethodText = ''
+	suppText = ''
+
+	if extractedText != None:
+	    (bodyText, refText, figureText, starMethodText, suppText)  = textSplitter.splitSections(extractedText)
 
 	bodyText = replaceText(bodyText)
 	refText = replaceText(refText)
