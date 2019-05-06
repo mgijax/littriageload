@@ -736,7 +736,7 @@ def bcpFiles():
     db.commit()
 
     # update bib_workflow_tag serialization
-    db.sql(''' select setval('bib_workflow_tag_seq', (select max(_Assoc_key) from BIB_Workflow_(Tag)) ''', None)
+    db.sql(''' select setval('bib_workflow_tag_seq', (select max(_Assoc_key) from BIB_Workflow_Tag)) ''', None)
     db.commit()
 
     # update the max accession ID value for J:
