@@ -1,8 +1,10 @@
+TAG: littriageload-6-0-14-3
 TAG: littriageload-6-0-14-2
 TAG: littriageload-6-0-14-1
-DATE: 04/03/2019
+DATE: 04/03/2019, 05/06/2018
 STAFF: lec 
 TR12963/teleuse-to-mgd_java_api
+- add bib_workflow_tag_seq reset
 
 TAG: littriageload-6-0-12-17
 DATE: 03/04/2019

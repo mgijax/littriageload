@@ -735,6 +735,10 @@ def bcpFiles():
     db.sql(''' select setval('bib_workflow_status_seq', (select max(_Assoc_key) from BIB_Workflow_Status)) ''', None)
     db.commit()
 
+    # update bib_workflow_tag serialization
+    db.sql(''' select setval('bib_workflow_tag_seq', (select max(_Assoc_key) from BIB_Workflow_(Tag)) ''', None)
+    db.commit()
+
     # update the max accession ID value for J:
     if count_userGOA:
         db.sql('select * from ACC_setMax (%d, \'J:\')' % (count_userGOA), None)
@@ -1521,11 +1525,6 @@ def processPDFs():
 	    #
 	    if refKey in refKeyList:
 	        continue
-
-	    print '2:xxxxx'
-	    print objType
-	    print isDiscard
-	    print '2:xxxx'
 
 	    refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
 		% (refKey, referenceTypeKey, 
