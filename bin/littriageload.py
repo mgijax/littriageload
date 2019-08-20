@@ -844,10 +844,9 @@ def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract, vol, issue,
 def setSupplemental(userPath, extractedText):
 
     for i in suppWordList:
-        if extractedText.lower().find(i) >= 0:
-            return suppFoundKey # Db found supplement
-        else:
-            return suppNotFoundKey # Db supplement not found
+        x = extractedText.lower().find(i)
+        if x >= 0:
+            return suppFoundKey
 
     return suppNotFoundKey
 
