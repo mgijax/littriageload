@@ -567,7 +567,7 @@ def closeFiles():
 def setPrimaryKeys():
     global accKey, refKey, dataKey, statusKey, mgiKey, jnumKey, tagKey
 
-    results = db.sql('select max(_Refs_key) + 1 as maxKey from BIB_Refs', 'auto')
+    results = db.sql(''' select nextval('bib_refs_seq') as maxKey ''', 'auto')
     refKey = results[0]['maxKey']
 
     results = db.sql(''' select nextval('bib_workflow_data_seq') as maxKey ''', 'auto')
@@ -725,6 +725,10 @@ def bcpFiles():
 
     # update the max accession ID value
     db.sql('select * from ACC_setMax (%d)' % (count_processPDFs), None)
+    db.commit()
+
+    # update bib_refs serialization
+    db.sql(''' select setval('bib_refs_seq', (select max(_Refs_key) from BIB_Refs)) ''', None)
     db.commit()
 
     # update bib_workflow_data serialization
