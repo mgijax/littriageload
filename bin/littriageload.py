@@ -843,9 +843,11 @@ def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract, vol, issue,
 #
 def setSupplemental(userPath, extractedText):
 
+    if extractedText == None:
+        return suppNotFoundKey
+
     for i in suppWordList:
-        x = extractedText.lower().find(i)
-        if x >= 0:
+        if extractedText.lower().find(i) >= 0:
             return suppFoundKey
 
     return suppNotFoundKey
