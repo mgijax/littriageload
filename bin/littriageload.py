@@ -508,7 +508,7 @@ def initialize():
     for r in results:
         suppWordList.append(r['term'])
 
-    errorFile.write('\n<BR>Start Date/Time: %s\n<BR>' % (mgi_utils.date()))
+    errorFile.write('\n<BR>Start Date/Time: %s\n<BR> % (mgi_utils.date()))
 
     duplicatelogFile.write('Literature Triage Duplicates\n\n')
     duplicatelogFile.write('Note : duplicate pdfs are deleted and are not moved to needs_review folder\n\n')
@@ -1366,8 +1366,10 @@ def processPDFs():
 	starMethodText = ''
 	suppText = ''
 
-	if extractedText != None:
+	try:
 	    (bodyText, refText, figureText, starMethodText, suppText)  = textSplitter.splitSections(extractedText)
+	except:
+	    pass
 
 	bodyText = replaceText(bodyText)
 	refText = replaceText(refText)
