@@ -1366,10 +1366,8 @@ def processPDFs():
 	starMethodText = ''
 	suppText = ''
 
-	try:
+	if extractedText != None:
 	    (bodyText, refText, figureText, starMethodText, suppText)  = textSplitter.splitSections(extractedText)
-	except:
-	    pass
 
 	bodyText = replaceText(bodyText)
 	refText = replaceText(refText)
