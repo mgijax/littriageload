@@ -1660,7 +1660,7 @@ def processPDFs():
 	    #
 	    # if splitter does not find reference section
 	    #
-	    if len(refText) == 0:
+	    if extractedText != None and len(refText) == 0:
 	        (bodyInfo, refInfo, figureInfo, starMethodInfo, suppInfo)  = textSplitter.findSections(extractedText)
                 splitterlogFile.write('%s, %s, %s, %s, %s, %s, %s, %s\n' \
 			% (pubmedID, mgiID, str(len(bodyText)), str(len(refText)), str(len(figureText)), \
