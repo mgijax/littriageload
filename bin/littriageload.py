@@ -847,9 +847,11 @@ def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract, vol, issue,
 #
 def setSupplemental(userPath, extractedText):
 
+    if extractedText == None:
+        return suppNotFoundKey
+
     for i in suppWordList:
-        x = extractedText.lower().find(i)
-        if x >= 0:
+        if extractedText.lower().find(i) >= 0:
             return suppFoundKey
 
     return suppNotFoundKey
@@ -961,6 +963,14 @@ def level1SanityChecks():
 	    pdf = PdfParser.PdfParser(os.path.join(pdfPath, pdfFile))
 	    doiid = ''
 
+	    try:
+	    	pdftext = pdf.getText();
+	    except:
+	        level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+	        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+	        count_needsreview += 1
+	        continue
+	    	
 	    #
 	    # if userPath is in the 'userSupplement, userPDF or userNLM' folder
 	    #	store in objByUser
@@ -975,7 +985,6 @@ def level1SanityChecks():
 	            tokens = pdfFile.replace('.pdf', '').split('_')
 	            mgiid = tokens[0]
 	            pdftext = pdf.getText()
-	            #pdftext = replaceText(pdf.getText())
 	            if (userPath, userPath, mgiid) not in objByUser:
 	                objByUser[(userPath, userPath, mgiid)] = []
 	                objByUser[(userPath, userPath, mgiid)].append((pdfFile, pdftext))
@@ -994,7 +1003,6 @@ def level1SanityChecks():
 	            pmid = pdfFile.lower().replace('pmid_', '')
 	            pmid = pmid.replace('.pdf', '')
 	            pdftext = pdf.getText()
-	            #pdftext = replaceText(pdf.getText())
 	            if (userPath, 'pm', pmid) not in objByUser:
 	                objByUser[(userPath, 'pm', pmid)] = []
 	                objByUser[(userPath, 'pm', pmid)].append((pdfFile, pdftext))
@@ -1011,7 +1019,6 @@ def level1SanityChecks():
 	        try:
                     doiid = pdf.getFirstDoiID()
 	            pdftext = pdf.getText()
-	            #pdftext = replaceText(pdf.getText())
 
 		    if doiid:
 		        if doiid not in doiidById:
@@ -1657,7 +1664,7 @@ def processPDFs():
 	    #
 	    # if splitter does not find reference section
 	    #
-	    if len(refText) == 0:
+	    if extractedText != None and len(refText) == 0:
 	        (bodyInfo, refInfo, figureInfo, starMethodInfo, suppInfo)  = textSplitter.findSections(extractedText)
                 splitterlogFile.write('%s, %s, %s, %s, %s, %s, %s, %s\n' \
 			% (pubmedID, mgiID, str(len(bodyText)), str(len(refText)), str(len(figureText)), \
