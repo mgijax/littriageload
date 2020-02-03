@@ -293,6 +293,7 @@ level2error1 = ''
 level2error2 = ''
 level2error3 = ''
 level2error4 = ''
+level2error5 = ''
 level3error1 = '' 
 level4error1 = ''
 level4error2 = ''
@@ -1325,6 +1326,7 @@ def processPDFs():
     global doipubmedaddedlogFile
     global splitterlogFile
     global count_doipubmedadded
+    global level2error5
     global level4error2
 
     #
@@ -1403,6 +1405,21 @@ def processPDFs():
 		    isDiscard = 1
 		    isMice = 1
 
+	# TR 12871/ERRATUM/correction/retraction
+	if objType != "pm":
+            diagFile.write('ERRATUM : searching : %s, %s, %s\n' % (objId, userPath, pdfFile))
+            if bodyText.lower().find('erratum') >= 0 \
+            	or bodyText.lower().find('correction') >= 0 \
+            	or bodyText.lower().find('corrigendum') >= 0 \
+            	or bodyText.lower().find('retraction') >= 0:
+            	diagFile.write('ERRATUM : found : %s, %s, %s\n' % (objId, userPath, pdfFile))
+		level2error5 = level2error5 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+		shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+		count_needsreview += 1
+            else:
+            	diagFile.write('ERRATUM : not found : %s, %s, %s\n' % (objId, userPath, pdfFile))
+	else:
+            diagFile.write('ERRATUM : skipping : %s, %s, %s\n' % (objId, userPath, pdfFile))
 
 	# process supplemental but suppText not found
 	if userPath in (userSupplement) and len(suppText) == 0:
@@ -1920,7 +1937,7 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
 #
 def writeErrors():
     global allErrors, allCounts
-    global level2error1, level2error2, level2error3, level2error4
+    global level2error1, level2error2, level2error3, level2error4, level2error5
     global level3error1
     global level4error1
     global level4error2
@@ -1943,7 +1960,8 @@ def writeErrors():
     level2error2 = '<B>2: DOI ID not found in pubmed</B><BR><BR>\n\n' + level2error2 + '<BR>\n\n'
     level2error3 = '<B>3: error getting medline record</B><BR><BR>\n\n' + level2error3 + '<BR>\n\n'
     level2error4 = '<B>4: missing data from required field for DOI ID</B><BR><BR>\n\n' + level2error4 + '<BR>\n\n'
-    allErrors = allErrors + level2errorStart + level2error1 + level2error2 + level2error3 + level2error4
+    level2error5 = '<B>1a: Possible correction/retraction</B><BR><BR>\n\n' + level2error5 + '<BR>\n\n'
+    allErrors = allErrors + level2errorStart + level2error5 + level2error1 + level2error2 + level2error3 + level2error4
 
     level3error1 = '<B>1: PubMed ID/DOI ID is associated with different MGI references</B><BR><BR>\n\n' + \
     	level3error1 + '<BR>\n\n'
