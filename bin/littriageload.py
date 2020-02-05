@@ -217,6 +217,11 @@ suppNotFoundKey = 31576676      # Db supplement not found
 suppAttachedKey = 34026997	# Supplemental attached
 suppNotApplKey = 48874093	# Not Applicable
 
+# erratum include
+erratumIncludeList = [];
+# erratum exclude
+erratumExcludeList = [];
+
 # list of workflow groups
 workflowGroupList = []
 
@@ -279,8 +284,7 @@ level2errorStart = '**********<BR>\nLiterature Triage Level 2 Errors : parse Pub
 level3errorStart = '**********<BR>\nLiterature Triage Level 3 Errors : check MGI for errors<BR><BR>\n\n'
 level4errorStart = '**********<BR>\nLiterature Triage Level 4 Errors : Supplemental/Update PDF<BR><BR>\n\n'
 level5errorStart = '**********<BR>\nLiterature Triage Level 5 Errors : Update NLM information<BR><BR>\n\n'
-level6errorStart = '**********<BR>\nLiterature Triage Level 6 Errors : Erratum/corrections/retractions<BR><BR>\n\n'
-level7errorStart = '**********<BR>\nLiterature Triage Level 7 Errors : Possible mismatch citation - citation title not found in extracted text<BR><BR>\n\n'
+level6errorStart = '**********<BR>\nLiterature Triage Level 6 Errors : Possible mismatch citation - citation title not found in extracted text<BR><BR>\n\n'
 
 countStart = '**********<BR>\nLiterature Triage Counts<BR>\n'
 
@@ -300,7 +304,6 @@ level4error2 = ''
 level5error1 = ''
 level5error2 = ''
 level6error1 = ''
-level7error1 = ''
 
 #
 # Purpose: Initialization
@@ -327,6 +330,7 @@ def initialize():
     global textSplitter
     global workflowGroupList
     global suppWordList
+    global erratumIncludeList, errdumExcludeList
     
     db.set_sqlLogFunction(db.sqlLogAll)
 
@@ -508,6 +512,14 @@ def initialize():
     results = db.sql('select term from VOC_Term where _Vocab_key = 143', 'auto')
     for r in results:
         suppWordList.append(r['term'])
+
+    results = db.sql('select term from VOC_Term where _Vocab_key = 145', 'auto')
+    for r in results:
+        erratumIncludeList.append(r['term'])
+
+    results = db.sql('select term from VOC_Term where _Vocab_key = 146', 'auto')
+    for r in results:
+        erratumExcludeList.append(r['term'])
 
     errorFile.write('\n<BR>Start Date/Time: %s\n<BR>' % (mgi_utils.date()))
 
@@ -972,6 +984,8 @@ def level1SanityChecks():
 	        count_needsreview += 1
 	        continue
 	    	
+	    #diagFile.write(pdftext + "\n\n")
+
 	    #
 	    # if userPath is in the 'userSupplement, userPDF or userNLM' folder
 	    #	store in objByUser
@@ -1082,7 +1096,6 @@ def level1SanityChecks():
 def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath):
     global level2error1, level2error2, level2error3, level2error4
     global level5error1, level5error2
-    global level6error1
     global pubtypelogFile
 
     diagFile.write('level2SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
@@ -1179,15 +1192,6 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 	   pubtypelogFile.write(requiredDict['publicationType'] + ',' + objId + ',' + pubmedID + '\n')
 	   os.remove(os.path.join(pdfPath, pdfFile))
 	   return -1
-
-	# TR12871/on hold/needs more analsys from jackie
-	# report & skip these publication types
-        #if requiredDict['publicationType'] in ('Published Erratum', 'Retracetion of Publication'):
-        #   diagFile.write(str(requiredDict))
-        #   diagFile.write('\n')
-	#   level6error1 = level6error1 + str(objId) + ', ' + str(pubmedID) + '<BR>\n' + \
-	#	linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	#   return 1
 
     # userNLM : part 2
     # results() where retrieved earlier
@@ -1406,18 +1410,27 @@ def processPDFs():
 		    isMice = 1
 
 	# TR 12871/ERRATUM/correction/retraction
-	if objType != "pm":
+	# ignore littriage_xxxx folders
+	# ignore 'bonferroni correction'
+	checkErratum = 1
+	isErratum = 0
+        if userPath not in (userSupplement, userPDF, userGOA, userNLM, userDiscard) and objType not in ('pm'):
             diagFile.write('ERRATUM : searching : %s, %s, %s\n' % (objId, userPath, pdfFile))
-            if bodyText.lower().find('erratum') >= 0 \
-            	or bodyText.lower().find('correction') >= 0 \
-            	or bodyText.lower().find('corrigendum') >= 0 \
-            	or bodyText.lower().find('retraction') >= 0:
-            	diagFile.write('ERRATUM : found : %s, %s, %s\n' % (objId, userPath, pdfFile))
+	    for e in erratumExcludeList:
+	    	if bodyText.lower().find(e) >= 0:
+            		diagFile.write('ERRATUM : skipping/excluded : %s, %s, %s, %s\n' % (e, objId, userPath, pdfFile))
+			checkErratum = 0
+	    if checkErratum == 1:
+	    	for e in erratumIncludeList:
+	    		if bodyText.lower().find(e) >= 0:
+				isErratum = 1
+	    # continue to next pdf
+	    if isErratum == 1:
+            	diagFile.write('ERRATUM : found/included : %s, %s, %s, %s\n' % (e, objId, userPath, pdfFile))
 		level2error5 = level2error5 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
 		shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 		count_needsreview += 1
-            else:
-            	diagFile.write('ERRATUM : not found : %s, %s, %s\n' % (objId, userPath, pdfFile))
+	    	continue
 	else:
             diagFile.write('ERRATUM : skipping : %s, %s, %s\n' % (objId, userPath, pdfFile))
 
@@ -1943,7 +1956,6 @@ def writeErrors():
     global level4error2
     global level5error1, level5error2
     global level6error1
-    global level7error1
     global count_processPDFs
     global count_needsreview
     global count_userGOA
@@ -1975,10 +1987,7 @@ def writeErrors():
     level5error2 = '<B>2: journal/title/doi ID do not match</B><BR><BR>\n\n' + level5error2 + '<BR>\n\n'
     allErrors = allErrors + level5errorStart + level5error1 + level5error2
 
-    level6error1 = '<B>1: Medline publication type = erratum, correction, or retraction</B><BR><BR>\n\n' + level6error1 + '<BR>\n\n'
     allErrors = allErrors + level6errorStart + level6error1
-
-    allErrors = allErrors + level7errorStart + level7error1
 
     # copy all errors to error log, remove html and copy to curator log
     allCounts = allCounts + countStart
@@ -2087,7 +2096,7 @@ def postSanityCheck_replaceExtracted(r):
 #
 def postSanityCheck():
 
-    global level7error1
+    global level6error1
     global count_mismatchedtitles
 
     querydate = mgi_utils.date('%m/%d/%Y')
@@ -2117,7 +2126,7 @@ def postSanityCheck():
         if extractedText.find(title) < 0:
             title = postSanityCheck_replaceTitle2(r)
             if extractedText.find(title) < 0:
-                level7error1 = level7error1 + r['mgiID'] + '<BR>\n'
+                level6error1 = level6error1 + r['mgiID'] + '<BR>\n'
 		count_mismatchedtitles += 1
 
     return 0

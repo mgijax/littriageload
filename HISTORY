@@ -1,3 +1,11 @@
+TAG: littriageload-6-0-15-2
+DATE: 02/05/2020
+STAFF: lec 
+CHANGES:
+TR12871/ltlo: Erratum/corrections/retractions
+TR13224/ltlo: PNAS doi extraction issue
+TR13208/ltlo: blood journal doi extraction is truncated
+
 TAG: littriageload-6-0-15-1
 DATE: 12/02/2019
 STAFF: lec 
