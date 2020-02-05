@@ -330,7 +330,7 @@ def initialize():
     global textSplitter
     global workflowGroupList
     global suppWordList
-    global erratumIncludeList, errdumExcludeList
+    global erratumIncludeList, erratumExcludeList
     
     db.set_sqlLogFunction(db.sqlLogAll)
 
