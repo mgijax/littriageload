@@ -221,6 +221,8 @@ suppNotApplKey = 48874093	# Not Applicable
 erratumIncludeList = [];
 # erratum exclude
 erratumExcludeList = [];
+# erratum position
+erratumPosition = 300;
 
 # list of workflow groups
 workflowGroupList = []
@@ -1417,12 +1419,13 @@ def processPDFs():
         if userPath not in (userSupplement, userPDF, userGOA, userNLM, userDiscard) and objType not in ('pm'):
             diagFile.write('ERRATUM : searching : %s, %s, %s\n' % (objId, userPath, pdfFile))
 	    for e in erratumExcludeList:
-	    	if bodyText.lower().find(e) >= 0:
+	        if bodyText.lower().find(e) >= 0:
             		diagFile.write('ERRATUM : skipping/excluded : %s, %s, %s, %s\n' % (e, objId, userPath, pdfFile))
 			checkErratum = 0
 	    if checkErratum == 1:
 	    	for e in erratumIncludeList:
-	    		if bodyText.lower().find(e) >= 0:
+	        	erratumFind = bodyText.lower().find(e)
+	    		if erratumFind >= 0 and erratumFind <= erratumPosition:
 				isErratum = 1
 	    # continue to next pdf
 	    if isErratum == 1:
