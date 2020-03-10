@@ -1762,6 +1762,7 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
     	from BIB_Citation_Cache r, BIB_Workflow_Data d 
 	where r.mgiID = '%s'
 	and r._Refs_key = d._Refs_key
+	and d._extractedtext_key = 48804490
 	''' % (mgiID)
     results = db.sql(sql, 'auto')
 
