@@ -152,7 +152,7 @@ cd ${LITTRIAGELOAD}
 date >> ${LOG_DIAG} 2>&1
 echo "---------------------" >> ${LOG_DIAG} 2>&1
 echo "Run littriageload.py"  >> ${LOG_DIAG} 2>&1
-${LITTRIAGELOAD}/bin/littriageload.py >> ${LOG_DIAG} 2>&1
+${PYTHON} ${LITTRIAGELOAD}/bin/littriageload.py >> ${LOG_DIAG} 2>&1
 STAT=$?
 checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" >> ${LOG_DIAG} 2>&1
 

@@ -1,4 +1,3 @@
-#!/usr/local/bin/python
 #
 #  littriageload.py
 ###########################################################################
@@ -503,7 +502,7 @@ def initialize():
         exit(1, 'PubMedAgent.PubMedAgentMedline() could not be found')
 
     try:
-    	textSplitter = extractedTextSplitter.ExtTextSplitter()
+        textSplitter = extractedTextSplitter.ExtTextSplitter()
     except:
         exit(1, 'lib_py_littriage/extractedTextSplitter.ExtTextSplitter() could not be found')
 
@@ -665,20 +664,20 @@ def bcpFiles():
     if len(deleteSQLAll) > 0:
         try:
             db.sql(deleteSQLAll, None)
-	    db.commit()
+            db.commit()
         except:
             diagFile.write('bcpFiles(): failed: delete sql commands\n')
             sqllogFile.write('bcpFiles(): failed: delete sql commands\n')
-	    return 0
+            return 0
 
     if len(updateSQLAll) > 0:
         try:
             db.sql(updateSQLAll, None)
-	    db.commit()
+            db.commit()
         except:
             diagFile.write('bcpFiles(): failed: update sql commands\n')
             sqllogFile.write('bcpFiles(): failed: update sql commands\n')
-	    return 0
+            return 0
 
     diagFile.write('\nend: delete/update sql commands\n')
     sqllogFile.write('\nend: delete/update sql commands\n')
@@ -695,11 +694,11 @@ def bcpFiles():
     for r in bcpRun:
         diagFile.write('%s\n' % r)
         diagFile.flush()
-	try:
+        try:
             os.system(r)
-	except:
-	    diagFile.write('bcpFiles(): failed : os.system(%s)\n' (r))
-	    return 0
+        except:
+            diagFile.write('bcpFiles(): failed : os.system(%s)\n' (r))
+            return 0
     diagFile.write('\nend: copy bcp files into database\n')
     diagFile.flush()
 
@@ -709,12 +708,12 @@ def bcpFiles():
     # else, error
     #
     results = db.sql('''
-    	select r._Refs_key from BIB_Refs r
-	where not exists (select 1 from BIB_Workflow_Data d where r._refs_key = d._refs_key)
-    	''', 'auto')
+        select r._Refs_key from BIB_Refs r
+        where not exists (select 1 from BIB_Workflow_Data d where r._refs_key = d._refs_key)
+        ''', 'auto')
     if len(results) > 0:
-    	diagFile.write('FATAL BCP ERROR:  reload database from backup/contact SE\n')
-	return 0
+        diagFile.write('FATAL BCP ERROR:  reload database from backup/contact SE\n')
+        return 0
 
     #
     # move PDF from inputdir to master directory
@@ -725,17 +724,17 @@ def bcpFiles():
     #
     diagFile.write('\nstart: move oldPDF to newPDF\n')
     for oldPDF in mvPDFtoMasterDir:
-	for newFileDir, newPDF in mvPDFtoMasterDir[oldPDF]:
-	    diagFile.write(oldPDF + '\t' +  newFileDir + '\t' + newPDF + '\n')
-	    try:
-		os.makedirs(newFileDir)
-	    except:
-		pass
-	    try:
+        for newFileDir, newPDF in mvPDFtoMasterDir[oldPDF]:
+            diagFile.write(oldPDF + '\t' +  newFileDir + '\t' + newPDF + '\n')
+            try:
+                os.makedirs(newFileDir)
+            except:
+                pass
+            try:
                 shutil.move(oldPDF, newFileDir + '/' + newPDF)
-	    except:
-	        diagFile.write('bcpFiles(): needs review : shutil.move(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
-		#return 0
+            except:
+                diagFile.write('bcpFiles(): needs review : shutil.move(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
+                #return 0
     diagFile.write('\nend: move oldPDF to newPDF\n')
 
     # update the max accession ID value
@@ -813,7 +812,7 @@ def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract, vol, issue,
         authors = ''
         primaryAuthor = ''
     elif isSQL:
-    	authors = authors.replace("'", "''")
+        authors = authors.replace("'", "''")
         primaryAuthor = primaryAuthor.replace("'", "''")
 
     if title == None or title == '':
@@ -901,62 +900,62 @@ def level1SanityChecks():
     # add to dupFileName list
     for userPath in os.listdir(inputDir):
 
-	pdfPath = inputDir + '/' + userPath + '/'
+        pdfPath = inputDir + '/' + userPath + '/'
 
-	for pdfFile in os.listdir(pdfPath):
+        for pdfFile in os.listdir(pdfPath):
 
-	    #
-	    # remove spaces
-	    # rename '.PDF' with '.pdf'
-	    #
+            #
+            # remove spaces
+            # rename '.PDF' with '.pdf'
+            #
 
-	    origFile = pdfFile
+            origFile = pdfFile
 
-	    if pdfFile.find(' ') >= 0 or pdfFile.find('.PDF') >= 0:
+            if pdfFile.find(' ') >= 0 or pdfFile.find('.PDF') >= 0:
                 pdfFile = pdfFile.replace(' ', '')
                 pdfFile = pdfFile.replace('.PDF', '.pdf')
-		shutil.move(os.path.join(pdfPath, origFile), os.path.join(pdfPath, pdfFile))
+                shutil.move(os.path.join(pdfPath, origFile), os.path.join(pdfPath, pdfFile))
 
-	    #
-	    # file in input directory does not end with pdf
-	    #
-	    if not pdfFile.lower().endswith('.pdf'):
-	        diagFile.write('file in input directory does not end with pdf: %s %s\n') % (userPath, pdfFile)
-	        continue
+            #
+            # file in input directory does not end with pdf
+            #
+            if not pdfFile.lower().endswith('.pdf'):
+                diagFile.write('file in input directory does not end with pdf: %s %s\n') % (userPath, pdfFile)
+                continue
 
-    	    #
-	    # is fileName a duplicate?
-	    #
-	    if pdfFile not in nodupFileName:
-	        nodupFileName.append(pdfFile)
-	    else:
-	        dupFileName.append(pdfFile)
+            #
+            # is fileName a duplicate?
+            #
+            if pdfFile not in nodupFileName:
+                nodupFileName.append(pdfFile)
+            else:
+                dupFileName.append(pdfFile)
 
     # step 2: iterate thru input directory by user
     for userPath in os.listdir(inputDir):
 
-	pdfPath = inputDir + '/' + userPath + '/'
-	needsReviewPath = os.path.join(needsReviewDir, userPath)
+        pdfPath = inputDir + '/' + userPath + '/'
+        needsReviewPath = os.path.join(needsReviewDir, userPath)
 
-	for pdfFile in os.listdir(pdfPath):
+        for pdfFile in os.listdir(pdfPath):
 
-    	    #
-	    # if fileName is a duplicate, move to needsReviewPath
-	    # do not add userPath info to userDict
-	    #
-	    if pdfFile in dupFileName:
-		level0error1 = level0error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
-		shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-		count_needsreview += 1
-		continue
+            #
+            # if fileName is a duplicate, move to needsReviewPath
+            # do not add userPath info to userDict
+            #
+            if pdfFile in dupFileName:
+                level0error1 = level0error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+                count_needsreview += 1
+                continue
 
-	    #
-	    # Add userPath info to userDict dictionary
-	    #
-	    if userPath not in userDict:
-	        userDict[userPath] = []
-	    if pdfFile not in userDict[userPath]:
-	        userDict[userPath].append(pdfFile)
+            #
+            # Add userPath info to userDict dictionary
+            #
+            if userPath not in userDict:
+                userDict[userPath] = []
+            if pdfFile not in userDict[userPath]:
+                userDict[userPath].append(pdfFile)
 
     #
     # iterate thru userDict
@@ -964,113 +963,113 @@ def level1SanityChecks():
 
     for userPath in userDict:
 
-	pdfPath = os.path.join(inputDir, userPath)
-	needsReviewPath = os.path.join(needsReviewDir, userPath)
+        pdfPath = os.path.join(inputDir, userPath)
+        needsReviewPath = os.path.join(needsReviewDir, userPath)
 
-	#
-	# for each pdfFile
-	# if pdfFile starts with "PMID", then store in objByUser dictionary as 'pm'
-	# else if doi id can be found, then store in objByUser dictionary as 'doi'
-	# else, report error, move pdf to needs review directory
-	#
-	for pdfFile in userDict[userPath]:
+        #
+        # for each pdfFile
+        # if pdfFile starts with "PMID", then store in objByUser dictionary as 'pm'
+        # else if doi id can be found, then store in objByUser dictionary as 'doi'
+        # else, report error, move pdf to needs review directory
+        #
+        for pdfFile in userDict[userPath]:
 
-	    pdf = PdfParser.PdfParser(os.path.join(pdfPath, pdfFile))
-	    doiid = ''
+            pdf = PdfParser.PdfParser(os.path.join(pdfPath, pdfFile))
+            doiid = ''
 
-	    try:
-	    	pdftext = pdf.getText();
-	    except:
-	        level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
-	        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-	        count_needsreview += 1
-	        continue
-	    	
-	    #diagFile.write(pdftext + "\n\n")
+            try:
+                pdftext = pdf.getText();
+            except:
+                level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+                count_needsreview += 1
+                continue
+                
+            diagFile.write(pdftext + "\n\n")
 
-	    #
-	    # if userPath is in the 'userSupplement, userPDF or userNLM' folder
-	    #	store in objByUser
-	    #	skip DOI/PMID sanity checks
-	    #
-	    # may be in format:
-	    #	xxxx.pdf, xxxx_Jyyyy.pdf
-	    #
-	    if userPath in (userSupplement, userPDF, userNLM):
-		try:
-	            # store by mgiid
-	            tokens = pdfFile.replace('.pdf', '').split('_')
-	            mgiid = tokens[0]
-	            pdftext = pdf.getText()
-	            if (userPath, userPath, mgiid) not in objByUser:
-	                objByUser[(userPath, userPath, mgiid)] = []
-	                objByUser[(userPath, userPath, mgiid)].append((pdfFile, pdftext))
+            #
+            # if userPath is in the 'userSupplement, userPDF or userNLM' folder
+            #	store in objByUser
+            #	skip DOI/PMID sanity checks
+            #
+            # may be in format:
+            #	xxxx.pdf, xxxx_Jyyyy.pdf
+            #
+            if userPath in (userSupplement, userPDF, userNLM):
+                try:
+                    # store by mgiid
+                    tokens = pdfFile.replace('.pdf', '').split('_')
+                    mgiid = tokens[0]
+                    pdftext = pdf.getText()
+                    if (userPath, userPath, mgiid) not in objByUser:
+                        objByUser[(userPath, userPath, mgiid)] = []
+                        objByUser[(userPath, userPath, mgiid)].append((pdfFile, pdftext))
                 except:
-		    level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
-		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-		    count_needsreview += 1
-		    continue
+                    level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+                    count_needsreview += 1
+                    continue
 
-	    #
-	    # if pdf file is in "PMID_xxxx" format
-	    #
-	    elif pdfFile.lower().startswith('pmid'):
-		try:
-	            # store by pmid
-	            pmid = pdfFile.lower().replace('pmid_', '')
-	            pmid = pmid.replace('.pdf', '')
-	            pdftext = pdf.getText()
-	            if (userPath, 'pm', pmid) not in objByUser:
-	                objByUser[(userPath, 'pm', pmid)] = []
-	                objByUser[(userPath, 'pm', pmid)].append((pdfFile, pdftext))
+            #
+            # if pdf file is in "PMID_xxxx" format
+            #
+            elif pdfFile.lower().startswith('pmid'):
+                try:
+                    # store by pmid
+                    pmid = pdfFile.lower().replace('pmid_', '')
+                    pmid = pmid.replace('.pdf', '')
+                    pdftext = pdf.getText()
+                    if (userPath, 'pm', pmid) not in objByUser:
+                        objByUser[(userPath, 'pm', pmid)] = []
+                        objByUser[(userPath, 'pm', pmid)].append((pdfFile, pdftext))
                 except:
-		    level1error4 = level1error4 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
-		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-		    count_needsreview += 1
-		    continue
+                    level1error4 = level1error4 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+                    count_needsreview += 1
+                    continue
 
-	    #
-	    # anything else
-	    #
-	    else:
-	        try:
+            #
+            # anything else
+            #
+            else:
+                try:
                     doiid = pdf.getFirstDoiID()
-	            pdftext = pdf.getText()
+                    pdftext = pdf.getText()
 
-		    if doiid:
-		        if doiid not in doiidById:
-		            doiidById[doiid] = []
-		            doiidById[doiid].append(pdfFile)
-			    diagFile.write('pdf.getFirstDoiID() : successful : %s/%s : %s\n' % (pdfPath, pdfFile, doiid))
-			    diagFile.flush()
-		        else:
+                    if doiid:
+                        if doiid not in doiidById:
+                            doiidById[doiid] = []
+                            doiidById[doiid].append(pdfFile)
+                            diagFile.write('pdf.getFirstDoiID() : successful : %s/%s : %s\n' % (pdfPath, pdfFile, doiid))
+                            diagFile.flush()
+                        else:
                             level1error3 = level1error3 + doiid + '<BR>\n' + \
-			    	linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + \
-			        '<BR>\nduplicate of: ' + userPath + '/' + doiidById[doiid][0] + \
-				'<BR><BR>\n\n'
-			    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-			    count_needsreview += 1
-			    continue
-		    else:
-		        level1error2 = level1error2 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
-		        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-			count_needsreview += 1
-		        continue
+                                linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + \
+                                '<BR>\nduplicate of: ' + userPath + '/' + doiidById[doiid][0] + \
+                                '<BR><BR>\n\n'
+                            shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+                            count_needsreview += 1
+                            continue
+                    else:
+                        level1error2 = level1error2 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+                        count_needsreview += 1
+                        continue
                 except:
-		    level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
-		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-		    count_needsreview += 1
-		    continue
+                    level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+                    count_needsreview += 1
+                    continue
 
-	        # store by doiid
+                # store by doiid
 
-		if userPath in (userDiscard):
-	           if (userPath, userPath, doiid) not in objByUser:
-	              objByUser[(userPath, userPath, doiid)] = []
-	              objByUser[(userPath, userPath, doiid)].append((pdfFile, pdftext))
-		elif (userPath, objDOI, doiid) not in objByUser:
-	            objByUser[(userPath, objDOI, doiid)] = []
-	            objByUser[(userPath, objDOI, doiid)].append((pdfFile, pdftext))
+                if userPath in (userDiscard):
+                   if (userPath, userPath, doiid) not in objByUser:
+                      objByUser[(userPath, userPath, doiid)] = []
+                      objByUser[(userPath, userPath, doiid)].append((pdfFile, pdftext))
+                elif (userPath, objDOI, doiid) not in objByUser:
+                    objByUser[(userPath, objDOI, doiid)] = []
+                    objByUser[(userPath, objDOI, doiid)].append((pdfFile, pdftext))
 
     #
     # write out level1 errors to both error log and curator log
@@ -1106,20 +1105,20 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
     # userNLM : part 1
     # convert objId = mgi to objId = pubmed id
     if objType == userNLM:
-	mgiID = 'MGI:' + objId
+        mgiID = 'MGI:' + objId
         sql = '''
-	    select c._Refs_key, c.mgiID, c.pubmedID, c.doiID, c.journal, r.title
-	    from BIB_Citation_Cache c, BIB_Refs r
-	    where c.mgiID = '%s'
-	    and c.pubmedID is not null
-	    and c._Refs_key = r._Refs_key
-    	    ''' % (mgiID)
+            select c._Refs_key, c.mgiID, c.pubmedID, c.doiID, c.journal, r.title
+            from BIB_Citation_Cache c, BIB_Refs r
+            where c.mgiID = '%s'
+            and c.pubmedID is not null
+            and c._Refs_key = r._Refs_key
+            ''' % (mgiID)
         results = db.sql(sql, 'auto')
-	if len(results) > 0:
-	    objId = results[0]['pubmedID']
-	else:
+        if len(results) > 0:
+            objId = results[0]['pubmedID']
+        else:
             level5error1 = level5error1 + mgiID + '<BR>\n' + \
-	        linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+                linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
             return 1
 
     if objType in (objDOI, userDiscard):
@@ -1128,72 +1127,72 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
             mapping = pma.getReferences([objId])
         except:
             diagFile.write('level2SanityChecks:pma.getReferences() needs review: %s, %s, %s\n' % (objId, userPath, pdfFile))
-	    return -1
+            return -1
 
         refList = mapping[objId]
 
         #  1: DOI ID maps to multiple pubmed IDs
         if len(refList) > 1:
             for ref in refList:
-	        level2error1 = level2error1 + objId + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
-	    	    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	    return 1
+                level2error1 = level2error1 + objId + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
+                    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+            return 1
 
         #  2: DOI ID not found in pubmed
         for ref in refList:
             if ref == None:
-	        level2error2 = level2error2 + objId + '<BR>\n' + \
-		            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	        return 1
+                level2error2 = level2error2 + objId + '<BR>\n' + \
+                            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+                return 1
 
         pubMedRef = refList[0]
         pubmedID = pubMedRef.getPubMedID()
     else:
-	pubmedID = objId
+        pubmedID = objId
         pubMedRef = pma.getReferenceInfo(pubmedID)
 
     #  3: error getting medline record
     if not pubMedRef.isValid():
-	level2error3 = level2error3 + objId + ', ' + pubmedID + '<BR>\n' + \
-		linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	return 1
+        level2error3 = level2error3 + objId + ', ' + pubmedID + '<BR>\n' + \
+                linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+        return 1
 
     # check for required NLM fields
     else:
-	# PMID - PubMed unique identifier
-	# TI - title of article
-	# TA - journal
-	# DP - date
-	# YR - year
-	# PT - Comment|Editorial|News|Published Erratum|Retracetion of Publication
+        # PMID - PubMed unique identifier
+        # TI - title of article
+        # TA - journal
+        # DP - date
+        # YR - year
+        # PT - Comment|Editorial|News|Published Erratum|Retracetion of Publication
 
-	requiredDict = {}
-	missingList = []
+        requiredDict = {}
+        missingList = []
 
-	requiredDict['pmId'] = pubMedRef.getPubMedID()
-	requiredDict['title'] = pubMedRef.getTitle()
-	requiredDict['journal'] = pubMedRef.getJournal()
-	requiredDict['date'] = pubMedRef.getDate()
-	requiredDict['year'] = pubMedRef.getYear()
-	requiredDict['publicationType'] = pubMedRef.getPublicationType()
+        requiredDict['pmId'] = pubMedRef.getPubMedID()
+        requiredDict['title'] = pubMedRef.getTitle()
+        requiredDict['journal'] = pubMedRef.getJournal()
+        requiredDict['date'] = pubMedRef.getDate()
+        requiredDict['year'] = pubMedRef.getYear()
+        requiredDict['publicationType'] = pubMedRef.getPublicationType()
 
         #  4: missing data from required field for DOI ID
-	for reqLabel in requiredDict:
-	    if requiredDict[reqLabel] == None:
-		missingList.append(reqLabel)
-	if len(missingList):
+        for reqLabel in requiredDict:
+            if requiredDict[reqLabel] == None:
+                missingList.append(reqLabel)
+        if len(missingList):
            diagFile.write(str(requiredDict))
            diagFile.write('\n')
-	   level2error4 = level2error4 + str(objId) + ', ' + str(pubmedID) + '<BR>\n' + \
-		linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	   return 1
+           level2error4 = level2error4 + str(objId) + ', ' + str(pubmedID) + '<BR>\n' + \
+                linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+           return 1
 
-	# skip & delete these publication types
+        # skip & delete these publication types
         diagFile.write(requiredDict['publicationType'] + '\n')
         if requiredDict['publicationType'] in ('Comment', 'Editorial', 'News'):
-	   pubtypelogFile.write(requiredDict['publicationType'] + ',' + objId + ',' + pubmedID + '\n')
-	   os.remove(os.path.join(pdfPath, pdfFile))
-	   return -1
+           pubtypelogFile.write(requiredDict['publicationType'] + ',' + objId + ',' + pubmedID + '\n')
+           os.remove(os.path.join(pdfPath, pdfFile))
+           return -1
 
     # userNLM : part 2
     # results() where retrieved earlier
@@ -1201,23 +1200,23 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
     if objType == userNLM:
 
         # match journal/title/doi id in MGD
-	mgiID = results[0]['mgiID']
+        mgiID = results[0]['mgiID']
         journal = results[0]['journal']
         title = results[0]['title']
-	doiId = results[0]['doiID']
+        doiId = results[0]['doiID']
 
         if pubMedRef.getJournal().lower() != journal.lower() \
-    	    or pubMedRef.getTitle().lower() != title.lower() \
+            or pubMedRef.getTitle().lower() != title.lower() \
             or (doiId != None and pubMedRef.getDoiID() != doiId):
 
             level5error2 = level5error2 + mgiID + ',' + pubmedID + '<BR>\n' + \
-	            'Journal/NLM: ' + pubMedRef.getJournal() + '<BR>\n' + \
-	            'Journal/MGD: ' + journal + '<BR>\n' + \
-	            'Title/NLM: ' + pubMedRef.getTitle() + '<BR>\n' + \
-	            'Title/MGD: ' + title + '<BR>\n' + \
-		    'DOI/NLM: ' + str(pubMedRef.getDoiID()) + '<BR>\n' + \
-		    'DOI/MGD: ' + str(doiId) + '<BR>\n' + \
-    	            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+                    'Journal/NLM: ' + pubMedRef.getJournal() + '<BR>\n' + \
+                    'Journal/MGD: ' + journal + '<BR>\n' + \
+                    'Title/NLM: ' + pubMedRef.getTitle() + '<BR>\n' + \
+                    'Title/MGD: ' + title + '<BR>\n' + \
+                    'DOI/NLM: ' + str(pubMedRef.getDoiID()) + '<BR>\n' + \
+                    'DOI/MGD: ' + str(doiId) + '<BR>\n' + \
+                    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
 
             return 1
 
@@ -1249,14 +1248,14 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
     if objType == objDOI:
         sql = '''
-	    select c._Refs_key, c.mgiID, c.pubmedID, c.doiID from BIB_Citation_Cache c where c.pubmedID = '%s' or c.doiID = '%s'
-    	    ''' % (pubmedID, objId)
+            select c._Refs_key, c.mgiID, c.pubmedID, c.doiID from BIB_Citation_Cache c where c.pubmedID = '%s' or c.doiID = '%s'
+            ''' % (pubmedID, objId)
     else:
         sql = '''
-	    select c._Refs_key, c.mgiID, c.pubmedID, c.doiID
-	    from BIB_Citation_Cache c
-	    where c.pubmedID = '%s'
-    	    ''' % (pubmedID)
+            select c._Refs_key, c.mgiID, c.pubmedID, c.doiID
+            from BIB_Citation_Cache c
+            where c.pubmedID = '%s'
+            ''' % (pubmedID)
 
     results = db.sql(sql, 'auto')
 
@@ -1264,51 +1263,51 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
         # 1: input PubMed ID or DOI ID associated with different MGI references
         diagFile.write('2: input PubMed ID or DOI ID associated with different MGI references: ' \
-	+ objId + ',' + pubmedID + '\n')
-	level3error1 = level3error1 + objId + ', ' + pubmedID + '<BR>\n' + \
-	    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-	count_needsreview += 1
-	return 2, results
+        + objId + ',' + pubmedID + '\n')
+        level3error1 = level3error1 + objId + ', ' + pubmedID + '<BR>\n' + \
+            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+        count_needsreview += 1
+        return 2, results
 
     elif len(results) == 1:
 
         if objType in (objDOI):
 
             # 1: input PubMed ID or DOI ID associated with different MGI references
-	    if results[0]['pubmedID'] != None and results[0]['doiID'] != None:
-	        if (pubmedID == results[0]['pubmedID'] and objId != results[0]['doiID']) or \
-	           (pubmedID != results[0]['pubmedID'] and objId == results[0]['doiID']):
+            if results[0]['pubmedID'] != None and results[0]['doiID'] != None:
+                if (pubmedID == results[0]['pubmedID'] and objId != results[0]['doiID']) or \
+                   (pubmedID != results[0]['pubmedID'] and objId == results[0]['doiID']):
                     diagFile.write('1: input PubMed ID or DOI ID associated with different MGI references: ' \
-		            + objId + ',' + pubmedID + '\n')
-	            level3error1 = level3error1 + objId + ', ' + pubmedID + '<BR>\n' + \
-	    	            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
-		    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-		    count_needsreview += 1
-	            return 2, results
+                            + objId + ',' + pubmedID + '\n')
+                    level3error1 = level3error1 + objId + ', ' + pubmedID + '<BR>\n' + \
+                            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+                    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+                    count_needsreview += 1
+                    return 2, results
 
             # 2a: input exists in MGI but missing PubMed ID -> add PubMed ID in MGI
-	    if results[0]['pubmedID'] == None:
-	        diagFile.write('2: pubmedID is missing in MGI: ' + objId + ',' + pubmedID + '\n')
-	        return 3, results
+            if results[0]['pubmedID'] == None:
+                diagFile.write('2: pubmedID is missing in MGI: ' + objId + ',' + pubmedID + '\n')
+                return 3, results
 
         if objType in (objDOI) or (objType in (userNLM) and ref.getDoiID() != None):
 
             # 2b: input exists in MGI but missing DOI ID -> add DOI ID in MGI
-	    if results[0]['doiID'] == None:
-	        diagFile.write('2: doiid is missing in MGI:' + objId + ',' + pubmedID + '\n')
-	        return 3, results
+            if results[0]['doiID'] == None:
+                diagFile.write('2: doiid is missing in MGI:' + objId + ',' + pubmedID + '\n')
+                return 3, results
 
         if objType in (userNLM):
             return 4, results
-    	else:
-	    # duplicates are logged in duplicatelogFile and deleted/not moved to needs_review
-	    diagFile.write('duplicate: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
+        else:
+            # duplicates are logged in duplicatelogFile and deleted/not moved to needs_review
+            diagFile.write('duplicate: input PubMed ID or DOI ID exists in MGI: ' + objId + ',' + pubmedID + '\n')
             duplicatelogFile.write(userPath + ',' + objId + ', ' + pubmedID + '\n')
-	    os.remove(os.path.join(pdfPath, pdfFile))
-	    count_duplicate += 1
+            os.remove(os.path.join(pdfPath, pdfFile))
+            count_duplicate += 1
             return 1, results
-		
+                
     else:
         return 0, results
 
@@ -1357,368 +1356,368 @@ def processPDFs():
 
         diagFile.write('\nobjByUser: %s\n' % (str(key)))
 
-	pdfFile = objByUser[key][0][0]
-	extractedText = objByUser[key][0][1]
-	userPath = key[0]
-	objType = key[1]
-	objId = key[2] 
-	pdfPath = os.path.join(inputDir, userPath) 
-	needsReviewPath = os.path.join(needsReviewDir, userPath)
+        pdfFile = objByUser[key][0][0]
+        extractedText = objByUser[key][0][1]
+        userPath = key[0]
+        objType = key[1]
+        objId = key[2] 
+        pdfPath = os.path.join(inputDir, userPath) 
+        needsReviewPath = os.path.join(needsReviewDir, userPath)
 
-	isDiscard = 0
-	isMice = 0
+        isDiscard = 0
+        isMice = 0
 
-	#
-	# run splitter
-	#
-	
-	bodyText = ''
-	refText = ''
-	figureText = ''
-	starMethodText = ''
-	suppText = ''
+        #
+        # run splitter
+        #
+        
+        bodyText = ''
+        refText = ''
+        figureText = ''
+        starMethodText = ''
+        suppText = ''
 
-	if extractedText != None:
-	    (bodyText, refText, figureText, starMethodText, suppText)  = textSplitter.splitSections(extractedText)
+        if extractedText != None:
+            (bodyText, refText, figureText, starMethodText, suppText)  = textSplitter.splitSections(extractedText)
 
-	bodyText = replaceText(bodyText)
-	refText = replaceText(refText)
-	figureText = replaceText(figureText)
-	starMethodText = replaceText(starMethodText)
-	suppText = replaceText(suppText)
+        bodyText = replaceText(bodyText)
+        refText = replaceText(refText)
+        figureText = replaceText(figureText)
+        starMethodText = replaceText(starMethodText)
+        suppText = replaceText(suppText)
 
-	#if len(bodyText):
-	#    print 'FOUND BODY'
-	#if len(refText):
-	#    print 'FOUND REF'
-	#if len(figureText):
-	#    print 'FOUND FIGURE'
-	#if len(starMethodText):
-	#    print 'FOUND STAR'
-	#if len(suppText):
-	#    print 'FOUND SUPP'
+        #if len(bodyText):
+        #    print('FOUND BODY')
+        #if len(refText):
+        #    print('FOUND REF')
+        #if len(figureText):
+        #    print('FOUND FIGURE')
+        #if len(starMethodText):
+        #    print('FOUND STAR')
+        #if len(suppText):
+        #    print('FOUND SUPP')
 
-	#
-	# only interested in running checkMice for curator folders, etc.
-	# if non-refText section checkMice = false, then isDiscard = 1
-	#
+        #
+        # only interested in running checkMice for curator folders, etc.
+        # if non-refText section checkMice = false, then isDiscard = 1
+        #
         if userPath not in (userSupplement, userPDF, userGOA, userNLM, userDiscard):
             if bodyText.lower().find(checkMice) < 0 \
                 and figureText.lower().find(checkMice) < 0 \
                 and suppText.lower().find(checkMice) < 0 \
                 and starMethodText.lower().find(checkMice) < 0 :
 
-		    isDiscard = 1
-		    isMice = 1
+                    isDiscard = 1
+                    isMice = 1
 
-	# TR 12871/ERRATUM/correction/retraction
-	# ignore littriage_xxxx folders
-	# ignore 'bonferroni correction'
-	checkErratum = 1
-	isErratum = 0
+        # TR 12871/ERRATUM/correction/retraction
+        # ignore littriage_xxxx folders
+        # ignore 'bonferroni correction'
+        checkErratum = 1
+        isErratum = 0
         if userPath not in (userSupplement, userPDF, userGOA, userNLM, userDiscard) and objType not in ('pm'):
             diagFile.write('ERRATUM : searching : %s, %s, %s\n' % (objId, userPath, pdfFile))
-	    for e in erratumExcludeList:
-	        if bodyText.lower().find(e) >= 0:
-            		diagFile.write('ERRATUM : skipping/excluded : %s, %s, %s, %s\n' % (e, objId, userPath, pdfFile))
-			checkErratum = 0
-	    if checkErratum == 1:
-	    	for e in erratumIncludeList:
-	        	erratumFind = bodyText.lower().find(e)
-	    		if erratumFind >= 0 and erratumFind <= erratumPosition:
-				isErratum = 1
-	    # continue to next pdf
-	    if isErratum == 1:
-            	diagFile.write('ERRATUM : found/included : %s, %s, %s, %s\n' % (e, objId, userPath, pdfFile))
-		level2error5 = level2error5 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
-		shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-		count_needsreview += 1
-	    	continue
-	else:
+            for e in erratumExcludeList:
+                if bodyText.lower().find(e) >= 0:
+                        diagFile.write('ERRATUM : skipping/excluded : %s, %s, %s, %s\n' % (e, objId, userPath, pdfFile))
+                        checkErratum = 0
+            if checkErratum == 1:
+                for e in erratumIncludeList:
+                        erratumFind = bodyText.lower().find(e)
+                        if erratumFind >= 0 and erratumFind <= erratumPosition:
+                                isErratum = 1
+            # continue to next pdf
+            if isErratum == 1:
+                diagFile.write('ERRATUM : found/included : %s, %s, %s, %s\n' % (e, objId, userPath, pdfFile))
+                level2error5 = level2error5 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+                count_needsreview += 1
+                continue
+        else:
             diagFile.write('ERRATUM : skipping : %s, %s, %s\n' % (objId, userPath, pdfFile))
 
-	# process supplemental but suppText not found
-	if userPath in (userSupplement) and len(suppText) == 0:
-	    level4error2 = level4error2 + str(objId) + '<BR>\n' + \
-		    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	    count_needsreview += 1
+        # process supplemental but suppText not found
+        if userPath in (userSupplement) and len(suppText) == 0:
+            level4error2 = level4error2 + str(objId) + '<BR>\n' + \
+                    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+            count_needsreview += 1
             diagFile.write('userSupplement : needs review : %s, %s, %s\n' % (objId, userPath, pdfFile))
-	    shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+            shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
             continue
 
-	# process pdf/supplement
-	if userPath in (userPDF, userSupplement):
-	    processExtractedText(key, bodyText, refText, figureText, starMethodText, suppText)
-	    continue
+        # process pdf/supplement
+        if userPath in (userPDF, userSupplement):
+            processExtractedText(key, bodyText, refText, figureText, starMethodText, suppText)
+            continue
 
-	#
-	# level2SanityChecks()
-	# parse PubMed IDs from PubMed API
-	#
-	pubmedRef = level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath)
+        #
+        # level2SanityChecks()
+        # parse PubMed IDs from PubMed API
+        #
+        pubmedRef = level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath)
 
-	if pubmedRef == -1:
+        if pubmedRef == -1:
            continue
 
-	if pubmedRef == 1:
-	   diagFile.write('level2SanityChecks() : needs review : %s, %s, %s, %s\n' % (objId, userPath, pdfFile, str(pubmedRef)))
-	   shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-	   count_needsreview += 1
+        if pubmedRef == 1:
+           diagFile.write('level2SanityChecks() : needs review : %s, %s, %s, %s\n' % (objId, userPath, pdfFile, str(pubmedRef)))
+           shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+           count_needsreview += 1
            continue
 
-	try:
-	   pubmedID = pubmedRef.getPubMedID()
-	except:
+        try:
+           pubmedID = pubmedRef.getPubMedID()
+        except:
            diagFile.write('process:pubmedRef.getPubMedID()() needs review: %s, %s, %s\n' % (objId, userPath, pdfFile))
            continue
 
-	diagFile.write('level2SanityChecks() : successful : %s, %s, %s, %s\n' % (objId, userPath, pdfFile, pubmedID))
+        diagFile.write('level2SanityChecks() : successful : %s, %s, %s, %s\n' % (objId, userPath, pdfFile, pubmedID))
 
-	#
-	# level3SanityChecks()
-	# check MGI for errors
-	#
+        #
+        # level3SanityChecks()
+        # check MGI for errors
+        #
         # return 0   : add as new reference
         # return 1/2 : skip/move to 'needs review'
         # return 3   : add new accession ids (userNLM included)
         # return 4   : userNLM : will call processNLMRefresh()
-	#
-	rc, mgdRef = level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath, pubmedRef)
+        #
+        rc, mgdRef = level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath, pubmedRef)
 
-	if rc == 1 or rc == 2:
+        if rc == 1 or rc == 2:
             diagFile.write('level3SanityChecks() : needs review : %s, %s, %s, %s\n' \
-			% (objId, userPath, pdfFile, pubmedID))
-	    continue
+                        % (objId, userPath, pdfFile, pubmedID))
+            continue
 
-	#
-	# add accession ids to existing MGI reference
-	#
-	elif rc == 3:
+        #
+        # add accession ids to existing MGI reference
+        #
+        elif rc == 3:
 
             diagFile.write('level3SanityChecks() : successful : add PubMed ID or DOI ID : %s, %s, %s, %s, %s\n' \
-	    	% (objId, userPath, pdfFile, pubmedID, str(mgdRef)))
+                % (objId, userPath, pdfFile, pubmedID, str(mgdRef)))
 
-	    # add pubmedID or doiId
-	    userKey = loadlib.verifyUser(userPath, 0, diagFile)
-	    objectKey = mgdRef[0]['_Refs_key']
+            # add pubmedID or doiId
+            userKey = loadlib.verifyUser(userPath, 0, diagFile)
+            objectKey = mgdRef[0]['_Refs_key']
 
-	    if objType in (userNLM):
-    		objId = pubmedRef.getDoiID()
-		if objId == None: # do nothing
-		    continue
+            if objType in (userNLM):
+                objId = pubmedRef.getDoiID()
+                if objId == None: # do nothing
+                    continue
 
-	    if mgdRef[0]['pubmedID'] == None:
-	        accID = pubmedID
-		prefixPart = ''
-		numericPart = accID
-		logicalDBKey = 29
-	    else: # objId = doiid
-	        accID = objId
-		prefixPart = accID
-		numericPart = ''
-		logicalDBKey = 65
+            if mgdRef[0]['pubmedID'] == None:
+                accID = pubmedID
+                prefixPart = ''
+                numericPart = accID
+                logicalDBKey = 29
+            else: # objId = doiid
+                accID = objId
+                prefixPart = accID
+                numericPart = ''
+                logicalDBKey = 65
 
-	    accFile.write('%s|%s|%s|%s|%s|%d|%d|0|1|%s|%s|%s|%s\n' \
-		% (accKey, accID, prefixPart, numericPart, logicalDBKey, objectKey, mgiTypeKey, \
-		   userKey, userKey, loaddate, loaddate))
+            accFile.write('%s|%s|%s|%s|%s|%d|%d|0|1|%s|%s|%s|%s\n' \
+                % (accKey, accID, prefixPart, numericPart, logicalDBKey, objectKey, mgiTypeKey, \
+                   userKey, userKey, loaddate, loaddate))
 
-	    accKey += 1
+            accKey += 1
             doipubmedaddedlogFile.write('%s, %s, %s, %s\n' % (objId, pdfFile, pubmedID, str(mgdRef)))
-	    count_doipubmedadded += 1
+            count_doipubmedadded += 1
 
-	# add new MGI reference
-	#
-	elif rc == 0:
+        # add new MGI reference
+        #
+        elif rc == 0:
 
             diagFile.write('level3SanityChecks() : successful : add new : %s, %s, %s, %s\n' \
-	    	% (objId, userPath, pdfFile, pubmedID))
+                % (objId, userPath, pdfFile, pubmedID))
 
-	    # add pubmedID or doiId
-	    userKey = loadlib.verifyUser(userPath, 0, diagFile)
-	    logicalDBKey = 1
+            # add pubmedID or doiId
+            userKey = loadlib.verifyUser(userPath, 0, diagFile)
+            logicalDBKey = 1
 
-	    #
-	    # bib_refs
-	    #
+            #
+            # bib_refs
+            #
 
-	    authors, primaryAuthor, title, abstract, vol, issue, pgs = replacePubMedRef(\
-	    	0,
-		pubmedRef.getAuthors(), \
-		pubmedRef.getPrimaryAuthor(), \
-		pubmedRef.getTitle(), \
-		pubmedRef.getAbstract(), \
-		pubmedRef.getVolume(), \
-		pubmedRef.getIssue(), \
-		pubmedRef.getPages())
+            authors, primaryAuthor, title, abstract, vol, issue, pgs = replacePubMedRef(\
+                0,
+                pubmedRef.getAuthors(), \
+                pubmedRef.getPrimaryAuthor(), \
+                pubmedRef.getTitle(), \
+                pubmedRef.getAbstract(), \
+                pubmedRef.getVolume(), \
+                pubmedRef.getIssue(), \
+                pubmedRef.getPages())
 
-	    if pubmedRef.getPublicationType() in ('Review'):
-	        isReviewArticle = 1
-	    else:
-	        isReviewArticle = 0
+            if pubmedRef.getPublicationType() in ('Review'):
+                isReviewArticle = 1
+            else:
+                isReviewArticle = 0
 
-	    # TR12958/userDiscard folder
-	    if objType in (userDiscard):
-	        isDiscard = 1
-	    #else:
-	    #    isDiscard = 0
+            # TR12958/userDiscard folder
+            if objType in (userDiscard):
+                isDiscard = 1
+            #else:
+            #    isDiscard = 0
 
-	    #
-	    # if same pdf is placed in userSupplement,userPDF,userGOA,userNLM
-	    # skip, no need to report this as an error
-	    #
-	    if refKey in refKeyList:
-	        continue
+            #
+            # if same pdf is placed in userSupplement,userPDF,userGOA,userNLM
+            # skip, no need to report this as an error
+            #
+            if refKey in refKeyList:
+                continue
 
-	    refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-		% (refKey, referenceTypeKey, 
-		   authors, \
-		   primaryAuthor, \
-		   title, \
-		   pubmedRef.getJournal(), \
-		   vol, \
-		   issue, \
-		   pubmedRef.getDate(), \
-		   pubmedRef.getYear(), \
-		   pgs, \
-		   abstract, \
-		   isReviewArticle, \
-		   isDiscard, \
-		   userKey, userKey, loaddate, loaddate))
+            refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+                % (refKey, referenceTypeKey, 
+                   authors, \
+                   primaryAuthor, \
+                   title, \
+                   pubmedRef.getJournal(), \
+                   vol, \
+                   issue, \
+                   pubmedRef.getDate(), \
+                   pubmedRef.getYear(), \
+                   pgs, \
+                   abstract, \
+                   isReviewArticle, \
+                   isDiscard, \
+                   userKey, userKey, loaddate, loaddate))
 
-	    refKeyList.append(refKey)
-	    count_processPDFs += 1
+            refKeyList.append(refKey)
+            count_processPDFs += 1
 
-	    #
-	    # bib_workflow_status
-	    # 1 row per Group
-	    #
-	    for groupKey in workflowGroupList:
-	        # if userGOA and group = GO, then status = Full-coded
-		if userPath == userGOA and groupKey == 31576666:
-	            statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-		        % (statusKey, refKey, groupKey, fullCodedKey, isCurrent, \
-		              userKey, userKey, loaddate, loaddate))
-		else:
-	            statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-		        % (statusKey, refKey, groupKey, notRoutedKey, isCurrent, \
-		              userKey, userKey, loaddate, loaddate))
+            #
+            # bib_workflow_status
+            # 1 row per Group
+            #
+            for groupKey in workflowGroupList:
+                # if userGOA and group = GO, then status = Full-coded
+                if userPath == userGOA and groupKey == 31576666:
+                    statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+                        % (statusKey, refKey, groupKey, fullCodedKey, isCurrent, \
+                              userKey, userKey, loaddate, loaddate))
+                else:
+                    statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+                        % (statusKey, refKey, groupKey, notRoutedKey, isCurrent, \
+                              userKey, userKey, loaddate, loaddate))
                 statusKey += 1
 
-	    #
-	    # bib_workflow_data/body
-	    # check full extracted text to set supplemental key
-    	    hasPDF = 1
-	    suppKey = setSupplemental(userPath, extractedText)
-	    dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
-	    	% (dataKey, refKey, hasPDF, suppKey, bodySectionKey, bodyText, userKey, userKey, loaddate, loaddate))
-	    dataKey += 1
+            #
+            # bib_workflow_data/body
+            # check full extracted text to set supplemental key
+            hasPDF = 1
+            suppKey = setSupplemental(userPath, extractedText)
+            dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+                % (dataKey, refKey, hasPDF, suppKey, bodySectionKey, bodyText, userKey, userKey, loaddate, loaddate))
+            dataKey += 1
 
-    	    # for any other section...i.e. not 'body'
-    	    hasPDF = 0
-    	    suppKey = suppNotApplKey
-	    if len(refText) > 0:
-	        dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
-	    	    % (dataKey, refKey, hasPDF, suppKey, refSectionKey, refText, userKey, userKey, loaddate, loaddate))
-    	        dataKey += 1
-	    if len(figureText) > 0:
-	        dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
-	    	    % (dataKey, refKey, hasPDF, suppKey, figureSectionKey, figureText, userKey, userKey, loaddate, loaddate))
-    	        dataKey += 1
-	    if len(starMethodText) > 0:
-	        dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
-	    	    % (dataKey, refKey, hasPDF, suppKey, starMethodSectionKey, starMethodText, userKey, userKey, loaddate, loaddate))
-    	        dataKey += 1
-	    if len(suppText) > 0:
-	        dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
-	    	    % (dataKey, refKey, hasPDF, suppKey, suppSectionKey, suppText, userKey, userKey, loaddate, loaddate))
-    	        dataKey += 1
+            # for any other section...i.e. not 'body'
+            hasPDF = 0
+            suppKey = suppNotApplKey
+            if len(refText) > 0:
+                dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+                    % (dataKey, refKey, hasPDF, suppKey, refSectionKey, refText, userKey, userKey, loaddate, loaddate))
+                dataKey += 1
+            if len(figureText) > 0:
+                dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+                    % (dataKey, refKey, hasPDF, suppKey, figureSectionKey, figureText, userKey, userKey, loaddate, loaddate))
+                dataKey += 1
+            if len(starMethodText) > 0:
+                dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+                    % (dataKey, refKey, hasPDF, suppKey, starMethodSectionKey, starMethodText, userKey, userKey, loaddate, loaddate))
+                dataKey += 1
+            if len(suppText) > 0:
+                dataFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+                    % (dataKey, refKey, hasPDF, suppKey, suppSectionKey, suppText, userKey, userKey, loaddate, loaddate))
+                dataKey += 1
 
-	    #
-	    # bib_workflow_tag/mice is in reference only
-	    if isMice == 1:
-	        tagFile.write('%s|%s|%s|%s|%s|%s|%s\n' \
-	        	%(tagKey, refKey, miceInRefOnlyKey, userKey, userKey, loaddate, loaddate))
-		tagKey += 1
+            #
+            # bib_workflow_tag/mice is in reference only
+            if isMice == 1:
+                tagFile.write('%s|%s|%s|%s|%s|%s|%s\n' \
+                        %(tagKey, refKey, miceInRefOnlyKey, userKey, userKey, loaddate, loaddate))
+                tagKey += 1
 
-	    #####
-	    # add other extracted text sections here
-	    #####
+            #####
+            # add other extracted text sections here
+            #####
 
-	    # MGI:xxxx
-	    #
-	    mgiID = mgiPrefix + str(mgiKey)
-	    accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
-		% (accKey, mgiID, mgiPrefix, mgiKey, logicalDBKey, refKey, mgiTypeKey, \
-		   isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
-	    accKey += 1
-	    
-	    #
-	    # pubmedID
-	    #
-	    accID = pubmedID
-	    prefixPart = ''
-	    numericPart = accID
-	    logicalDBKey = 29
+            # MGI:xxxx
+            #
+            mgiID = mgiPrefix + str(mgiKey)
+            accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
+                % (accKey, mgiID, mgiPrefix, mgiKey, logicalDBKey, refKey, mgiTypeKey, \
+                   isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
+            accKey += 1
+            
+            #
+            # pubmedID
+            #
+            accID = pubmedID
+            prefixPart = ''
+            numericPart = accID
+            logicalDBKey = 29
 
-	    accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
-		% (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
-		   isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
-	    accKey += 1
+            accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
+                % (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
+                   isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
+            accKey += 1
 
-	    #
-	    # doiId only
-	    #
+            #
+            # doiId only
+            #
             if objType in (objDOI, userDiscard):
-	    	accID = objId
-	    	prefixPart = accID
-	    	numericPart = ''
-	    	logicalDBKey = 65
+                accID = objId
+                prefixPart = accID
+                numericPart = ''
+                logicalDBKey = 65
 
-	    	accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
-			% (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
-		   	isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
-	    	accKey += 1
+                accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
+                        % (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
+                        isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
+                accKey += 1
 
-	    #
-	    # J:xxxx
-	    #
+            #
+            # J:xxxx
+            #
             if userPath == userGOA:
-	    	accID = 'J:' + str(jnumKey)
-	    	prefixPart = 'J:'
-	    	numericPart = jnumKey
-	    	logicalDBKey = 1
-	    	accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
-			% (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
-		   	isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
-	        accKey += 1
-		jnumKey += 1
-		count_userGOA += 1
+                accID = 'J:' + str(jnumKey)
+                prefixPart = 'J:'
+                numericPart = jnumKey
+                logicalDBKey = 1
+                accFile.write('%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
+                        % (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
+                        isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
+                accKey += 1
+                jnumKey += 1
+                count_userGOA += 1
 
-	    #
-	    # if splitter does not find reference section
-	    #
-	    if extractedText != None and len(refText) == 0:
-	        (bodyInfo, refInfo, figureInfo, starMethodInfo, suppInfo)  = textSplitter.findSections(extractedText)
+            #
+            # if splitter does not find reference section
+            #
+            if extractedText != None and len(refText) == 0:
+                (bodyInfo, refInfo, figureInfo, starMethodInfo, suppInfo)  = textSplitter.findSections(extractedText)
                 splitterlogFile.write('%s, %s, %s, %s, %s, %s, %s, %s\n' \
-			% (pubmedID, mgiID, str(len(bodyText)), str(len(refText)), str(len(figureText)), \
-			   str(len(starMethodText)), str(len(suppText)), refInfo))
+                        % (pubmedID, mgiID, str(len(bodyText)), str(len(refText)), str(len(figureText)), \
+                           str(len(starMethodText)), str(len(suppText)), refInfo))
 
-	    # store dictionary : move pdf file from inputDir to masterPath
-	    newPath = Pdfpath.getPdfpath(masterDir, mgiID)
-	    mvPDFtoMasterDir[pdfPath + '/' + pdfFile] = []
-	    mvPDFtoMasterDir[pdfPath + '/' + pdfFile].append((newPath,str(mgiKey) + '.pdf'))
+            # store dictionary : move pdf file from inputDir to masterPath
+            newPath = Pdfpath.getPdfpath(masterDir, mgiID)
+            mvPDFtoMasterDir[pdfPath + '/' + pdfFile] = []
+            mvPDFtoMasterDir[pdfPath + '/' + pdfFile].append((newPath,str(mgiKey) + '.pdf'))
 
-	    refKey += 1
-	    mgiKey += 1
+            refKey += 1
+            mgiKey += 1
 
-	#
-	# not using 'elif' statement because this needs to be checked/run regardless
-	# of what also may have happened earlier
-	#
-	# processing for nlm refresh
-	#
-	if rc == 4 or objType in (userNLM): 
-	    processNLMRefresh(key, pubmedRef, bodyText, refText, figureText, starMethodText, suppText)
+        #
+        # not using 'elif' statement because this needs to be checked/run regardless
+        # of what also may have happened earlier
+        #
+        # processing for nlm refresh
+        #
+        if rc == 4 or objType in (userNLM): 
+            processNLMRefresh(key, pubmedRef, bodyText, refText, figureText, starMethodText, suppText)
 
     diagFile.flush()
     return 0
@@ -1759,19 +1758,19 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
     needsReviewPath = os.path.join(needsReviewDir, userPath)
 
     sql = '''select r._Refs_key, d._Supplemental_key
-    	from BIB_Citation_Cache r, BIB_Workflow_Data d 
-	where r.mgiID = '%s'
-	and r._Refs_key = d._Refs_key
-	and d._extractedtext_key = 48804490
-	''' % (mgiID)
+        from BIB_Citation_Cache r, BIB_Workflow_Data d 
+        where r.mgiID = '%s'
+        and r._Refs_key = d._Refs_key
+        and d._extractedtext_key = 48804490
+        ''' % (mgiID)
     results = db.sql(sql, 'auto')
 
     if len(results) == 0:
-	level4error1 = level4error1 + str(mgiID) + '<BR>\n' + \
-		linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
-	count_needsreview += 1
+        level4error1 = level4error1 + str(mgiID) + '<BR>\n' + \
+                linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+        count_needsreview += 1
         diagFile.write('userPDF/userSupplement/userNLM level1 : needs review : %s, %s, %s\n' % (mgiID, userPath, pdfFile))
-	shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+        shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 
         return
 
@@ -1787,14 +1786,14 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
     #    return
 
     if objType == userSupplement:
-	dataSuppKey = suppAttachedKey
-	count_userSupplement += 1
+        dataSuppKey = suppAttachedKey
+        count_userSupplement += 1
     elif objType == userPDF:
-	dataSuppKey = suppKey
-	count_userPDF += 1
+        dataSuppKey = suppKey
+        count_userPDF += 1
     else:
-	dataSuppKey = suppKey
-	count_userNLM += 1
+        dataSuppKey = suppKey
+        count_userNLM += 1
 
     # re-add body
     hasPDF = 1
@@ -1825,7 +1824,7 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
     deleteSQLAll += 'delete from BIB_Workflow_Data where _Refs_key = %s;\n' % (existingRefKey)
 
     updateSQLAll += 'update BIB_Refs set _ModifiedBy_key = %s, modification_date = now() where _Refs_key = %s;\n' \
-    		% (userKey, existingRefKey)
+                % (userKey, existingRefKey)
 
     # store dictionary : move pdf file from inputDir to masterPath
     newPath = Pdfpath.getPdfpath(masterDir, mgiID)
@@ -1853,24 +1852,24 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
     mgiID = 'MGI:' + objKey[2]
 
     sql = '''
-	   select c._Refs_key
-	   from BIB_Citation_Cache c
-	   where c.mgiID = '%s'
-    	   ''' % (mgiID)
+           select c._Refs_key
+           from BIB_Citation_Cache c
+           where c.mgiID = '%s'
+           ''' % (mgiID)
     results = db.sql(sql, 'auto')
 
     userKey = loadlib.verifyUser(userPath, 0, diagFile)
     objectKey = results[0]['_Refs_key']
 
     authors, primaryAuthor, title, abstract, vol, issue, pgs = replacePubMedRef(\
-	1,
-	ref.getAuthors(), \
-	ref.getPrimaryAuthor(), \
-	ref.getTitle(), \
-	ref.getAbstract(),
-	ref.getVolume(),
-	ref.getIssue(),
-	ref.getPages())
+        1,
+        ref.getAuthors(), \
+        ref.getPrimaryAuthor(), \
+        ref.getTitle(), \
+        ref.getAbstract(),
+        ref.getVolume(),
+        ref.getIssue(),
+        ref.getPages())
 
     #
     # set '' to true null, not 'None'
@@ -1910,35 +1909,35 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
         isReviewArticle = 0
 
     updateSQLAll += '''
-	    	update BIB_Refs 
-	    	set 
-		authors = %s,
-		_primary = %s,
-		title = %s,
-		journal = E'%s',
-		vol = %s,
-		issue = %s,
-		date = '%s',
-		year = %s,
-		pgs = %s,
-		isReviewArticle = %s,
-		abstract = %s,
-		_ModifiedBy_key = %s, 
-		modification_date = now() 
-		where _Refs_key = %s
-		;
-		''' % (authors, 
-		       primaryAuthor, \
-		       title, \
-		       ref.getJournal(), \
-		       vol, \
-		       issue, \
-		       ref.getDate(), \
-		       ref.getYear(), \
-		       pgs, \
-		       isReviewArticle, \
-		       abstract, \
-		       userKey, objectKey)
+                update BIB_Refs 
+                set 
+                authors = %s,
+                _primary = %s,
+                title = %s,
+                journal = E'%s',
+                vol = %s,
+                issue = %s,
+                date = '%s',
+                year = %s,
+                pgs = %s,
+                isReviewArticle = %s,
+                abstract = %s,
+                _ModifiedBy_key = %s, 
+                modification_date = now() 
+                where _Refs_key = %s
+                ;
+                ''' % (authors, 
+                       primaryAuthor, \
+                       title, \
+                       ref.getJournal(), \
+                       vol, \
+                       issue, \
+                       ref.getDate(), \
+                       ref.getYear(), \
+                       pgs, \
+                       isReviewArticle, \
+                       abstract, \
+                       userKey, objectKey)
 
     #
     # process extracted text
@@ -1980,7 +1979,7 @@ def writeErrors():
     allErrors = allErrors + level2errorStart + level2error5 + level2error1 + level2error2 + level2error3 + level2error4
 
     level3error1 = '<B>1: PubMed ID/DOI ID is associated with different MGI references</B><BR><BR>\n\n' + \
-    	level3error1 + '<BR>\n\n'
+        level3error1 + '<BR>\n\n'
     allErrors = allErrors + level3errorStart + level3error1
 
     level4error1 = '<B>1: MGI ID in filename does not match reference in MGI</B><BR><BR>\n\n' + level4error1 + '<BR>\n\n'
@@ -2131,7 +2130,7 @@ def postSanityCheck():
             title = postSanityCheck_replaceTitle2(r)
             if extractedText.find(title) < 0:
                 level6error1 = level6error1 + r['mgiID'] + '<BR>\n'
-		count_mismatchedtitles += 1
+                count_mismatchedtitles += 1
 
     return 0
 
@@ -2139,36 +2138,35 @@ def postSanityCheck():
 #  MAIN
 #
 
-#print 'initialize'
+#print('initialize')
 if initialize() != 0:
     sys.exit(1)
 
-#print 'level1SanityChecks'
+#print('level1SanityChecks')
 if level1SanityChecks() != 0:
     closeFiles()
     sys.exit(1)
 
-#print 'setPrimaryKeys'
+#print('setPrimaryKeys')
 if setPrimaryKeys() != 0:
     sys.exit(1)
 
-#print 'processPDFs'
+#print('processPDFs')
 if processPDFs() != 0:
     closeFiles()
     sys.exit(1)
 
-#print 'bcpFiles'
+#print('bcpFiles')
 if bcpFiles() != 0:
     sys.exit(1)
 
-#print 'postSanityCheck'
+#print('postSanityCheck')
 if postSanityCheck() != 0:
     sys.exit(1)
 
-#print 'writeErrors'
+#print('writeErrors')
 if writeErrors() != 0:
     sys.exit(1)
     
 closeFiles()
 sys.exit(0)
-
