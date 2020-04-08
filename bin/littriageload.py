@@ -985,7 +985,7 @@ def level1SanityChecks():
                 count_needsreview += 1
                 continue
                 
-            diagFile.write(pdftext + "\n\n")
+            #diagFile.write(pdftext + "\n\n")
 
             #
             # if userPath is in the 'userSupplement, userPDF or userNLM' folder
