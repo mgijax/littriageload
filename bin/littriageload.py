@@ -1001,6 +1001,7 @@ def level1SanityChecks():
                     tokens = pdfFile.replace('.pdf', '').split('_')
                     mgiid = tokens[0]
                     pdftext = pdf.getText()
+                    #diagFile.write(pdftext + "\n\n")
                     if (userPath, userPath, mgiid) not in objByUser:
                         objByUser[(userPath, userPath, mgiid)] = []
                         objByUser[(userPath, userPath, mgiid)].append((pdfFile, pdftext))
@@ -1388,12 +1389,13 @@ def processPDFs():
 
         #if len(bodyText):
         #    print('FOUND BODY')
+        #    print(bodyText)
         #if len(refText):
         #    print('FOUND REF')
         #if len(figureText):
         #    print('FOUND FIGURE')
         #if len(starMethodText):
-        #    print('FOUND STAR')
+        #   print('FOUND STAR')
         #if len(suppText):
         #    print('FOUND SUPP')
 
