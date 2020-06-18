@@ -921,6 +921,8 @@ def level1SanityChecks():
 	    # file in input directory does not end with pdf
 	    #
 	    if not pdfFile.lower().endswith('.pdf'):
+                print(userPath)
+                print(pdfFile)
 	        diagFile.write('file in input directory does not end with pdf: %s %s\n') % (userPath, pdfFile)
 	        continue
 
@@ -1528,7 +1530,7 @@ def processPDFs():
 
 	# add new MGI reference
 	#
-	elif rc == 0:
+	elif rc == 0 and objType not in (userNLM): 
 
             diagFile.write('level3SanityChecks() : successful : add new : %s, %s, %s, %s\n' \
 	    	% (objId, userPath, pdfFile, pubmedID))
