@@ -981,6 +981,8 @@ def level1SanityChecks():
                 pdftext = pdf.getText();
             except:
                 level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                level1error1 += '<pre>\n%s\n</pre>\n' % pdf.getStderr()
+                diagFile.write(pdf.getStderr())
                 shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                 count_needsreview += 1
                 continue
@@ -1000,7 +1002,6 @@ def level1SanityChecks():
                     # store by mgiid
                     tokens = pdfFile.replace('.pdf', '').split('_')
                     mgiid = tokens[0]
-                    pdftext = pdf.getText()
                     #diagFile.write(pdftext + "\n\n")
                     if (userPath, userPath, mgiid) not in objByUser:
                         objByUser[(userPath, userPath, mgiid)] = []
@@ -1019,7 +1020,6 @@ def level1SanityChecks():
                     # store by pmid
                     pmid = pdfFile.lower().replace('pmid_', '')
                     pmid = pmid.replace('.pdf', '')
-                    pdftext = pdf.getText()
                     if (userPath, 'pm', pmid) not in objByUser:
                         objByUser[(userPath, 'pm', pmid)] = []
                         objByUser[(userPath, 'pm', pmid)].append((pdfFile, pdftext))
@@ -1035,7 +1035,6 @@ def level1SanityChecks():
             else:
                 try:
                     doiid = pdf.getFirstDoiID()
-                    pdftext = pdf.getText()
 
                     if doiid:
                         if doiid not in doiidById:
@@ -1056,10 +1055,17 @@ def level1SanityChecks():
                         shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                         count_needsreview += 1
                         continue
-                except:
-                    level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                except Exception as e:
+                    level1error2 = level1error2 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
                     shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                     count_needsreview += 1
+                    # write traceback to diagnostic file
+                    exOutput = "Exception getting DOI from %s\n" % pdfFile
+                    (t, v, tb) = sys.exc_info()
+                    exOutput += ''.join(traceback.format_tb(tb))
+                    exOutput += str(e) + '\n'
+                    diagFile.write(exOutput)
+                    diagFIle.flush()
                     continue
 
                 # store by doiid
