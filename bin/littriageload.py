@@ -982,7 +982,9 @@ def level1SanityChecks():
             except:
                 level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
                 level1error1 += '<pre>\n%s\n</pre>\n' % pdf.getStderr()
-                diagFile.write(pdf.getStderr())
+                diagMsg = '%s\n%s\n' % (needsReviewPath + '/' + pdfFile,
+                                                            pdf.getStderr())
+                diagFile.write(diagMsg)
                 shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                 count_needsreview += 1
                 continue
@@ -1082,7 +1084,7 @@ def level1SanityChecks():
     # write out level1 errors to both error log and curator log
     #
     level0error1 = '<B>1: same filename in more than one folder</B><BR><BR>\n\n' + level0error1 + '<BR>\n\n'
-    level1error1 = '<B>1: not in PDF format</B><BR><BR>\n\n' + level1error1 + '<BR>\n\n'
+    level1error1 = '<B>1: error in PDF text extraction</B><BR><BR>\n\n' + level1error1 + '<BR>\n\n'
     level1error2 = '<B>2: cannot extract/find DOI ID</B><BR><BR>\n\n' + level1error2 + '<BR>\n\n'
     level1error3 = '<B>3: duplicate published refs (same DOI ID)</B><BR><BR>\n\n' + level1error3 + '<BR>\n\n'
     level1error4 = '<B>4: cannot extract PMID</B><BR><BR>\n\n' + level1error4 + '<BR>\n\n'
