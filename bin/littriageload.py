@@ -1068,7 +1068,7 @@ def level1SanityChecks():
                     exOutput += ''.join(traceback.format_tb(tb))
                     exOutput += str(e) + '\n'
                     diagFile.write(exOutput)
-                    diagFIle.flush()
+                    diagFile.flush()
                     continue
 
                 # store by doiid
