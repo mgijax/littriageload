@@ -986,11 +986,15 @@ def level1SanityChecks():
                 diagMsg = '%s\n%s\n' % (needsReviewPath + '/' + pdfFile,
                                                             pdf.getStderr())
                 diagFile.write(diagMsg)
+                diagFile.flush()
                 shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                 count_needsreview += 1
                 continue
                 
-            #diagFile.write(pdftext + "\n\n")
+            if pdf.getStderr(): # may get msg from pdftotext even if no error
+                diagFile.write("%s\nStderr from text extraction:\n" % pdfFile)
+                diagFile.write(pdf.getStderr())
+                diagFile.flush()
 
             #
             # if userPath is in the 'userSupplement, userPDF or userNLM' folder
