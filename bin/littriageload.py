@@ -997,19 +997,21 @@ def level1SanityChecks():
             except:
                 level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
                 level1error1 += '<pre>\n%s\n</pre>\n' % pdf.getStderr()
-                diagMsg = '%s\n%s\n' % (needsReviewPath + '/' + pdfFile,
-                                                            pdf.getStderr())
-                diagFile.write(diagMsg)
-                diagFile.flush()
+                fileName = os.path.join(needsReviewPath, pdfFile)
+                pdflogFile.write("%s: pdftotext failed. Stderr:\n" % fileName)
+                pdflogFile.write(pdf.getStderr())
+                pdflogFile.write('\n')
+                pdflogFile.flush()
                 shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                 count_needsreview += 1
                 continue
                 
             if pdf.getStderr(): # may get msg from pdftotext even if no error
-                diagFile.write("%s\nStderr from text extraction:\n" % pdfFile)
-                diagFile.write(pdf.getStderr())
-                diagFile.flush()
-
+                fileName = os.path.join(userPath, pdfFile)
+                pdflogFile.write("%s: pdftotext succeeded, but has Stderr:\n" % fileName)
+                pdflogFile.write(pdf.getStderr())
+                pdflogFile.write('\n')
+                pdflogFile.flush()
             #
             # if userPath is in the 'userSupplement, userPDF or userNLM' folder
             #	store in objByUser
@@ -1080,8 +1082,9 @@ def level1SanityChecks():
                     level1error2 = level1error2 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
                     shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                     count_needsreview += 1
-                    # write traceback to diagnostic file
-                    exOutput = "Exception getting DOI from %s\n" % pdfFile
+                    # write traceback to pdflog file
+                    fileName = os.path.join(needsReviewPath, pdfFile)
+                    exOutput = "Exception getting DOI from %s\n" % fileName
                     (t, v, tb) = sys.exc_info()
                     exOutput += ''.join(traceback.format_tb(tb))
                     exOutput += str(e) + '\n'
