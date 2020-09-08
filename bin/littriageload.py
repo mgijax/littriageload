@@ -151,6 +151,8 @@ doipubmedaddedlog = ''
 doipubmedaddedlogFile = ''
 splitterlog = ''
 splitterlogFile = ''
+pdflog = ''
+pdflogFile = ''
 
 inputDir = ''
 outputDir = ''
@@ -323,6 +325,7 @@ def initialize():
     global pubtypelog, pubtypelogFile
     global doipubmedaddedlog, doipubmedaddedlogFile
     global splitterlog, splitterlogFile
+    global pdflog, pdflogFile
     global inputDir, outputDir
     global masterDir, needsReviewDir
     global bcpScript
@@ -346,6 +349,7 @@ def initialize():
     pubtypelog = os.getenv('LOG_PUBTYPE')
     doipubmedaddedlog = os.getenv('LOG_DOIPUBMEDADDED')
     splitterlog = os.getenv('LOG_SPLITTER')
+    pdflog = os.getenv('LOG_PDF')
     inputDir = os.getenv('INPUTDIR')
     outputDir = os.getenv('OUTPUTDIR')
     masterDir = os.getenv('MASTERTRIAGEDIR')
@@ -385,6 +389,9 @@ def initialize():
 
     if not splitterlog:
         exit(1, 'Environment variable not set: LOG_SPLITTER')
+
+    if not pdflog:
+        exit(1, 'Environment variable not set: LOG_PDF')
 
     if not inputDir:
         exit(1, 'Environment variable not set: INPUTDIR')
@@ -440,6 +447,11 @@ def initialize():
         splitterlogFile = open(splitterlog, 'w')
     except:
         exist(1,  'Cannot open splitterlog file: ' + splitterlogFile)
+
+    try:
+        pdflogFile = open(pdflog, 'w')
+    except:
+        exist(1,  'Cannot open pdflog file: ' + pdflogFile)
 
     try:
         accFileName = outputDir + '/' + accTable + '.bcp'
@@ -558,6 +570,8 @@ def closeFiles():
         doipubmedaddedlogFile.close()
     if splitterlogFile:
         splitterlogFile.close()
+    if pdflogFile:
+        pdflogFile.close()
     if refFile:
         refFile.close()
     if statusFile:
@@ -1071,8 +1085,8 @@ def level1SanityChecks():
                     (t, v, tb) = sys.exc_info()
                     exOutput += ''.join(traceback.format_tb(tb))
                     exOutput += str(e) + '\n'
-                    diagFile.write(exOutput)
-                    diagFile.flush()
+                    pdflogFile.write(exOutput)
+                    pdflogFile.flush()
                     continue
 
                 # store by doiid
