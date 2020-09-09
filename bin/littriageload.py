@@ -1006,12 +1006,16 @@ def level1SanityChecks():
                 count_needsreview += 1
                 continue
                 
-            if pdf.getStderr(): # may get msg from pdftotext even if no error
+            #
+            # may get msg from pdftotext even if no error
+            #
+            if pdf.getStderr(): 
                 fileName = os.path.join(userPath, pdfFile)
                 pdflogFile.write("%s: pdftotext succeeded, but has Stderr:\n" % fileName)
                 pdflogFile.write(pdf.getStderr())
                 pdflogFile.write('\n')
                 pdflogFile.flush()
+
             #
             # if userPath is in the 'userSupplement, userPDF or userNLM' folder
             #	store in objByUser
