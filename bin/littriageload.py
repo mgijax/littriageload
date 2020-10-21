@@ -171,18 +171,22 @@ dataFile = ''
 dataFileName = ''
 tagFile = ''
 tagFileName = ''
+relevanceFile = ''
+relevanceFileName = ''
 
 accTable = 'ACC_Accession'
 refTable = 'BIB_Refs'
 statusTable = 'BIB_Workflow_Status'
 dataTable = 'BIB_Workflow_Data'
 tagTable = 'BIB_Workflow_Tag'
+relevanceTable = 'BIB_Workflow_Relevance'
 
 accKey = 0
 refKey = 0
 dataKey = 0
-tagKey = 0
 statusKey = 0
+tagKey = 0
+relevanceKey = 0
 mgiKey = 0
 jnumKey = 0
 
@@ -196,8 +200,13 @@ referenceTypeKey = 31576687 	# Peer Reviewed Article
 notRoutedKey = 31576669		# Not Routed
 fullCodedKey = 31576674		# Full-coded
 miceInRefOnlyKey = 49170000	# MGI:Mice in reference only
+
+# default isDiscard = not specified
+relevanceDiscardKey = 70594666  # discard
+relevanceNotSpecKey = 70594668  # not specified
+isDiscard = relevanceNotSpecKey
+
 isReviewArticle = 0
-isDiscard = 0
 isCurrent = 1
 hasPDF = 1
 isPrivate = 0
@@ -329,8 +338,8 @@ def initialize():
     global inputDir, outputDir
     global masterDir, needsReviewDir
     global bcpScript
-    global accFileName, refFileName, statusFileName, dataFileName, tagFileName
-    global accFile, refFile, statusFile, dataFile, tagFile
+    global accFileName, refFileName, statusFileName, dataFileName, tagFileName, relevanceFileName
+    global accFile, refFile, statusFile, dataFile, tagFile, relevanceFile
     global pma
     global textSplitter
     global workflowGroupList
@@ -479,6 +488,11 @@ def initialize():
         exit(1, 'Cannot create file: ' + outputDir + '/' + tagTable + '.bcp')
 
     try:
+        relevanceFileName = outputDir + '/' + relevanceTable + '.bcp'
+    except:
+        exit(1, 'Cannot create file: ' + outputDir + '/' + relevanceTable + '.bcp')
+
+    try:
         accFile = open(accFileName, 'w')
     except:
         exit(1, 'Could not open file %s\n' % accFileName)
@@ -502,6 +516,11 @@ def initialize():
         tagFile = open(tagFileName, 'w')
     except:
         exit(1, 'Could not open file %s\n' % tagFileName)
+
+    try:
+        relevanceFile = open(relevanceFileName, 'w')
+    except:
+        exit(1, 'Could not open file %s\n' % relevanceFileName)
 
     # initialized PdfParser.py
     try:
@@ -580,6 +599,8 @@ def closeFiles():
         dataFile.close()
     if tagFile:
         tagFile.close()
+    if relevanceFile:
+        relevanceFile.close()
     if accFile:
         accFile.close()
     if errorFile:
@@ -594,7 +615,7 @@ def closeFiles():
 # Returns: 0
 #
 def setPrimaryKeys():
-    global accKey, refKey, dataKey, statusKey, mgiKey, jnumKey, tagKey
+    global accKey, refKey, dataKey, mgiKey, jnumKey, tagKey, statusKey, relevanceKey
 
     results = db.sql(''' select nextval('bib_refs_seq') as maxKey ''', 'auto')
     refKey = results[0]['maxKey']
@@ -607,6 +628,9 @@ def setPrimaryKeys():
 
     results = db.sql(''' select nextval('bib_workflow_status_seq') as maxKey ''', 'auto')
     statusKey = results[0]['maxKey']
+
+    results = db.sql(''' select nextval('bib_workflow_relevance_seq') as maxKey ''', 'auto')
+    relevanceKey = results[0]['maxKey']
 
     results = db.sql('select max(_Accession_key) + 1 as maxKey from ACC_Accession', 'auto')
     accKey = results[0]['maxKey']
@@ -637,6 +661,7 @@ def bcpFiles():
     statusFile.flush()
     dataFile.flush()
     tagFile.flush()
+    relevanceFile.flush()
     accFile.flush()
 
     #
@@ -651,6 +676,8 @@ def bcpFiles():
         bcpRun.append('%s %s "/" %s %s' % (bcpI, dataTable, dataFileName, bcpII))
     if tagFile.tell() > 0:
         bcpRun.append('%s %s "/" %s %s' % (bcpI, tagTable, tagFileName, bcpII))
+    if relevanceFile.tell() > 0:
+        bcpRun.append('%s %s "/" %s %s' % (bcpI, relevanceTable, relevanceFileName, bcpII))
     if accFile.tell() > 0:
         bcpRun.append('%s %s "/" %s %s' % (bcpI, accTable, accFileName, bcpII))
 
@@ -661,6 +688,7 @@ def bcpFiles():
     statusFile.close()
     dataFile.close()
     tagFile.close()
+    relevanceFile.close()
     accFile.close()
 
     # if only running sanity checks, return
@@ -770,6 +798,10 @@ def bcpFiles():
 
     # update bib_workflow_tag serialization
     db.sql(''' select setval('bib_workflow_tag_seq', (select max(_Assoc_key) from BIB_Workflow_Tag)) ''', None)
+    db.commit()
+
+    # update bib_workflow_relevance serialization
+    db.sql(''' select setval('bib_workflow_relevance_seq', (select max(_Assoc_key) from BIB_Workflow_Relevance)) ''', None)
     db.commit()
 
     # update the max accession ID value for J:
@@ -1351,7 +1383,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 # Returns: 0
 #
 def processPDFs():
-    global accKey, refKey, statusKey, mgiKey, jnumKey, dataKey, tagKey
+    global accKey, refKey, mgiKey, jnumKey, dataKey, tagKey, statusKey, relevanceKey
     global mvPDFtoMasterDir
     global updateSQLAll
     global isDiscard
@@ -1399,7 +1431,7 @@ def processPDFs():
         pdfPath = os.path.join(inputDir, userPath) 
         needsReviewPath = os.path.join(needsReviewDir, userPath)
 
-        isDiscard = 0
+        isDiscard = relevanceNotSpecKey
         isMice = 0
 
         #
@@ -1435,7 +1467,7 @@ def processPDFs():
 
         #
         # only interested in running checkMice for curator folders, etc.
-        # if non-refText section checkMice = false, then isDiscard = 1
+        # if non-refText section checkMice = false, then isDiscard = relevanceDiscardKey
         #
         if userPath not in (userSupplement, userPDF, userGOA, userNLM, userDiscard):
             if bodyText.lower().find(checkMice) < 0 \
@@ -1443,7 +1475,7 @@ def processPDFs():
                 and suppText.lower().find(checkMice) < 0 \
                 and starMethodText.lower().find(checkMice) < 0 :
 
-                    isDiscard = 1
+                    isDiscard = relevanceDiscardKey
                     isMice = 1
 
         # TR 12871/ERRATUM/correction/retraction
@@ -1593,9 +1625,9 @@ def processPDFs():
 
             # TR12958/userDiscard folder
             if objType in (userDiscard):
-                isDiscard = 1
+                isDiscard = relevanceDiscardKey
             #else:
-            #    isDiscard = 0
+            #    isDiscard = relevanceNotSpecKey
 
             #
             # if same pdf is placed in userSupplement,userPDF,userGOA,userNLM
@@ -1604,7 +1636,7 @@ def processPDFs():
             if refKey in refKeyList:
                 continue
 
-            refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+            refFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
                 % (refKey, referenceTypeKey, 
                    authors, \
                    primaryAuthor, \
@@ -1617,11 +1649,17 @@ def processPDFs():
                    pgs, \
                    abstract, \
                    isReviewArticle, \
-                   isDiscard, \
                    userKey, userKey, loaddate, loaddate))
 
             refKeyList.append(refKey)
             count_processPDFs += 1
+
+            #
+            # bib_workflow_relevance
+            # 1 row; set isCurrent = 1; set confidence = null
+            relevanceFile.write('%s|%s|%s|%s||%s|%s|%s|%s\n' \
+                        %(relevanceKey, refKey, isDiscard, 1, userKey, userKey, loaddate, loaddate))
+            relevanceKey += 1
 
             #
             # bib_workflow_status
