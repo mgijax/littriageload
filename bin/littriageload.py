@@ -1660,7 +1660,7 @@ def processPDFs():
             #
             # bib_workflow_relevance
             # 1 row; set isCurrent = 1; set confidence = null
-            relevanceFile.write('%s|%s|%s|%s||1|%s|%s|%s|%s\n' \
+            relevanceFile.write('%s|%s|%s|1||%s|%s|%s|%s|%s\n' \
                         %(relevanceKey, refKey, isDiscard, relevanceVersion, userKey, userKey, loaddate, loaddate))
             relevanceKey += 1
 
