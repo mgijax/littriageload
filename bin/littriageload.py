@@ -202,6 +202,7 @@ fullCodedKey = 31576674		# Full-coded
 miceInRefOnlyKey = 49170000	# MGI:Mice in reference only
 
 # default isDiscard = not specified
+relevanceVersion = ''
 relevanceDiscardKey = 70594666  # discard
 relevanceNotSpecKey = 70594668  # not specified
 isDiscard = relevanceNotSpecKey
@@ -345,6 +346,7 @@ def initialize():
     global workflowGroupList
     global suppWordList
     global erratumIncludeList, erratumExcludeList
+    global relevanceVersion
     
     db.set_sqlLogFunction(db.sqlLogAll)
 
@@ -364,6 +366,7 @@ def initialize():
     masterDir = os.getenv('MASTERTRIAGEDIR')
     needsReviewDir = os.getenv('NEEDSREVIEWTRIAGEDIR')
     bcpScript = os.getenv('PG_DBUTILS') + '/bin/bcpin.csh'
+    relevanceVersion = os.getenv('RELEVANCEVERSION')
 
     #
     # Make sure the required environment variables are set.
@@ -1657,8 +1660,8 @@ def processPDFs():
             #
             # bib_workflow_relevance
             # 1 row; set isCurrent = 1; set confidence = null
-            relevanceFile.write('%s|%s|%s|%s||%s|%s|%s|%s\n' \
-                        %(relevanceKey, refKey, isDiscard, 1, userKey, userKey, loaddate, loaddate))
+            relevanceFile.write('%s|%s|%s|%s||1|%s|%s|%s|%s\n' \
+                        %(relevanceKey, refKey, isDiscard, relevanceVersion, userKey, userKey, loaddate, loaddate))
             relevanceKey += 1
 
             #
