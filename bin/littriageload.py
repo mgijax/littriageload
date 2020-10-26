@@ -197,8 +197,8 @@ objDOI = 'doi'
 mgiTypeKey = 1
 mgiPrefix = 'MGI:'
 referenceTypeKey = 31576687 	# Peer Reviewed Article
-notRoutedKey = 31576669		# Not Routed
-fullCodedKey = 31576674		# Full-coded
+newCodedKey = 70736260;         # New (workflow_status/_vocab_key = 128)
+fullCodedKey = 31576674		# Full-coded (workflow_status/_vocab_key = 128)
 miceInRefOnlyKey = 49170000	# MGI:Mice in reference only
 
 # default isDiscard = not specified
@@ -1676,7 +1676,7 @@ def processPDFs():
                               userKey, userKey, loaddate, loaddate))
                 else:
                     statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-                        % (statusKey, refKey, groupKey, notRoutedKey, isCurrent, \
+                        % (statusKey, refKey, groupKey, newCodedKey, isCurrent, \
                               userKey, userKey, loaddate, loaddate))
                 statusKey += 1
 
