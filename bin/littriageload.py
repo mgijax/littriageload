@@ -197,7 +197,7 @@ objDOI = 'doi'
 mgiTypeKey = 1
 mgiPrefix = 'MGI:'
 referenceTypeKey = 31576687 	# Peer Reviewed Article
-newCodedKey = 70736260;         # New (workflow_status/_vocab_key = 128)
+newCodedKey = 71027551;
 fullCodedKey = 31576674		# Full-coded (workflow_status/_vocab_key = 128)
 miceInRefOnlyKey = 49170000	# MGI:Mice in reference only
 
