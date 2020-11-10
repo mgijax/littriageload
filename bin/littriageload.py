@@ -1162,6 +1162,11 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
             mapping = pma.getReferences([objId])
         except:
             diagFile.write('level2SanityChecks:pma.getReferences() needs review: %s, %s, %s\n' % (objId, userPath, pdfFile))
+            diagFile.write('  - objId (%s), objDOI (%s), userDiscard (%s)\n' % (objId, objDOI, userDiscard))
+            diagFile.write('  - exception info:\n')
+            (eType, eValue, eTraceback) = sys.exc_info()
+            for line in traceback.format_exception(eType, eValue, eTraceback):
+                diagFile.write(' - %s' % line)
             return -1
 
         refList = mapping[objId]
