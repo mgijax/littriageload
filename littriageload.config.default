@@ -38,6 +38,10 @@ export NEEDSREVIEWTRIAGEDIR
 LITPARSER=${MGIUTILS}/litparser
 export LITPARSER
 
+# relevanceClassifier
+RELEVANCECLASSIFIERPKL=/data/relevanceClassifier/relevanceClassifier.pkl
+export RELEVANCECLASSIFIERPKL
+
 FILEDIR=${DATALOADSOUTPUT}/mgi/littriageload
 ARCHIVEDIR=${FILEDIR}/archive
 LOGDIR=${FILEDIR}/logs
