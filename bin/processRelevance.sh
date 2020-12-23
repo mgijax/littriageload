@@ -6,14 +6,14 @@
 #
 # The purpose of this script is to process the Relenvance Classifier using the Predicated Set of References
 #
-#       1. makePredictedFile.py
+#       1. makePredicted.py
 #               . select refs from bib_workflow_relevance where 'Not Specified' (70594668)
 #               . create relevance text file (NOTSPECIFIED_RELEVANCE)
 #
 #       2. predict.py (lib/python_anaconda)
 #               . using NOTSPECIFIED_RELEVANCE, process the predictions (PREDICTED_RELEVANCE)
 #
-#       3. updatePredictedSet.py
+#       3. updatePredicted.py
 #               . using PREDICT)RELEVANCE, add predicted records to bib_workflow_relevance
 #
 
@@ -50,10 +50,10 @@ echo 'PYTHON', $PYTHON  >> ${LOG_RELEVANCE} 2>&1
 echo 'PYTHONPATH', $PYTHONPATH  >> ${LOG_RELEVANCE} 2>&1
 
 date  >> ${LOG_RELEVANCE} 2>&1
-${PYTHON} makePredictedFile.py  >> ${LOG_RELEVANCE} 2>&1
+${PYTHON} makePredicted.py  >> ${LOG_RELEVANCE} 2>&1
 
 date  >> ${LOG_RELEVANCE} 2>&1
 rm -rf ${PREDICTED_RELEVANCE}
-${ANACONDAPYTHONLIB}/predict.py -m relevanceClassifier.pkl -p figureTextLegCloseWords50 -p removeURLsCleanStem ${NOTSPECIFIED_RELEVANCE} > ${PREDICTED_RELEVANCE}
+${ANACONDAPYTHON} ${ANACONDAPYTHONLIB}/predict.py -m ${RELEVANCECLASSIFIERPKL} -p figureTextLegCloseWords50 -p removeURLsCleanStem ${NOTSPECIFIED_RELEVANCE} > ${PREDICTED_RELEVANCE}
 
 date >> ${LOG_RELEVANCE} 2>&1
