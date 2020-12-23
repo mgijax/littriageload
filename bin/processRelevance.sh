@@ -2,16 +2,19 @@
 
 #
 #
-# processPredictions.sh
+# processRelevance.sh
 #
-# The purpose of this script is to:
+# The purpose of this script is to process the Relenvance Classifier using the Predicated Set of References
 #
-#       1. getRefsToPredict.py 
+#       1. getPredictedSet.py 
 #               . select refs from bib_workflow_relevance where 'Not Specified' (70594668)
-#               . create relevance text file; this will become the input for predict.py
+#               . create relevance text file (NOTSPECIFIED_RELEVANCE)
 #
 #       2. predict.py (lib/python_anaconda)
-#               . using NOTSPECIFIED_RELEVANCECLASSIFIER
+#               . using NOTSPECIFIED_RELEVANCE, process the predictions (PREDICTED_RELEVANCE)
+#
+#       3. updatePredictedSet.py
+#               . using PREDICT)RELEVANCE, add predicted records to bib_workflow_relevance
 #
 
 cd `dirname $0` 
@@ -38,8 +41,8 @@ else
 fi
 echo $PYTHON
 
-LOG=${LOG_RELEVANCECLASSIFIER}
-PDF=${LOG_RELEVANCECLASSIFIER}
+LOG=${LOG_RELEVANCE}
+PDF=${LOG_RELEVANCE}
 rm -rf ${LOG}
 >>${LOG}
 
@@ -47,8 +50,8 @@ rm -rf ${LOG}
 # Example command to get refs that need relevance prediction from db and into
 #  a sample file
 #date | tee -a ${LOG}
-#rm -rf ${NOTSPECIFIED_RELEVANCECLASSIFIER}
-#getRefsToPredict.py -s ${MGD_DBSERVER} -d ${MGD_DBNAME} > ${NOTSPECIFIED_RELEVANCECLASSIFIER}
+#rm -rf ${NOTSPECIFIED_RELEVANCE}
+#getPredicatedSet.py -s ${MGD_DBSERVER} -d ${MGD_DBNAME} > ${NOTSPECIFIED_RELEVANCE}
 #date | tee -a ${LOG}
 
 # Example command to run predictions on that sample file and create prediction
