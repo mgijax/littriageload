@@ -42,17 +42,18 @@ else
 fi
 
 LOG=${LOG_RELEVANCE}
-rm -rf ${LOG}
->>${LOG}
+rm -rf ${LOG_RELEVANCE}
+>>${LOG_RELEVANCE}
 
-echo 'PYTHON', $PYTHON | tee -a $LOG
-echo 'PYTHONPATH', $PYTHONPATH | tee -a $LOG
+date  >> ${LOG_RELEVANCE} 2>&1
+echo 'PYTHON', $PYTHON  >> ${LOG_RELEVANCE} 2>&1
+echo 'PYTHONPATH', $PYTHONPATH  >> ${LOG_RELEVANCE} 2>&1
 
-date | tee -a ${LOG}
-${PYTHON} makePredictedFile.py | tee -a $LOG
+date  >> ${LOG_RELEVANCE} 2>&1
+${PYTHON} makePredictedFile.py  >> ${LOG_RELEVANCE} 2>&1
 
-date | tee -a ${LOG}
+date  >> ${LOG_RELEVANCE} 2>&1
 rm -rf ${PREDICTED_RELEVANCE}
 ${ANACONDAPYTHONLIB}/predict.py -m relevanceClassifier.pkl -p figureTextLegCloseWords50 -p removeURLsCleanStem ${NOTSPECIFIED_RELEVANCE} > ${PREDICTED_RELEVANCE}
 
-date | tee -a ${LOG}
+date >> ${LOG_RELEVANCE} 2>&1

@@ -163,6 +163,13 @@ ${MGICACHELOAD}/bibcitation.csh >> ${LOG_DIAG} 2>&1
 STAT=$?
 checkStatus ${STAT} "${MGICACHELOAD}/bibcitation.csh" >> ${LOG_DIAG} 2>&1
 
+# relevance stuff
+date >> ${LOG_DIAG} 2>&1
+echo "process relevance stuff" >> ${LOG_DIAG} 2>&1
+processRelevance.sh >> ${LOG_DIAG} 2>&1
+STAT=$?
+checkStatus ${STAT} "${MGICACHELOAD}/bibcitation.csh" >> ${LOG_DIAG} 2>&1
+
 # run postload cleanup and email logs
 shutDown
 
