@@ -14,7 +14,7 @@
 #               . using NOTSPECIFIED_RELEVANCE, process the predictions (PREDICTED_RELEVANCE)
 #
 #       3. updatePredicted.py
-#               . using PREDICT)RELEVANCE, add predicted records to bib_workflow_relevance
+#               . using PREDICTED_RELEVANCE, add predicted records to bib_workflow_relevance
 #
 
 cd `dirname $0` 
