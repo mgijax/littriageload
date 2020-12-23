@@ -6,7 +6,7 @@
 #
 # The purpose of this script is to process the Relenvance Classifier using the Predicated Set of References
 #
-#       1. getPredictedSet.py 
+#       1. makePredictedFile.py
 #               . select refs from bib_workflow_relevance where 'Not Specified' (70594668)
 #               . create relevance text file (NOTSPECIFIED_RELEVANCE)
 #
@@ -35,27 +35,24 @@ fi
 if [ -f ${ANACONDAPYTHON} ]
 then
     PYTHON=${ANACONDAPYTHON}; export PYTHON
+    PYTHONPATH=${PYTHONPATH}:${ANACONDAPYTHONLIB}; export PYTHONPATH
 else
     echo "Missing configuration file: ${ANACONDAPYTHON}"
     exit 1
 fi
-echo $PYTHON
 
 LOG=${LOG_RELEVANCE}
-PDF=${LOG_RELEVANCE}
 rm -rf ${LOG}
 >>${LOG}
 
-#
-# Example command to get refs that need relevance prediction from db and into
-#  a sample file
-#date | tee -a ${LOG}
-#rm -rf ${NOTSPECIFIED_RELEVANCE}
-#getPredicatedSet.py -s ${MGD_DBSERVER} -d ${MGD_DBNAME} > ${NOTSPECIFIED_RELEVANCE}
-#date | tee -a ${LOG}
+echo 'PYTHON', $PYTHON | tee -a $LOG
+echo 'PYTHONPATH', $PYTHONPATH | tee -a $LOG
 
-# Example command to run predictions on that sample file and create prediction
-#  file
-#predict.py -m relevanceClassifier.pkl -p figureTextLegCloseWords50 -p removeURLsCleanStem samplefile > predictions
+date | tee -a ${LOG}
+${PYTHON} makePredictedFile.py | tee -a $LOG
+
+date | tee -a ${LOG}
+rm -rf ${PREDICTED_RELEVANCE}
+${ANACONDAPYTHONLIB}/predict.py -m relevanceClassifier.pkl -p figureTextLegCloseWords50 -p removeURLsCleanStem ${NOTSPECIFIED_RELEVANCE} > ${PREDICTED_RELEVANCE}
 
 date | tee -a ${LOG}
