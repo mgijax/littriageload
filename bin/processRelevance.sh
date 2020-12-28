@@ -57,7 +57,7 @@ rm -rf ${PREDICTED_RELEVANCE}
 ${ANACONDAPYTHON} ${ANACONDAPYTHONLIB}/predict.py -m ${RELEVANCECLASSIFIERPKL} -p figureTextLegCloseWords50 -p removeURLsCleanStem ${NOTSPECIFIED_RELEVANCE} > ${PREDICTED_RELEVANCE}
 
 date >> ${LOG_RELEVANCE} 2>&1
-${PYTHON} updatePredicted.py  >> ${LOG_RELEVANCE} 2>&1
+${PYTHON} updateRelevance.py  >> ${LOG_RELEVANCE} 2>&1
 date >> ${LOG_RELEVANCE} 2>&1
 
 date >> ${LOG_RELEVANCE} 2>&1
