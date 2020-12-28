@@ -1,6 +1,4 @@
 #
-#  Originally written by Jim/modified to conform more with our python style
-#
 #  Purpose:
 #
 #  1. select references where relevanceStatus = "Not Specified" (70594668)
@@ -13,7 +11,7 @@
 #
 #  Outputs:  
 #
-#        Delimited file to ${NOTSPECIFIED_RELEVANCE}
+#       Delimited file to ${NOTSPECIFIED_RELEVANCE}
 #       See sampleDataLib.PrimTriageUnClassifiedSample for output format
 #
 
@@ -24,8 +22,9 @@ import db
 import sampleDataLib
 import ExtractedTextSet
 
-# for the Sample output file
-sampleObjType   = sampleDataLib.PrimTriageUnClassifiedSample
+db.setTrace()
+
+sampleObjType = sampleDataLib.PrimTriageUnClassifiedSample
 outputSampleSet = sampleDataLib.SampleSet(sampleObjType=sampleObjType)
 
 RECORDEND = outputSampleSet.getRecordEnd()
@@ -68,8 +67,6 @@ def cleanUpTextField(rcd, textFieldName):
 #
 # MAIN
 #
-
-db.setTrace()
 
 fp = open(os.getenv('NOTSPECIFIED_RELEVANCE'), 'w')
 
