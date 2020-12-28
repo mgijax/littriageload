@@ -22,7 +22,7 @@ relevanceKey = 0
 userKey = 1001
 
 bcpScript = os.getenv('PG_DBUTILS') + '/bin/bcpin.csh'
-relevanceVersion = os.getenv('RELEVANCEVERSION')
+relevanceVersion = os.getenv('RELEVANCE_VERSION')
 relevanceFileName = outputDir + '/' + relevanceTable + '.bcp'
 relevanceFile = open(relevanceFileName, 'w')
 
