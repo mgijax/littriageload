@@ -70,12 +70,12 @@ def cleanUpTextField(rcd, textFieldName):
 
 fp = open(os.getenv('NOTSPECIFIED_RELEVANCE'), 'w')
 
-# get the results
+# get results
 db.sql(cmd, None)
 db.sql('create index tmp_idx1 on tmp_refs(_refs_key)', None)
 results = db.sql('select * from tmp_refs', 'auto')
 
-# get their extracted text & add it to results
+# get extracted text & add it to results
 extTextSet = ExtractedTextSet.getExtractedTextSetForTable(db, 'tmp_refs')
 extTextSet.joinRefs2ExtText(results, allowNoText=True)
 
