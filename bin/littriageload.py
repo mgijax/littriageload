@@ -366,7 +366,7 @@ def initialize():
     masterDir = os.getenv('MASTERTRIAGEDIR')
     needsReviewDir = os.getenv('NEEDSREVIEWTRIAGEDIR')
     bcpScript = os.getenv('PG_DBUTILS') + '/bin/bcpin.csh'
-    relevanceVersion = os.getenv('RELEVANCEVERSION')
+    relevanceVersion = os.getenv('RELEVANCE_VERSION')
 
     #
     # Make sure the required environment variables are set.

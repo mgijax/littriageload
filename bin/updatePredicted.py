@@ -11,7 +11,7 @@
 import sys
 import os
 import db
-import mgiutils
+import mgi_utils
 
 db.setTrace()
 

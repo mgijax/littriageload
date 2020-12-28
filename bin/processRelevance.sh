@@ -8,7 +8,7 @@
 #
 #       1. makePredicted.py
 #               . select refs from bib_workflow_relevance where 'Not Specified' (70594668)
-#               . create relevance text file (NOTSPECIFIED_RELEVANCE)
+#               . create relevance text file (NOTSPECIFIED_RELEVANCE) as input to predict.py
 #
 #       2. predict.py (lib/python_anaconda)
 #               . using NOTSPECIFIED_RELEVANCE, process the predictions (PREDICTED_RELEVANCE)
@@ -45,15 +45,19 @@ LOG=${LOG_RELEVANCE}
 rm -rf ${LOG_RELEVANCE}
 >>${LOG_RELEVANCE}
 
-date  >> ${LOG_RELEVANCE} 2>&1
+date >> ${LOG_RELEVANCE} 2>&1
 echo 'PYTHON', $PYTHON  >> ${LOG_RELEVANCE} 2>&1
 echo 'PYTHONPATH', $PYTHONPATH  >> ${LOG_RELEVANCE} 2>&1
 
-date  >> ${LOG_RELEVANCE} 2>&1
+date >> ${LOG_RELEVANCE} 2>&1
 ${PYTHON} makePredicted.py  >> ${LOG_RELEVANCE} 2>&1
 
-date  >> ${LOG_RELEVANCE} 2>&1
+date >> ${LOG_RELEVANCE} 2>&1
 rm -rf ${PREDICTED_RELEVANCE}
 ${ANACONDAPYTHON} ${ANACONDAPYTHONLIB}/predict.py -m ${RELEVANCECLASSIFIERPKL} -p figureTextLegCloseWords50 -p removeURLsCleanStem ${NOTSPECIFIED_RELEVANCE} > ${PREDICTED_RELEVANCE}
+
+date >> ${LOG_RELEVANCE} 2>&1
+${PYTHON} updatePredicted.py  >> ${LOG_RELEVANCE} 2>&1
+date >> ${LOG_RELEVANCE} 2>&1
 
 date >> ${LOG_RELEVANCE} 2>&1

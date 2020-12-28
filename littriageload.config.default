@@ -14,10 +14,6 @@ fi
 
 #  Path name of the archive, logs, reports and output directories
 
-# relevance classification version
-RELEVANCEVERSION='6-0-17-1'
-export RELEVANCEVERSION
-
 # run sanity checks only
 SANITYCHECKONLY=False
 export SANITYCHECKONLY
@@ -76,7 +72,8 @@ export LOG_SPLITTER LOG_PDF LOG_RELEVANCECLASSIFIER
 NOTSPECIFIED_RELEVANCE=${OUTPUTDIR}/littriageload.relevance.notspecified
 PREDICTED_RELEVANCE=${OUTPUTDIR}/littriageload.relevance.predicted
 LOG_RELEVANCE=${LOGDIR}/littriageload.relevance.log
-export NOTSPECIFIED_RELEVANCE PREDICTED_RELEVANCE LOG_RELEVANCE
+RELEVANCE_VERSION='6-0-17-1'
+export NOTSPECIFIED_RELEVANCE PREDICTED_RELEVANCE LOG_RELEVANCE RELEVANCE_VERSION
 
 #  The name of the job stream for the load
 JOBSTREAM=littriageload
