@@ -49,15 +49,15 @@ date >> ${LOG_RELEVANCE} 2>&1
 echo 'PYTHON', $PYTHON  >> ${LOG_RELEVANCE} 2>&1
 echo 'PYTHONPATH', $PYTHONPATH  >> ${LOG_RELEVANCE} 2>&1
 
-date >> ${LOG_RELEVANCE} 2>&1
-${PYTHON} makePredicted.py  >> ${LOG_RELEVANCE} 2>&1
+#date >> ${LOG_RELEVANCE} 2>&1
+#${PYTHON} makePredicted.py  >> ${LOG_RELEVANCE} 2>&1
 
 date >> ${LOG_RELEVANCE} 2>&1
 rm -rf ${PREDICTED_RELEVANCE}
 ${ANACONDAPYTHON} ${ANACONDAPYTHONLIB}/predict.py -m ${RELEVANCECLASSIFIERPKL} -p figureTextLegCloseWords50 -p removeURLsCleanStem ${NOTSPECIFIED_RELEVANCE} > ${PREDICTED_RELEVANCE}
 
-date >> ${LOG_RELEVANCE} 2>&1
-${PYTHON} updateRelevance.py  >> ${LOG_RELEVANCE} 2>&1
-date >> ${LOG_RELEVANCE} 2>&1
+#date >> ${LOG_RELEVANCE} 2>&1
+#${PYTHON} updateRelevance.py  >> ${LOG_RELEVANCE} 2>&1
+#date >> ${LOG_RELEVANCE} 2>&1
 
 date >> ${LOG_RELEVANCE} 2>&1
