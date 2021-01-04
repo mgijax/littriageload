@@ -917,34 +917,38 @@ def level1SanityChecks():
 
         pdfPath = inputDir + '/' + userPath + '/'
 
-        for pdfFile in os.listdir(pdfPath):
+        try:
+                for pdfFile in os.listdir(pdfPath):
 
-            #
-            # remove spaces
-            # rename '.PDF' with '.pdf'
-            #
+                        #
+                        # remove spaces
+                        # rename '.PDF' with '.pdf'
+                        #
 
-            origFile = pdfFile
+                        origFile = pdfFile
 
-            if pdfFile.find(' ') >= 0 or pdfFile.find('.PDF') >= 0:
-                pdfFile = pdfFile.replace(' ', '')
-                pdfFile = pdfFile.replace('.PDF', '.pdf')
-                shutil.move(os.path.join(pdfPath, origFile), os.path.join(pdfPath, pdfFile))
+                        if pdfFile.find(' ') >= 0 or pdfFile.find('.PDF') >= 0:
+                                pdfFile = pdfFile.replace(' ', '')
+                                pdfFile = pdfFile.replace('.PDF', '.pdf')
+                                shutil.move(os.path.join(pdfPath, origFile), os.path.join(pdfPath, pdfFile))
 
-            #
-            # file in input directory does not end with pdf
-            #
-            if not pdfFile.lower().endswith('.pdf'):
-                diagFile.write('file in input directory does not end with pdf: %s %s\n') % (userPath, pdfFile)
+                        #
+                        # file in input directory does not end with pdf
+                        #
+                        if not pdfFile.lower().endswith('.pdf'):
+                                diagFile.write('file in input directory does not end with pdf: %s %s\n') % (userPath, pdfFile)
+                                continue
+        
+                        #
+                        # is fileName a duplicate?
+                        #
+                        if pdfFile not in nodupFileName:
+                                nodupFileName.append(pdfFile)
+                        else:
+                                dupFileName.append(pdfFile)
+        except:
+                diagFile.write('skipping bad folder path: ' + pdfPath + '\n')
                 continue
-
-            #
-            # is fileName a duplicate?
-            #
-            if pdfFile not in nodupFileName:
-                nodupFileName.append(pdfFile)
-            else:
-                dupFileName.append(pdfFile)
 
     # step 2: iterate thru input directory by user
     for userPath in os.listdir(inputDir):
@@ -952,25 +956,30 @@ def level1SanityChecks():
         pdfPath = inputDir + '/' + userPath + '/'
         needsReviewPath = os.path.join(needsReviewDir, userPath)
 
-        for pdfFile in os.listdir(pdfPath):
+        try:
+                for pdfFile in os.listdir(pdfPath):
 
-            #
-            # if fileName is a duplicate, move to needsReviewPath
-            # do not add userPath info to userDict
-            #
-            if pdfFile in dupFileName:
-                level0error1 = level0error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
-                shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-                count_needsreview += 1
+                        #
+                        # if fileName is a duplicate, move to needsReviewPath
+                        # do not add userPath info to userDict
+                        #
+                        if pdfFile in dupFileName:
+                                level0error1 = level0error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                                shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+                                count_needsreview += 1
+                                continue
+
+                        #
+                        # Add userPath info to userDict dictionary
+                        #
+                        if userPath not in userDict:
+                                userDict[userPath] = []
+                        if pdfFile not in userDict[userPath]:
+                                userDict[userPath].append(pdfFile)
+
+        except:
+                diagFile.write('skipping bad folder path: ' + pdfPath + '\n')
                 continue
-
-            #
-            # Add userPath info to userDict dictionary
-            #
-            if userPath not in userDict:
-                userDict[userPath] = []
-            if pdfFile not in userDict[userPath]:
-                userDict[userPath].append(pdfFile)
 
     #
     # iterate thru userDict
