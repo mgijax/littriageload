@@ -982,16 +982,17 @@ def level1SanityChecks():
                         else:
                                 dupFileName.append(pdfFile)
         except:
-                diagFile.write('skipping bad folder path: ' + pdfPath + '\n')
+                diagFile.write('skipping folder path: ' + pdfPath + '\n')
                 continue
 
     # step 2: iterate thru input directory by user
     for userPath in os.listdir(inputDir):
 
         pdfPath = inputDir + '/' + userPath + '/'
-        needsReviewPath = os.path.join(needsReviewDir, userPath)
 
         try:
+                needsReviewPath = os.path.join(needsReviewDir, userPath)
+
                 for pdfFile in os.listdir(pdfPath):
 
                         #
@@ -1012,7 +1013,7 @@ def level1SanityChecks():
                         if pdfFile not in userDict[userPath]:
                                 userDict[userPath].append(pdfFile)
         except:
-                diagFile.write('skipping bad folder path: ' + pdfPath + '\n')
+                diagFile.write('skipping folder path: ' + pdfPath + '\n')
                 continue
 
     #
