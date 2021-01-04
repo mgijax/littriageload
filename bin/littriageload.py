@@ -2238,25 +2238,25 @@ if level1SanityChecks() != 0:
     sys.exit(1)
 
 #print('setPrimaryKeys')
-#if setPrimaryKeys() != 0:
-#    sys.exit(1)
+if setPrimaryKeys() != 0:
+    sys.exit(1)
 
 #print('processPDFs')
-#if processPDFs() != 0:
-#    closeFiles()
-#    sys.exit(1)
+if processPDFs() != 0:
+    closeFiles()
+    sys.exit(1)
 
 #print('bcpFiles')
-#if bcpFiles() != 0:
-#    sys.exit(1)
+if bcpFiles() != 0:
+    sys.exit(1)
 
 #print('postSanityCheck')
-#if postSanityCheck() != 0:
-#    sys.exit(1)
+if postSanityCheck() != 0:
+    sys.exit(1)
 
 #print('writeErrors')
-#if writeErrors() != 0:
-#    sys.exit(1)
+if writeErrors() != 0:
+    sys.exit(1)
     
 closeFiles()
 sys.exit(0)
