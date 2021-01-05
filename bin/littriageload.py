@@ -124,7 +124,9 @@ userPDF = 'littriage_update_pdf'
 userGOA = 'littriage_goa'
 userNLM = 'littriage_NLM_refresh'
 userDiscard = 'littriage_discard'
-userLTKey = '1569'      # littriageload user
+
+# littriageload user
+userLTKey = '1569'      
 
 count_processPDFs = 0
 count_userSupplement = 0
