@@ -20,7 +20,7 @@ relevanceFile = ''
 relevanceFileName = ''
 relevanceTable = 'BIB_Workflow_Relevance'
 relevanceKey = 0
-userKey = 1001
+userKey = 1617  # relevance_classifier
 
 bcpScript = os.getenv('PG_DBUTILS') + '/bin/bcpin.csh'
 relevanceVersion = os.getenv('RELEVANCE_VERSION')

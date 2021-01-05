@@ -124,6 +124,7 @@ userPDF = 'littriage_update_pdf'
 userGOA = 'littriage_goa'
 userNLM = 'littriage_NLM_refresh'
 userDiscard = 'littriage_discard'
+userLTKey = '1569'      # littriageload user
 
 count_processPDFs = 0
 count_userSupplement = 0
@@ -1675,7 +1676,7 @@ def processPDFs():
             # bib_workflow_relevance
             # 1 row; set isCurrent = 1; set confidence = null
             relevanceFile.write('%s|%s|%s|1||%s|%s|%s|%s|%s\n' \
-                        %(relevanceKey, refKey, isDiscard, relevanceVersion, userKey, userKey, loaddate, loaddate))
+                        %(relevanceKey, refKey, isDiscard, relevanceVersion, userLTKey, userLTKey, loaddate, loaddate))
             relevanceKey += 1
 
             #
