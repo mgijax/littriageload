@@ -1000,7 +1000,7 @@ def level1SanityChecks():
                         # do not add userPath info to userDict
                         #
                         if pdfFile in dupFileName:
-                                level0error1 = level0error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                                level0error1 += linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
                                 shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                                 count_needsreview += 1
                                 continue
@@ -1039,7 +1039,7 @@ def level1SanityChecks():
             try:
                 pdftext = pdf.getText();
             except:
-                level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                level1error1 += linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
                 level1error1 += '<pre>\n%s\n</pre>\n' % pdf.getStderr()
                 fileName = os.path.join(needsReviewPath, pdfFile)
                 pdflogFile.write("%s: pdftotext failed. Stderr:\n" % fileName)
@@ -1078,7 +1078,7 @@ def level1SanityChecks():
                         objByUser[(userPath, userPath, mgiid)] = []
                         objByUser[(userPath, userPath, mgiid)].append((pdfFile, pdftext))
                 except:
-                    level1error1 = level1error1 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                    level1error1 += linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
                     shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                     count_needsreview += 1
                     continue
@@ -1095,7 +1095,7 @@ def level1SanityChecks():
                         objByUser[(userPath, 'pm', pmid)] = []
                         objByUser[(userPath, 'pm', pmid)].append((pdfFile, pdftext))
                 except:
-                    level1error4 = level1error4 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                    level1error4 += linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
                     shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                     count_needsreview += 1
                     continue
@@ -1114,7 +1114,7 @@ def level1SanityChecks():
                             diagFile.write('pdf.getFirstDoiID() : successful : %s/%s : %s\n' % (pdfPath, pdfFile, doiid))
                             diagFile.flush()
                         else:
-                            level1error3 = level1error3 + doiid + '<BR>\n' + \
+                            level1error3 += doiid + '<BR>\n' + \
                                 linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + \
                                 '<BR>\nduplicate of: ' + userPath + '/' + doiidById[doiid][0] + \
                                 '<BR><BR>\n\n'
@@ -1122,12 +1122,12 @@ def level1SanityChecks():
                             count_needsreview += 1
                             continue
                     else:
-                        level1error2 = level1error2 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                        level1error2 += linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
                         shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                         count_needsreview += 1
                         continue
                 except Exception as e:
-                    level1error2 = level1error2 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                    level1error2 += linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
                     shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                     count_needsreview += 1
                     # write traceback to pdflog file
@@ -1196,7 +1196,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
         if len(results) > 0:
             objId = results[0]['pubmedID']
         else:
-            level5error1 = level5error1 + mgiID + '<BR>\n' + \
+            level5error1 += mgiID + '<BR>\n' + \
                 linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
             return 1
 
@@ -1218,14 +1218,14 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
         #  1: DOI ID maps to multiple pubmed IDs
         if len(refList) > 1:
             for ref in refList:
-                level2error1 = level2error1 + objId + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
+                level2error1 += objId + ', ' + str(ref.getPubMedID()) + '<BR>\n' + \
                     linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
             return 1
 
         #  2: DOI ID not found in pubmed
         for ref in refList:
             if ref == None:
-                level2error2 = level2error2 + objId + '<BR>\n' + \
+                level2error2 += objId + '<BR>\n' + \
                             linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
                 return 1
 
@@ -1237,7 +1237,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
     #  3: error getting medline record
     if not pubMedRef.isValid():
-        level2error3 = level2error3 + objId + ', ' + pubmedID + '<BR>\n' + \
+        level2error3 += objId + ', ' + pubmedID + '<BR>\n' + \
                 linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
         return 1
 
@@ -1267,7 +1267,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
         if len(missingList):
            diagFile.write(str(requiredDict))
            diagFile.write('\n')
-           level2error4 = level2error4 + str(objId) + ', ' + str(pubmedID) + '<BR>\n' + \
+           level2error4 += str(objId) + ', ' + str(pubmedID) + '<BR>\n' + \
                 linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
            return 1
 
@@ -1293,7 +1293,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
             or pubMedRef.getTitle().lower() != title.lower() \
             or (doiId != None and pubMedRef.getDoiID() != doiId):
 
-            level5error2 = level5error2 + mgiID + ',' + pubmedID + '<BR>\n' + \
+            level5error2 += mgiID + ',' + pubmedID + '<BR>\n' + \
                     'Journal/NLM: ' + pubMedRef.getJournal() + '<BR>\n' + \
                     'Journal/MGD: ' + journal + '<BR>\n' + \
                     'Title/NLM: ' + pubMedRef.getTitle() + '<BR>\n' + \
@@ -1348,7 +1348,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
         # 1: input PubMed ID or DOI ID associated with different MGI references
         diagFile.write('2: input PubMed ID or DOI ID associated with different MGI references: ' \
         + objId + ',' + pubmedID + '\n')
-        level3error1 = level3error1 + objId + ', ' + pubmedID + '<BR>\n' + \
+        level3error1 += objId + ', ' + pubmedID + '<BR>\n' + \
             linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
         shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
         count_needsreview += 1
@@ -1364,7 +1364,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
                    (pubmedID != results[0]['pubmedID'] and objId == results[0]['doiID']):
                     diagFile.write('1: input PubMed ID or DOI ID associated with different MGI references: ' \
                             + objId + ',' + pubmedID + '\n')
-                    level3error1 = level3error1 + objId + ', ' + pubmedID + '<BR>\n' + \
+                    level3error1 += objId + ', ' + pubmedID + '<BR>\n' + \
                             linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
                     shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                     count_needsreview += 1
@@ -1514,7 +1514,7 @@ def processPDFs():
             # continue to next pdf
             if isErratum == 1:
                 diagFile.write('ERRATUM : found/included : %s, %s, %s, %s\n' % (e, objId, userPath, pdfFile))
-                level2error5 = level2error5 + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                level2error5 += linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
                 shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                 count_needsreview += 1
                 continue
@@ -1523,7 +1523,7 @@ def processPDFs():
 
         # process supplemental but suppText not found
         if userPath in (userSupplement) and len(suppText) == 0:
-            level4error2 = level4error2 + str(objId) + '<BR>\n' + \
+            level4error2 += str(objId) + '<BR>\n' + \
                     linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
             count_needsreview += 1
             diagFile.write('userSupplement : needs review : %s, %s, %s\n' % (objId, userPath, pdfFile))
@@ -1857,7 +1857,7 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
     results = db.sql(sql, 'auto')
 
     if len(results) == 0:
-        level4error1 = level4error1 + str(mgiID) + '<BR>\n' + \
+        level4error1 += str(mgiID) + '<BR>\n' + \
                 linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
         count_needsreview += 1
         diagFile.write('userPDF/userSupplement/userNLM level1 : needs review : %s, %s, %s\n' % (mgiID, userPath, pdfFile))
@@ -2220,7 +2220,7 @@ def postSanityCheck():
         if extractedText.find(title) < 0:
             title = postSanityCheck_replaceTitle2(r)
             if extractedText.find(title) < 0:
-                level6error1 = level6error1 + r['mgiID'] + '<BR>\n'
+                level6error1 += r['mgiID'] + '<BR>\n'
                 count_mismatchedtitles += 1
 
     return 0
