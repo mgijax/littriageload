@@ -170,6 +170,10 @@ ${LITTRIAGELOAD}/bin/processRelevance.sh >> ${LOG_DIAG} 2>&1
 STAT=$?
 checkStatus ${STAT} "${MGICACHELOAD}/bibcitation.csh" >> ${LOG_DIAG} 2>&1
 
+# for testing purposes only; remove before/after release
+./testRelevance.sh
+mv testRelevance.sh.log ${OUTPUTDIR}
+
 # log OUTPUTDIR
 cp -r ${OUTPUTDIR} ${OUTPUTDIR}.${timestamp} >> ${LOG} 2>&1
 
