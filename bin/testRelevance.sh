@@ -53,7 +53,6 @@ touch $LOG
 #cd ${DATALOADSOUTPUT}/mgi/littriageload/input
 #tar -xvf ../lec.tar
 
-
 cat - <<EOSQL | ${PG_DBUTILS}/bin/doisql.csh $0 | tee -a $LOG
 
 select c.mgiID, c.jnumid, c.pubmedid, t.term, r.creation_date, c.short_citation
