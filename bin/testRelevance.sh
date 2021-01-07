@@ -7,20 +7,18 @@
 # 2. run migration part 1: sets 'keep', 'discard', 'Not Specified'
 #       bibrelevance.csh.log is time stamped
 #
-# 3. run migration part2:  littriageload/bin/processRelevance.sh
+# 3. run migration part 2:  littriageload/bin/processRelevance.sh
 #       find all of the bib_workflow_relevance = 'Not Specified'
 #       output/littriageload.relevance.predicted
 #
-# for 1 week (Tue-Sat):
-# 4. copy production _New_Newcurrent to lori's alpha_new_new
-#
 # Sun
+# 4. copy Mon-Sat production inputs (/data/loads/mgi/littriageload/input.last, etc) to lec
 # 5. run littriageload
 # 6. output folder : Tue-Sat
 #
 # On Production/QC report (Sun)
-# 1. list of MGI ids, J:, isDiscard, creation_date where creation_date >= Monday date Jan 11
-# 2. archive
+# 7. list of MGI ids, J:, pubmedid, isDiscard, creation_date, short citation where creation_date >= Monday date Jan 11
+#       bhmgiapp01:/data/loads/mgi/littriageload/testrelevance
 #
 # Mon : check Production/QC report
 # Mon : check lori/output folders (Mon, Sun)
