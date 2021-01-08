@@ -18,9 +18,11 @@ tar -cvf /home/lec/lec.tar .
 
 #ssh bhmgiapp14ld
 cd ${DATALOADSOUTPUT}/mgi/littriageload
-/home/lec/lec.tar .
+mv /home/lec/lec.tar .
 cd ${DATALOADSOUTPUT}/mgi/littriageload/input
 tar -xvf ../lec.tar
+
+${LITTRIAGELOAD}/bin/littriageload.sh
 
 #cd ${DATALOADSOUTPUT}/mgi/littriageload
 #rm -rf lec.tar
