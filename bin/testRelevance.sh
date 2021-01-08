@@ -1,7 +1,8 @@
 #!/bin/csh -f
 
 #
-# Monday : Jan 11
+# Mon
+#
 # 1. load production backup into mgi-testdb4/lec
 #
 # 2. run migration part 1: sets 'keep', 'discard', 'Not Specified'
@@ -12,16 +13,17 @@
 #       output/littriageload.relevance.predicted
 #
 # Sun
-# 4. copy Mon-Sat production inputs (/data/loads/mgi/littriageload/input.last, etc) to lec
-# 5. run littriageload
-# 6. output folder : Tue-Sat
 #
-# On Production/QC report (Sun)
-# 7. list of MGI ids, J:, pubmedid, isDiscard, creation_date, short citation where creation_date >= Monday date Jan 11
+# 4. copy Mon-Sat production inputs (/data/loads/mgi/littriageload/input.last, etc) to lec
+#
+# 5. run littriageload; archive input, logs, output folders
+#
+# 6. run Production report:
+#       list of MGI ids, J:, pubmedid, isDiscard, creation_date, short citation where creation_date >= Monday date Jan 11
 #       bhmgiapp01:/data/loads/mgi/littriageload/testrelevance
 #
 # Mon : check Production/QC report
-# Mon : check lori/output folders (Mon, Sun)
+# Mon : check lori/output folders
 #
 
 if ( ${?MGICONFIG} == 0 ) then
