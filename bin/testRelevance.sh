@@ -53,13 +53,14 @@ touch $LOG
 
 cat - <<EOSQL | ${PG_DBUTILS}/bin/doisql.csh $0 | tee -a $LOG
 
-select c.mgiID, c.jnumid, c.pubmedid, t.term, r.creation_date, c.short_citation
-from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, voc_term t
+select c.mgiID, c.jnumid, c.pubmedid, t.term, v.confidence, r.creation_date, u.login, c.short_citation
+from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, voc_term t, mgi_user u
 where r.creation_date::date >= '01/06/2021'
 and r._refs_key = c._refs_key
 and r._refs_key = v._refs_key
 and v.isCurrent = 1
 and v._relevance_key = t._term_key
+and v._createdby_key = u._user_key
 order by c.short_citation
 ;
 
