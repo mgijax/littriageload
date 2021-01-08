@@ -12,12 +12,10 @@ setenv LOG $0.log
 rm -rf $LOG
 touch $LOG
  
-# as mgiadmin
 #ssh bhmgiapp01
 cd /data/loads/mgi/littriageload/input.last
 tar -cvf /home/lec/lec.tar .
 
-# as lec
 #ssh bhmgiapp14ld
 cd ${DATALOADSOUTPUT}/mgi/littriageload
 /home/lec/lec.tar .
