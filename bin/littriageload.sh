@@ -171,8 +171,8 @@ STAT=$?
 checkStatus ${STAT} "${MGICACHELOAD}/bibcitation.csh" >> ${LOG_DIAG} 2>&1
 
 # for testing purposes only; remove before/after release
-./testRelevance.sh
-mv testRelevance.sh.log ${OUTPUTDIR}
+${LITTRIAGELOAD}/bin/testRelevance.sh
+mv ${LITTRIAGELOAD}/bin/testRelevance.sh.log ${OUTPUTDIR}
 
 # log OUTPUTDIR
 cp -r ${OUTPUTDIR} ${OUTPUTDIR}.${timestamp} >> ${LOG} 2>&1
