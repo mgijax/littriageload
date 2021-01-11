@@ -55,7 +55,7 @@ searchTerms = [
 ]
 
 sql = '''
-select c._refs_key, c.mgiid, c.pubmedid, s._group_key, lower(d.extractedText) as extractedText
+select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, lower(d.extractedText) as extractedText
 from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s, bib_workflow_data d
 where r._refs_key = c._refs_key
 and r._refs_key = v._refs_key
@@ -77,6 +77,7 @@ for r in results:
         mgiid = r['mgiid']
         pubmedid = r['pubmedid']
         groupKey = r['_group_key']
+        confidence = r['confidence']
         termKey = notroutedKey
         term = 'Not Routed'
 
@@ -97,13 +98,13 @@ for r in results:
                 allSubText.append(subText)
                 matchesTerm += 1
 
-        logFile.write(mgiid + ' ' + pubmedid + ' ' + term + ' ' + str(matchesTerm) + '\n')
+        logFile.write(mgiid + ' ' + pubmedid + ' ' + str(confidence) + ' ' + term + ' ' + str(matchesTerm) + '\n')
 
         statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
                 % (statusKey, refKey, groupKey, termKey, isCurrent, \
                               userKey, userKey, loaddate, loaddate))
 
-        outFile.write(mgiid + '|' + pubmedid + '|' + term + '|' + str(matchesTerm) + '|' + '|'.join(allSubText) + '\n')
+        outFile.write(mgiid + '|' + pubmedid + '|' + str(confidence) + '|' + term + '|' + str(matchesTerm) + '|' + '|'.join(allSubText) + '\n')
 
         statusKey += 1
 
