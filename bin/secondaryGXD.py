@@ -29,8 +29,11 @@ userKey = 1001
 
 bcpScript = os.getenv('PG_DBUTILS') + '/bin/bcpin.csh'
 outputDir = os.getenv('OUTPUTDIR')
+logDir = os.getenv('LOGDIR')
 statusFileName = outputDir + '/' + statusTable + '.GXD.bcp'
 statusFile = open(statusFileName, 'w')
+logFileName = logDir + '/littriageload.secondary.GXD.log'
+logFile = open(logFileName, 'w')
 outFileName = outputDir + '/GXD.txt'
 outFile = open(outFileName, 'w')
 
@@ -86,7 +89,7 @@ for r in results:
         termKey = notroutedKey
         term = 'Not Routed'
 
-        print()
+        logFile.write('\n')
         allSubText = []
         matchesTerm = 0
         matchesExcludedTerm = 0
@@ -111,9 +114,9 @@ for r in results:
                         term = 'Routed'
                         matchesTerm += 1
 
-                print(s, '[', subText,']',  'excluded term = ', matchesExcludedTerm)
+                logFile.write(s + ' [ ' + subText + '] excluded term = ' + str(matchesExcludedTerm) + '\n')
 
-        print(mgiid, pubmedid, term, matchesTerm)
+        logFile.write(mgiid + ' ' + pubmedid + ' ' + term+ ' ' + str(matchesTerm) + '\n')
 
         statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
                 % (statusKey, refKey, groupKey, termKey, isCurrent, \

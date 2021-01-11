@@ -26,8 +26,11 @@ userKey = 1001
 
 bcpScript = os.getenv('PG_DBUTILS') + '/bin/bcpin.csh'
 outputDir = os.getenv('OUTPUTDIR')
+logDir = os.getenv('LOGDIR')
 statusFileName = outputDir + '/' + statusTable + '.AP.bcp'
 statusFile = open(statusFileName, 'w')
+logFileName = logDir + '/littriageload.secondary.AP.log'
+logFile = open(logFileName, 'w')
 outFileName = outputDir + '/AP.txt'
 outFile = open(outFileName, 'w')
 
@@ -119,6 +122,7 @@ order by mgiid desc
 results = db.sql(sql, 'auto')
 for r in results:
 
+        logFile.write('\n')
         refKey = r['_refs_key']
         mgiid = r['mgiid']
         pubmedid = r['pubmedid']
@@ -126,7 +130,6 @@ for r in results:
         termKey = notroutedKey
         term = 'Not Routed'
 
-        print()
         allSubText = []
         matchesTerm = 0
         extractedText = r['extractedText']
@@ -139,11 +142,11 @@ for r in results:
                     subText = extractedText[match.start()-10:match.end()+10]
                 termKey = routedKey;
                 term = 'Routed'
-                print(s, '[', subText, ']')
+                logFile.write(s + ' [' +  subText + ']\n')
                 allSubText.append(subText)
                 matchesTerm += 1
 
-        print(mgiid, pubmedid, term, matchesTerm)
+        logFile.write(mgiid + ' ' + pubmedid + ' ' + term + ' ' + str(matchesTerm) + '\n')
 
         statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
                 % (statusKey, refKey, groupKey, termKey, isCurrent, \
@@ -158,6 +161,8 @@ for r in results:
 
 statusFile.flush()
 statusFile.close()
+logFile.flush()
+logFile.close()
 outFile.flush()
 outFile.close()
 
