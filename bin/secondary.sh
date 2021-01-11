@@ -31,8 +31,8 @@ date >> ${LOG} 2>&1
 ${PYTHON} secondaryQTL.py >> ${LOG} 2>&1
 date >> ${LOG} 2>&1
 
-#date >> ${LOG} 2>&1
-#${PYTHON} secondaryTumor.py >> ${LOG} 2>&1
-#date >> ${LOG} 2>&1
+date >> ${LOG} 2>&1
+${PYTHON} secondaryTumor.py >> ${LOG} 2>&1
+date >> ${LOG} 2>&1
 
 date >> ${LOG} 2>&1

@@ -106,7 +106,6 @@ for r in results:
                 for e in excludedTerms:
                     for match2 in re.finditer(e, subText):
                         matchesExcludedTerm += 1
-                        allSubText.append(subText)
 
                 # if subText matches excluded term, don't change to "Routed"
                 if matchesExcludedTerm == 0:
@@ -115,6 +114,7 @@ for r in results:
                         matchesTerm += 1
 
                 logFile.write(s + ' [ ' + subText + '] excluded term = ' + str(matchesExcludedTerm) + '\n')
+                allSubText.append(subText)
 
         logFile.write(mgiid + ' ' + pubmedid + ' ' + term+ ' ' + str(matchesTerm) + '\n')
 
@@ -122,7 +122,7 @@ for r in results:
                 % (statusKey, refKey, groupKey, termKey, isCurrent, \
                               userKey, userKey, loaddate, loaddate))
 
-        outFile.write(mgiid + '|' + pubmedid + '|' + term + '|' + str(matchesTerm) + '|' + str(matchesExcludedTerm) + '\n')
+        outFile.write(mgiid + '|' + pubmedid + '|' + term + '|' + str(matchesTerm) + '|' + str(matchesExcludedTerm) + '|' + '|'.join(allSubText) + '\n')
 
         statusKey += 1
 

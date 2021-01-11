@@ -73,7 +73,6 @@ order by mgiid desc
 results = db.sql(sql, 'auto')
 for r in results:
 
-        logFile.write('\n')
         refKey = r['_refs_key']
         mgiid = r['mgiid']
         pubmedid = r['pubmedid']
@@ -81,6 +80,7 @@ for r in results:
         termKey = notroutedKey
         term = 'Not Routed'
 
+        logFile.write('\n')
         allSubText = []
         matchesTerm = 0
         extractedText = r['extractedText']
