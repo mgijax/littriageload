@@ -139,7 +139,7 @@ for r in results:
             for match in re.finditer(s, extractedText):
                 subText = extractedText[match.start()-50:match.end()+50]
                 if len(subText) == 0:
-                    subText = extractedText[match.start()-10:match.end()+10]
+                    subText = extractedText[match.start()-50:match.end()+50]
                 termKey = routedKey;
                 term = 'Routed'
                 logFile.write(s + ' [' +  subText + ']\n')
