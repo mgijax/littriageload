@@ -23,6 +23,10 @@ cd ${DATALOADSOUTPUT}/mgi/littriageload/input
 tar -xvf ../lec.tar
 
 ${LITTRIAGELOAD}/bin/littriageload.sh
+${LITTRIAGELOAD}/bin/testRelevance.sh
+mv ${LITTRIAGELOAD}/bin/testRelevance.sh.log ${OUTPUTDIR}
+
+dumpDB.csh mgi-testdb4 lec mgd /bhmgidevdb01/dump/lec.dump
 
 #cd ${DATALOADSOUTPUT}/mgi/littriageload
 #rm -rf lec.tar

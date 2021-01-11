@@ -75,6 +75,10 @@ LOG_RELEVANCE=${LOGDIR}/littriageload.relevance.log
 RELEVANCE_VERSION='11/06/2020'
 export NOTSPECIFIED_RELEVANCE PREDICTED_RELEVANCE LOG_RELEVANCE RELEVANCE_VERSION
 
+# secondary triage
+LOG_SECONDARY=${LOGDIR}/littriageload.secondary.log
+export LOG_SECONDARY
+
 #  The name of the job stream for the load
 JOBSTREAM=littriageload
 export JOBSTREAM
