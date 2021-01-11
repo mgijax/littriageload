@@ -75,7 +75,7 @@ searchTerms = [
 'thymoma'
 ]
 
-journals = [
+journals = '''
 'Cancer Cell',
 'Cancer Discov',
 'Cancer Lett',
@@ -88,17 +88,18 @@ journals = [
 'Nat Rev Cancer',
 'Oncogene',
 'Semin Cancer Biol'
-]
+'''
 
 #
+# in journals, search extraced text, except reference section
+# not in jouurnals, search title
+# not in jouurnals, search abstract
+#
+# not yet implemented
 # for all journals, search extraced text, except reference section using debbie's ignore set
-# for other journals, search title and abstract for searchTerms
-#
-
-#
-# for this list of journals, search extraced text, except reference section
 #
 sql = '''
+(
 select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, lower(d.extractedText) as extractedText
 from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s, bib_workflow_data d
 where r._refs_key = c._refs_key
@@ -111,22 +112,34 @@ and s._group_key = 31576667
 and r._refs_key = d._refs_key
 and d._extractedtext_key not in (48804491)
 and d.extractedText is not null
-and c.journal in (
-'Cancer Cell',
-'Cancer Discov',
-'Cancer Lett',
-'Cancer Res',
-'Carcinogenesis',
-'Int J Cancer',
-'J Natl Cancer Inst',
-'Leukemia',
-'Mol Cancer Res',
-'Nat Rev Cancer',
-'Oncogene',
-'Semin Cancer Biol'
+and c.journal in (%s)
+union all
+select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, lower(r.title) as extractedText
+from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
+where r._refs_key = c._refs_key
+and r._refs_key = v._refs_key
+and v.isCurrent = 1
+and v._relevance_key = 70594667
+and r._refs_key = s._refs_key
+and s._status_key = 71027551
+and s._group_key = 31576667
+and r.title is not null
+and c.journal not in (%s)
+union all
+select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, lower(r.abstract) as extractedText
+from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
+where r._refs_key = c._refs_key
+and r._refs_key = v._refs_key
+and v.isCurrent = 1
+and v._relevance_key = 70594667
+and r._refs_key = s._refs_key
+and s._status_key = 71027551
+and s._group_key = 31576667
+and r.abstract is not null
+and c.journal not in (%s)
 )
 order by mgiid desc
-'''
+''' % (journals, journals, journals)
 
 results = db.sql(sql, 'auto')
 for r in results:
