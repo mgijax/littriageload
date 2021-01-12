@@ -69,14 +69,14 @@ export LOG_NLMREFRESHFIND LOG_NLMREFRESHPDF
 export LOG_SPLITTER LOG_PDF LOG_RELEVANCECLASSIFIER
 
 # relevance classifier
-NOTSPECIFIED_RELEVANCE=${OUTPUTDIR}/littriageload.relevance.notspecified
-PREDICTED_RELEVANCE=${OUTPUTDIR}/littriageload.relevance.predicted
-LOG_RELEVANCE=${LOGDIR}/littriageload.relevance.log
+NOTSPECIFIED_RELEVANCE=${OUTPUTDIR}/relevance.notspecified
+PREDICTED_RELEVANCE=${OUTPUTDIR}/relevance.predicted
+LOG_RELEVANCE=${LOGDIR}/relevance.log
 RELEVANCE_VERSION='11/06/2020'
 export NOTSPECIFIED_RELEVANCE PREDICTED_RELEVANCE LOG_RELEVANCE RELEVANCE_VERSION
 
 # secondary triage
-LOG_SECONDARY=${LOGDIR}/littriageload.secondary.log
+LOG_SECONDARY=${LOGDIR}/secondary.log
 export LOG_SECONDARY
 
 #  The name of the job stream for the load
