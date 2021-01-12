@@ -61,10 +61,10 @@ searchTerms = [
 ]
 
 excludedTerms = []
-results = db.sql('select term from voc_term where _vocab_key = 135', 'auto')
+results = db.sql('select term from voc_term where _vocab_key = 135 order by term', 'auto')
 for r in results:
     excludedTerms.append(r['term'])
-#print(excludedTerms)
+print(excludedTerms)
 
 sql = '''
 (
