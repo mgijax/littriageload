@@ -31,8 +31,8 @@ statusFileName = outputDir + '/' + statusTable + '.QTL.bcp'
 statusFile = open(statusFileName, 'w')
 logFileName = logDir + '/secondary.QTL.log'
 logFile = open(logFileName, 'w')
-outFileName = outputDir + '/QTL.txt'
-outFile = open(outFileName, 'w')
+outputFileName = outputDir + '/QTL.txt'
+outputFile = open(outputFileName, 'w')
 
 results = db.sql(''' select nextval('bib_workflow_status_seq') as maxKey ''', 'auto')
 statusKey = results[0]['maxKey']
@@ -70,6 +70,9 @@ and d.extractedText is not null
 order by mgiid desc
 '''
 
+statusLookup = {}
+outputLookup = {}
+
 results = db.sql(sql, 'auto')
 for r in results:
 
@@ -98,25 +101,35 @@ for r in results:
                 allSubText.append(subText)
                 matchesTerm += 1
 
-        logFile.write(mgiid + ' ' + pubmedid + ' ' + str(confidence) + ' ' + term + ' ' + str(matchesTerm) + '\n')
+        if mgiid not in statusLookup:
 
-        statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-                % (statusKey, refKey, groupKey, termKey, isCurrent, \
+                logFile.write(mgiid + ' ' + pubmedid + ' ' + str(confidence) + ' ' + term+ ' ' + str(matchesTerm) + '\n')
+
+                statusLookup[mgiid] = []
+                statusLookup[mgiid].append('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+                        % (statusKey, refKey, groupKey, termKey, isCurrent, \
                               userKey, userKey, loaddate, loaddate))
 
-        outFile.write(mgiid + '|' + pubmedid + '|' + str(confidence) + '|' + term + '|' + str(matchesTerm) + '|' + '|'.join(allSubText) + '\n')
+                outputLookup[mgiid] = []
+                outputLookup[mgiid].append(mgiid + '|' + pubmedid + '|' + str(confidence) + '|' + term + '|' + str(matchesTerm) + '|' + '|'.join(allSubText) + '\n')
 
-        statusKey += 1
+                statusKey += 1
 
-        # set the existing isCurrent = 0
-        allIsCurrentSQL += setIsCurrentSQL % (refKey)
+                # set the existing isCurrent = 0
+                allIsCurrentSQL += setIsCurrentSQL % (refKey)
+
+for r in sorted(statusLookup):
+        statusFile.write(statusLookup[r][0])
+
+for r in sorted(outputLookup):
+        outputFile.write(outputLookup[r][0])
 
 statusFile.flush()
 statusFile.close()
 logFile.flush()
 logFile.close()
-outFile.flush()
-outFile.close()
+outputFile.flush()
+outputFile.close()
 
 # update existing relevance isCurrent = 0
 # must be done *before* the new rows are added
