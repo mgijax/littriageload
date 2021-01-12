@@ -15,6 +15,8 @@ touch $LOG
 #ssh bhmgiapp01
 cd /data/loads/mgi/littriageload/input.last
 tar -cvf /home/lec/lec.tar .
+cd /data/loads/mgi/littriageload/testRelevance
+testRelevance.sh
 
 #ssh bhmgiapp14ld
 cd ${DATALOADSOUTPUT}/mgi/littriageload
@@ -27,6 +29,7 @@ ${LITTRIAGELOAD}/bin/testRelevance.sh
 mv ${LITTRIAGELOAD}/bin/testRelevance.sh.log ${OUTPUTDIR}
 
 dumpDB.csh mgi-testdb4 lec mgd /bhmgidevdb01/dump/lec.dump
+
 
 #cd ${DATALOADSOUTPUT}/mgi/littriageload
 #rm -rf lec.tar
