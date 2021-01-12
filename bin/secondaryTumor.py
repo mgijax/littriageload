@@ -22,7 +22,7 @@ statusFile = ''
 statusFileName = ''
 statusTable = 'BIB_Workflow_Status'
 statusKey = 0
-userKey = 1001
+userKey = 1618
 
 bcpScript = os.getenv('PG_DBUTILS') + '/bin/bcpin.csh'
 outputDir = os.getenv('OUTPUTDIR')
