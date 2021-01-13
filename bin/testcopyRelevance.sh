@@ -15,6 +15,7 @@ touch $LOG
 #ssh bhmgiapp01
 cd /data/loads/mgi/littriageload/input.last
 tar -cvf /home/lec/lec.tar .
+rm -rf input/lit*/*
 cd /data/loads/mgi/littriageload/testRelevance
 testRelevance.sh
 
