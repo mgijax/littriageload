@@ -97,6 +97,7 @@ extractedSQL = '''
 select lower(d.extractedText) as extractedText
 from bib_workflow_data d
 where d._refs_key = %s
+and d._extractedtext_key not in (48804491)
 '''
 
 results = db.sql(sql, 'auto')
