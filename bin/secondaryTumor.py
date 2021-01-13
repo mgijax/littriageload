@@ -53,6 +53,12 @@ isCurrent = "1"
 routedKey = "31576670"
 notroutedKey = "31576669"
 
+excludedTerms = []
+results = db.sql('select term from voc_term where _vocab_key = 164 order by term', 'auto')
+for r in results:
+    excludedTerms.append(r['term'])
+print(excludedTerms)
+
 searchTerms = [
 'tumo',
 'inoma',
@@ -78,29 +84,6 @@ searchTerms = [
 'thymoma'
 ]
 
-journals = '''
-'Cancer Cell',
-'Cancer Discov',
-'Cancer Lett',
-'Cancer Res',
-'Carcinogenesis',
-'Int J Cancer',
-'J Natl Cancer Inst',
-'Leukemia',
-'Mol Cancer Res',
-'Nat Rev Cancer',
-'Oncogene',
-'Semin Cancer Biol'
-'''
-
-#
-# in journals, search extraced text, except reference section
-# not in jouurnals, search title
-# not in jouurnals, search abstract
-#
-# not yet implemented
-# for all journals, search extraced text, except reference section using debbie's ignore set
-#
 sql = '''
 (
 select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, lower(d.extractedText) as extractedText
@@ -115,34 +98,9 @@ and s._group_key = 31576667
 and r._refs_key = d._refs_key
 and d._extractedtext_key not in (48804491)
 and d.extractedText is not null
-and c.journal in (%s)
-union all
-select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, lower(r.title) as extractedText
-from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
-where r._refs_key = c._refs_key
-and r._refs_key = v._refs_key
-and v.isCurrent = 1
-and v._relevance_key = 70594667
-and r._refs_key = s._refs_key
-and s._status_key = 71027551
-and s._group_key = 31576667
-and r.title is not null
-and c.journal not in (%s)
-union all
-select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, lower(r.abstract) as extractedText
-from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
-where r._refs_key = c._refs_key
-and r._refs_key = v._refs_key
-and v.isCurrent = 1
-and v._relevance_key = 70594667
-and r._refs_key = s._refs_key
-and s._status_key = 71027551
-and s._group_key = 31576667
-and r.abstract is not null
-and c.journal not in (%s)
 )
 order by mgiid desc
-''' % (journals, journals, journals)
+'''
 
 results = db.sql(sql, 'auto')
 for r in results:
@@ -158,19 +116,30 @@ for r in results:
         logFile.write('\n')
         allSubText = []
         matchesTerm = 0
+        matchesExcludedTerm = 0
         extractedText = r['extractedText']
         extractedText = extractedText.replace('\n', ' ')
         extractedText = extractedText.replace('\r', ' ')
+
         for s in searchTerms:
             for match in re.finditer(s, extractedText):
                 subText = extractedText[match.start()-50:match.end()+50]
                 if len(subText) == 0:
                     subText = extractedText[match.start()-50:match.end()+50]
-                termKey = routedKey;
-                term = 'Routed'
-                logFile.write(s + ' [' +  subText + ']\n')
+
+                matchesExcludedTerm = 0
+                for e in excludedTerms:
+                    for match2 in re.finditer(e, subText):
+                        matchesExcludedTerm += 1
+
+                # if subText matches excluded term, don't change to "Routed"
+                if matchesExcludedTerm == 0:
+                        termKey = routedKey;
+                        term = 'Routed'
+                        matchesTerm += 1
+
+                logFile.write(s + ' [ ' + subText + '] excluded term = ' + str(matchesExcludedTerm) + '\n')
                 allSubText.append(subText)
-                matchesTerm += 1
 
         if mgiid not in statusLookup:
 
@@ -182,7 +151,7 @@ for r in results:
                               userKey, userKey, loaddate, loaddate))
 
                 outputLookup[mgiid] = []
-                outputLookup[mgiid].append(mgiid + '|' + pubmedid + '|' + str(confidence) + '|' + term + '|' + str(matchesTerm) + '|' + '|'.join(allSubText) + '\n')
+                outputLookup[mgiid].append(mgiid + '|' + pubmedid + '|' + str(confidence) + '|' + term + '|' + str(matchesTerm) + '|' + str(matchesExcludedTerm) + '|' + '|'.join(allSubText) + '\n')
 
                 statusKey += 1
 
