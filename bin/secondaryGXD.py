@@ -4,9 +4,6 @@
 #  secondary triage : GXD Criteria
 #
 #       http://mgiprodwiki/mediawiki/index.php/sw:Secondary_Triage_Loader_Requirements#GXD_Criteria
-#       References: relevance status = "keep", GXDstatus = "New"
-#       text to search: extracted text except reference section
-#       text criteria: '%embryo%' ; exclude list (vocab_key 135). (case insensitive)
 #
 
 import sys
@@ -17,9 +14,6 @@ import mgi_utils
 import loadlib
 
 db.setTrace()
-print('#####')
-print('GXD')
-print('#####')
 
 statusFile = ''
 statusFileName = ''
@@ -36,9 +30,6 @@ logFileName = logDir + '/secondary.GXD.log'
 logFile = open(logFileName, 'w')
 outputFileName = outputDir + '/GXD.txt'
 outputFile = open(outputFileName, 'w')
-
-statusLookup = {}
-outputLookup = {}
 
 results = db.sql(''' select nextval('bib_workflow_status_seq') as maxKey ''', 'auto')
 statusKey = results[0]['maxKey']
@@ -68,8 +59,8 @@ print(excludedTerms)
 
 sql = '''
 (
-select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, lower(d.extractedText) as extractedText
-from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s, bib_workflow_data d
+select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence
+from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
 where r._refs_key = c._refs_key
 and r._refs_key = v._refs_key
 and v.isCurrent = 1
@@ -77,12 +68,14 @@ and v._relevance_key = 70594667
 and r._refs_key = s._refs_key
 and s._status_key = 71027551
 and s._group_key = 31576665
-and r._refs_key = d._refs_key
-and d._extractedtext_key not in (48804491)
-and d.extractedText is not null
+and exists (select 1 from bib_workflow_data d
+        where r._refs_key = d._refs_key
+        and d._extractedtext_key not in (48804491)
+        and d.extractedText is not null
+        )
 union all
-select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, lower(d.extractedText) as extractedText
-from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s, bib_workflow_data d
+select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence
+from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
 where r._refs_key = c._refs_key
 and r._refs_key = v._refs_key
 and v.isCurrent = 1
@@ -91,11 +84,19 @@ and v.confidence > -1.0
 and r._refs_key = s._refs_key
 and s._status_key = 71027551
 and s._group_key = 31576665
-and r._refs_key = d._refs_key
-and d._extractedtext_key not in (48804491)
-and d.extractedText is not null
+and exists (select 1 from bib_workflow_data d
+        where r._refs_key = d._refs_key
+        and d._extractedtext_key not in (48804491)
+        and d.extractedText is not null
+        )
 )
 order by mgiid desc
+'''
+
+extractedSQL = '''
+select lower(d.extractedText) as extractedText
+from bib_workflow_data d
+where d._refs_key = %s
 '''
 
 results = db.sql(sql, 'auto')
@@ -112,52 +113,46 @@ for r in results:
         logFile.write('\n')
         allSubText = []
         matchesTerm = 0
-        matchesExcludedTerm = 0
-        extractedText = r['extractedText']
-        extractedText = extractedText.replace('\n', ' ')
-        extractedText = extractedText.replace('\r', ' ')
-        for s in searchTerms:
-            for match in re.finditer(s, extractedText):
-                subText = extractedText[match.start()-50:match.end()+50]
-                if len(subText) == 0:
-                    subText = extractedText[match.start()-50:match.end()+50]
 
+        eresults = db.sql(extractedSQL % (refKey), 'auto')
+        for e in eresults:
                 matchesExcludedTerm = 0
-                for e in excludedTerms:
-                    for match2 in re.finditer(e, subText):
-                        matchesExcludedTerm += 1
+                extractedText = e['extractedText']
+                extractedText = extractedText.replace('\n', ' ')
+                extractedText = extractedText.replace('\r', ' ')
 
-                # if subText matches excluded term, don't change to "Routed"
-                if matchesExcludedTerm == 0:
-                        termKey = routedKey;
-                        term = 'Routed'
-                        matchesTerm += 1
+                for s in searchTerms:
+                    for match in re.finditer(s, extractedText):
+                        subText = extractedText[match.start()-50:match.end()+50]
+                        if len(subText) == 0:
+                            subText = extractedText[match.start()-50:match.end()+50]
 
-                logFile.write(s + ' [ ' + subText + '] excluded term = ' + str(matchesExcludedTerm) + '\n')
-                allSubText.append(subText)
+                        matchesExcludedTerm = 0
+                        for e in excludedTerms:
+                            for match2 in re.finditer(e, subText):
+                                matchesExcludedTerm += 1
 
-        if mgiid not in statusLookup:
+                        # if subText matches excluded term, don't change to "Routed"
+                        if matchesExcludedTerm == 0:
+                                termKey = routedKey;
+                                term = 'Routed'
+                                matchesTerm += 1
 
-                logFile.write(mgiid + ' ' + pubmedid + ' ' + str(confidence) + ' ' + term+ ' ' + str(matchesTerm) + '\n')
+                        logFile.write(s + ' [ ' + subText + '] excluded term = ' + str(matchesExcludedTerm) + '\n')
+                        allSubText.append(subText)
 
-                statusLookup[mgiid] = []
-                statusLookup[mgiid].append('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-                        % (statusKey, refKey, groupKey, termKey, isCurrent, \
+        logFile.write(mgiid + ' ' + pubmedid + ' ' + str(confidence) + ' ' + term + ' ' + str(matchesTerm) + '\n')
+
+        statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+                       % (statusKey, refKey, groupKey, termKey, isCurrent, \
                               userKey, userKey, loaddate, loaddate))
 
-                outputLookup[mgiid] = []
-                outputLookup[mgiid].append(mgiid + '|' + pubmedid + '|' + str(confidence) + '|' + term + '|' + str(matchesTerm) + '|' + str(matchesExcludedTerm) + '|' + '|'.join(allSubText) + '\n')
+        outputFile.write(mgiid + '|' + pubmedid + '|' + str(confidence) + '|' + term + '|' + str(matchesTerm) + '|' + str(matchesExcludedTerm) + '|' + '|'.join(allSubText) + '\n')
 
-                statusKey += 1
+        statusKey += 1
 
-                # set the existing isCurrent = 0
-                allIsCurrentSQL += setIsCurrentSQL % (refKey)
-
-for r in sorted(statusLookup):
-        statusFile.write(statusLookup[r][0])
-
-for r in sorted(outputLookup):
-        outputFile.write(outputLookup[r][0])
+        # set the existing isCurrent = 0
+        allIsCurrentSQL += setIsCurrentSQL % (refKey)
 
 statusFile.flush()
 statusFile.close()
