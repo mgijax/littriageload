@@ -26,6 +26,12 @@
 # text to search: extracted text except reference section
 # text criteria: exclude list (vocab_key 164). (case insensitive)
 #
+# logFile = 
+#       mgiid, pubmedid, confidence, term, matchesTerm, subText
+#
+# outputFile = 
+#       mgiid, pubmedid, onfidence, term, matchesTerm, matchesExcludedTerm, allSubText
+#
 
 import sys
 import os
