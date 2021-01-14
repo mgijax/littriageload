@@ -31,8 +31,8 @@ relevanceFile = open(relevanceFileName, 'w')
 results = db.sql(''' select nextval('bib_workflow_relevance_seq') as maxKey ''', 'auto')
 relevanceKey = results[0]['maxKey']
 
-allIsCurrentSQL = ''
-setIsCurrentSQL = '''update bib_workflow_relevance set isCurrent = 0 where isCurrent = 1 and _refs_key = %s;\n'''
+allIsCurrentSql = ''
+isCurrentSql = '''update bib_workflow_relevance set isCurrent = 0 where isCurrent = 1 and _refs_key = %s;\n'''
 
 bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
 bcpII = '"|" "\\n" mgd'
@@ -67,7 +67,7 @@ for line in inFile.readlines():
         relevanceKey += 1
 
         # set the existing isCurrent = 0
-        allIsCurrentSQL += setIsCurrentSQL % (refKey)
+        allIsCurrentSql += isCurrentSql % (refKey)
 
 inFile.close()
 relevanceFile.flush()
@@ -75,7 +75,7 @@ relevanceFile.close()
 
 # update existing relevance isCurrent = 0
 # must be done *before* the new rows are added
-db.sql(allIsCurrentSQL, None)
+db.sql(allIsCurrentSql, None)
 db.commit()
 
 # enter new relevance data
