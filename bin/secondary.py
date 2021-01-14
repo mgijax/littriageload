@@ -27,10 +27,10 @@
 # text criteria: exclude list (vocab_key 164). (case insensitive)
 #
 # logFile = 
-#       mgiid, pubmedid, confidence, term, matchesTerm, subText
+#       mgiid, pubmedid, confidence, term, totalMatchesTerm, subText
 #
 # outputFile = 
-#       mgiid, pubmedid, onfidence, term, matchesTerm, matchesExcludedTerm, allSubText
+#       mgiid, pubmedid, onfidence, term, totalMatchesTerm, matchesExcludedTerm, allSubText
 #
 
 import sys
@@ -136,7 +136,8 @@ def process(sql):
 
                 logFile.write('\n')
                 allSubText = []
-                matchesTerm = 0
+                totalMatchesTerm = 0
+                totalMatchesExcludedTerm = 0
 
                 eresults = db.sql(extractedSql % (refKey), 'auto')
                 for e in eresults:
@@ -154,18 +155,20 @@ def process(sql):
                                         matchesExcludedTerm = 0
                                         for e in excludedTerms:
                                                 for match2 in re.finditer(e, subText):
-                                                        matchesExcludedTerm += 1
+                                                        matchesExcludedTerm = 1
 
                                         # if subText matches excluded term, don't change to "Routed"
                                         if matchesExcludedTerm == 0:
                                                 termKey = routedKey;
                                                 term = 'Routed'
-                                                matchesTerm += 1
-
+                                                totalMatchesTerm += 1
+                                        else:
+                                                totalMatchesExcludedTerm += 1
+                                                
                                         logFile.write(s + ' [ ' + subText + '] excluded term = ' + str(matchesExcludedTerm) + '\n')
                                         allSubText.append(subText)
 
-                logFile.write(mgiid + ' ' + pubmedid + ' ' + str(confidence) + ' ' + term + ' ' + str(matchesTerm) + '\n')
+                logFile.write(mgiid + ' ' + pubmedid + ' ' + str(confidence) + ' ' + term + ' ' + str(totalMatchesTerm) + '\n')
 
                 statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
                         % (statusKey, refKey, groupKey, termKey, isCurrent, \
@@ -175,8 +178,8 @@ def process(sql):
                         pubmedid + '|' + \
                         str(confidence) + '|' + \
                         term + '|' + \
-                        str(matchesTerm) + '|' + \
-                        str(matchesExcludedTerm) + '|' + \
+                        str(totalMatchesTerm) + '|' + \
+                        str(totalMatchesExcludedTerm) + '|' + \
                         '|'.join(allSubText) + '\n')
 
                 statusKey += 1
