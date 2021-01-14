@@ -20,7 +20,8 @@ rm -rf ${LOG}
 >>${LOG}
 
 date >> ${LOG} 2>&1
-${PYTHON} secondary.py >> ${LOG} 2>&1
+#${PYTHON} secondary.py >> ${LOG} 2>&1
+${PYTHON} secondary.py
 date >> ${LOG} 2>&1
 
 date >> ${LOG} 2>&1

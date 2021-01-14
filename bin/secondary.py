@@ -60,7 +60,7 @@ setIsCurrentSql = '''update bib_workflow_status set isCurrent = 0 where isCurren
 
 bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
 bcpII = '"|" "\\n" mgd'
-bcpCmd = '%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII)
+bcpCmd = ''
 
 loaddate = loadlib.loaddate
 
@@ -179,8 +179,6 @@ def process(sql):
                 allIsCurrentSql += setIsCurrentSql % (refKey)
 
 def closeFiles():
-        statusFile.flush()
-        statusFile.close()
         logFile.flush()
         logFile.close()
         outputFile.flush()
@@ -190,18 +188,23 @@ def closeFiles():
 
 def bcpFiles():
 
+        # flush the status 
+        statusFile.flush()
+        statusFile.close()
+
         # update existing relevance isCurrent = 0
         # must be done *before* the new rows are added
         print(allIsCurrentSql)
-        #db.sql(allIsCurrentSql, None)
-        #db.commit()
+        db.sql(allIsCurrentSql, None)
+        db.commit()
 
         # enter new relevance data
-        #os.system(bcpCmd)
+        print(bcpCmd)
+        os.system(bcpCmd)
 
         # update bib_workflow_status serialization
-        #db.sql(''' select setval('bib_workflow_status_seq', (select max(_Assoc_key) from BIB_Workflow_Status)) ''', None)
-        #db.commit()
+        db.sql(''' select setval('bib_workflow_status_seq', (select max(_Assoc_key) from BIB_Workflow_Status)) ''', None)
+        db.commit()
 
         return 0
 
@@ -212,6 +215,7 @@ def processAP():
         global searchTerms
         global excludedTerms
         global allIsCurrentSql
+        global bcpCmd
 
         statusFileName = outputDir + '/' + statusTable + '.AP.bcp'
         statusFile = open(statusFileName, 'w')
@@ -219,6 +223,7 @@ def processAP():
         logFile = open(logFileName, 'w')
         outputFileName = outputDir + '/AP.txt'
         outputFile = open(outputFileName, 'w')
+        bcpCmd = '%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII)
 
         searchTerms = [
         ' es cell',
@@ -285,6 +290,7 @@ def processGXD():
         global searchTerms
         global excludedTerms
         global allIsCurrentSql
+        global bcpCmd
 
         statusFileName = outputDir + '/' + statusTable + '.GXD.bcp'
         statusFile = open(statusFileName, 'w')
@@ -292,6 +298,7 @@ def processGXD():
         logFile = open(logFileName, 'w')
         outputFileName = outputDir + '/GXD.txt'
         outputFile = open(outputFileName, 'w')
+        bcpCmd = '%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII)
 
         searchTerms = [
         'embryo',
@@ -349,6 +356,7 @@ def processQTL():
         global searchTerms
         global excludedTerms
         global allIsCurrentSql
+        global bcpCmd
 
         statusFileName = outputDir + '/' + statusTable + '.QTL.bcp'
         statusFile = open(statusFileName, 'w')
@@ -356,6 +364,7 @@ def processQTL():
         logFile = open(logFileName, 'w')
         outputFileName = outputDir + '/QTL.txt'
         outputFile = open(outputFileName, 'w')
+        bcpCmd = '%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII)
 
         searchTerms = [
         'qtl'
@@ -372,6 +381,7 @@ def processTumor():
         global searchTerms
         global excludedTerms
         global allIsCurrentSql
+        global bcpCmd
 
         statusFileName = outputDir + '/' + statusTable + '.Tumor.bcp'
         statusFile = open(statusFileName, 'w')
@@ -379,6 +389,7 @@ def processTumor():
         logFile = open(logFileName, 'w')
         outputFileName = outputDir + '/Tumor.txt'
         outputFile = open(outputFileName, 'w')
+        bcpCmd = '%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII)
 
         searchTerms = [
         'tumo',
