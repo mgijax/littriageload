@@ -28,11 +28,16 @@ tar -xvf ../lec.tar
 ${LITTRIAGELOAD}/bin/littriageload.sh
 ${LITTRIAGELOAD}/bin/testRelevance.sh
 mv ${LITTRIAGELOAD}/bin/testRelevance.sh.log ${OUTPUTDIR}
+${LITTRIAGELOAD}/bin/testStatus.sh
+mv ${LITTRIAGELOAD}/bin/testStatus.sh.log ${OUTPUTDIR}/testStatusBefore.sh.log
 
 dumpDB.csh mgi-testdb4 lec mgd /bhmgidevdb01/dump/lec.dump
 
 dumpTableData.csh mgi-testdb4 lec mgd BIB_Workflow_Relevance /home/lec/mgi/dataload/littriageload-trunk/bin/BIB_Workflow_Relevance.bcp "|"
 loadTableData.csh mgi-testdb4 lec mgd BIB_Workflow_Relevance /home/lec/mgi/dataload/littriageload-trunk/bin/BIB_Workflow_Relevance.bcp "|"
+
+dumpTableData.csh mgi-testdb4 lec mgd BIB_Workflow_Status /home/lec/mgi/dataload/littriageload-trunk/bin/BIB_Workflow_Status.bcp "|"
+loadTableData.csh mgi-testdb4 lec mgd BIB_Workflow_Status /home/lec/mgi/dataload/littriageload-trunk/bin/BIB_Workflow_Status.bcp "|"
 
 #cd ${DATALOADSOUTPUT}/mgi/littriageload
 #rm -rf lec.tar

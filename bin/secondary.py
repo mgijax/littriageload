@@ -26,6 +26,10 @@
 # text to search: extracted text except reference section
 # text criteria: exclude list (vocab_key 164). (case insensitive)
 #
+# GO Criteria
+# References: relevance status = "keep", GO status = "New"
+# Set all GO status = Not Routed
+#
 # logFile = 
 #       mgiid, pubmedid, confidence, term, totalMatchesTerm, subText
 #
@@ -92,6 +96,7 @@ def initialize():
                 and r._refs_key = s._refs_key
                 and s._status_key = 71027551
                 and s._group_key = %s
+                and s.isCurrent = 1
                 and exists (select 1 from bib_workflow_data d
                         where r._refs_key = d._refs_key
                         and d._extractedtext_key not in (48804491)
@@ -187,19 +192,7 @@ def process(sql):
                 # set the existing isCurrent = 0
                 allIsCurrentSql += setIsCurrentSql % (groupKey, refKey)
 
-def closeFiles():
-        logFile.flush()
-        logFile.close()
-        outputFile.flush()
-        outputFile.close()
-
-        return 0
-
 def bcpFiles():
-
-        # flush the status 
-        statusFile.flush()
-        statusFile.close()
 
         # update existing relevance isCurrent = 0
         # must be done *before* the new rows are added
@@ -290,6 +283,11 @@ def processAP():
 
         process(sql % (31576664))
 
+        logFile.flush()
+        logFile.close()
+        outputFile.flush()
+        outputFile.close()
+
         return 0
 
 
@@ -356,6 +354,11 @@ def processGXD():
 
         process(sql)
 
+        logFile.flush()
+        logFile.close()
+        outputFile.flush()
+        outputFile.close()
+
         return 0
 
 def processQTL():
@@ -379,6 +382,11 @@ def processQTL():
         ]
 
         process(sql % (31576668))
+
+        logFile.flush()
+        logFile.close()
+        outputFile.flush()
+        outputFile.close()
 
         return 0
 
@@ -430,6 +438,39 @@ def processTumor():
 
         process(sql % (31576667))
 
+        logFile.flush()
+        logFile.close()
+        outputFile.flush()
+        outputFile.close()
+
+        return 0
+
+def processGO():
+        global statusFileName, statusFile
+        global logFileName, logFile
+        global outputFileName, outputFile
+        global searchTerms
+        global excludedTerms
+        global bcpCmd
+
+        statusFileName = outputDir + '/' + statusTable + '.GO.bcp'
+        statusFile = open(statusFileName, 'w')
+        logFileName = logDir + '/secondary.GO.log'
+        logFile = open(logFileName, 'w')
+        outputFileName = outputDir + '/GO.txt'
+        outputFile = open(outputFileName, 'w')
+        bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
+
+        searchTerms = [
+        ]
+
+        process(sql % (31576666))
+
+        logFile.flush()
+        logFile.close()
+        outputFile.flush()
+        outputFile.close()
+
         return 0
 
 #
@@ -460,10 +501,18 @@ if processTumor() != 0:
     closeFiles()
     sys.exit(1)
 
+#print('processGO')
+if processGO() != 0:
+    closeFiles()
+    sys.exit(1)
+
+# flush the status 
+statusFile.flush()
+statusFile.close()
+
 #print('bcpFiles')
 if bcpFiles() != 0:
     sys.exit(1)
 
-closeFiles()
 sys.exit(0)
 
