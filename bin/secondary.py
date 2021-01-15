@@ -187,7 +187,7 @@ def process(sql):
                         str(confidence) + ' ' + \
                         term + ' ' + \
                         str(totalMatchesTerm) + ' ' + \
-                        'is reviewed = ' + str(isReviewed) + '\n')
+                        'is_review = ' + str(isReviewed) + '\n')
 
                 statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
                         % (statusKey, refKey, groupKey, termKey, isCurrent, \
