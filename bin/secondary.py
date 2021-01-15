@@ -7,11 +7,13 @@
 #
 # AP Criteria
 # References: relevance status = "keep", APstatus = "New"
+# Is Reviewed = Not Routed
 # text to search: extracted text except reference section
 # text to look for: (case insensitive)
 # 
 # GXD Criteria
 # References: relevance status = "keep", GXDstatus = "New"
+# Is Reviewed = Not Routed
 # References: relevance status = "discard", confidence > -1.0
 # text to search: extracted text except reference section
 # text criteria: '%embryo%' ; exclude list (vocab_key 135). (case insensitive)
@@ -87,7 +89,7 @@ def initialize():
         #       non-reference extracted text exists
         sql = '''
                 (
-                select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence
+                select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, c.isreviewarticle
                 from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
                 where r._refs_key = c._refs_key
                 and r._refs_key = v._refs_key
@@ -136,6 +138,7 @@ def process(sql):
                 pubmedid = r['pubmedid']
                 groupKey = r['_group_key']
                 confidence = r['confidence']
+                isReviewed = r['isreviewarticle']
                 termKey = notroutedKey
                 term = 'Not Routed'
 
@@ -143,37 +146,48 @@ def process(sql):
                 allSubText = []
                 totalMatchesTerm = 0
                 totalMatchesExcludedTerm = 0
+                matchExtractedText = 1
 
-                eresults = db.sql(extractedSql % (refKey), 'auto')
-                for e in eresults:
-                        matchesExcludedTerm = 0
-                        extractedText = e['extractedText']
-                        extractedText = extractedText.replace('\n', ' ')
-                        extractedText = extractedText.replace('\r', ' ')
+                # if reference is reviewed and group in (AP, GXD), then set Status = Not Routed
+                if isReviewed == 1 and groupKey in (31576664, 31576665):
+                        matchExtractedText = 0
 
-                        for s in searchTerms:
-                                for match in re.finditer(s, extractedText):
-                                        subText = extractedText[match.start()-50:match.end()+50]
-                                        if len(subText) == 0:
-                                                 subText = extractedText[match.start()-50:match.end()+50]
+                if matchExtractedText == 1:
+                        eresults = db.sql(extractedSql % (refKey), 'auto')
+                        for e in eresults:
+                                matchesExcludedTerm = 0
+                                extractedText = e['extractedText']
+                                extractedText = extractedText.replace('\n', ' ')
+                                extractedText = extractedText.replace('\r', ' ')
 
-                                        matchesExcludedTerm = 0
-                                        for e in excludedTerms:
-                                                for match2 in re.finditer(e, subText):
-                                                        matchesExcludedTerm = 1
+                                for s in searchTerms:
+                                        for match in re.finditer(s, extractedText):
+                                                subText = extractedText[match.start()-50:match.end()+50]
+                                                if len(subText) == 0:
+                                                        subText = extractedText[match.start()-50:match.end()+50]
 
-                                        # if subText matches excluded term, don't change to "Routed"
-                                        if matchesExcludedTerm == 0:
-                                                termKey = routedKey;
-                                                term = 'Routed'
-                                                totalMatchesTerm += 1
-                                        else:
-                                                totalMatchesExcludedTerm += 1
+                                                matchesExcludedTerm = 0
+                                                for e in excludedTerms:
+                                                        for match2 in re.finditer(e, subText):
+                                                                matchesExcludedTerm = 1
+
+                                                # if subText matches excluded term, don't change to "Routed"
+                                                if matchesExcludedTerm == 0:
+                                                        termKey = routedKey;
+                                                        term = 'Routed'
+                                                        totalMatchesTerm += 1
+                                                else:
+                                                        totalMatchesExcludedTerm += 1
                                                 
-                                        logFile.write(s + ' [ ' + subText + '] excluded term = ' + str(matchesExcludedTerm) + '\n')
-                                        allSubText.append(subText)
+                                                logFile.write(s + ' [ ' + subText + '] excluded term = ' + str(matchesExcludedTerm) + '\n')
+                                                allSubText.append(subText)
 
-                logFile.write(mgiid + ' ' + pubmedid + ' ' + str(confidence) + ' ' + term + ' ' + str(totalMatchesTerm) + '\n')
+                logFile.write(mgiid + ' ' + \
+                        pubmedid + ' ' + \
+                        str(confidence) + ' ' + \
+                        term + ' ' + \
+                        str(totalMatchesTerm) + ' ' + \
+                        'is reviewed = ' + str(isReviewed) + '\n')
 
                 statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
                         % (statusKey, refKey, groupKey, termKey, isCurrent, \
@@ -290,7 +304,6 @@ def processAP():
 
         return 0
 
-
 def processGXD():
         global statusFileName, statusFile
         global logFileName, logFile
@@ -318,7 +331,7 @@ def processGXD():
 
         sql = '''
         (
-        select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence
+        select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, c.isreviewarticle
         from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
         where r._refs_key = c._refs_key
         and r._refs_key = v._refs_key
@@ -333,7 +346,7 @@ def processGXD():
                 and d.extractedText is not null
                 )
         union all
-        select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence
+        select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, c.isreviewarticle
         from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
         where r._refs_key = c._refs_key
         and r._refs_key = v._refs_key
