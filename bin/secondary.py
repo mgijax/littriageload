@@ -182,8 +182,12 @@ def process(sql):
                                                 logFile.write(s + ' [ ' + subText + '] excluded term = ' + str(matchesExcludedTerm) + '\n')
                                                 allSubText.append(subText)
 
+                if groupKey == 31576667 and totalMatchesTerm <= 9:
+                        termKey = notroutedKey
+                        term = 'Not Routed'
+
                 logFile.write(mgiid + ' ' + \
-                        pubmedid + ' ' + \
+                        str(pubmedid) + ' ' + \
                         str(confidence) + ' ' + \
                         term + ' ' + \
                         str(totalMatchesTerm) + ' ' + \
@@ -194,7 +198,7 @@ def process(sql):
                            userKey, userKey, loaddate, loaddate))
 
                 outputFile.write(mgiid + '|' + \
-                        pubmedid + '|' + \
+                        str(pubmedid) + '|' + \
                         str(confidence) + '|' + \
                         term + '|' + \
                         str(totalMatchesTerm) + '|' + \
@@ -324,7 +328,7 @@ def processGXD():
         'embryo',
         ]
 
-        results = db.sql('select term from voc_term where _vocab_key = 135 order by term', 'auto')
+        results = db.sql('select lower(term) as term from voc_term where _vocab_key = 135 order by term', 'auto')
         for r in results:
                 excludedTerms.append(r['term'])
         print(excludedTerms)
@@ -444,7 +448,7 @@ def processTumor():
         'thymoma'
         ]
 
-        results = db.sql('select term from voc_term where _vocab_key = 164 order by term', 'auto')
+        results = db.sql('select lower(term) as term from voc_term where _vocab_key = 164 order by term', 'auto')
         for r in results:
                 excludedTerms.append(r['term'])
         print(excludedTerms)
