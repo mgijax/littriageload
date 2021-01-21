@@ -721,6 +721,8 @@ def bcpFiles():
 
     if len(updateSQLAll) > 0:
         try:
+            diagFile.write('\nupdateSQLAll\n')
+            diagFile.write(updateSQLAll + '\n')
             db.sql(updateSQLAll, None)
             db.commit()
         except:
@@ -1959,6 +1961,7 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
     results = db.sql(sql, 'auto')
 
     if len(results) == 0:
+        diagFile.write('reference skipped : relevance = discard ' + mgiID + '\n')
         return;
 
     userKey = loadlib.verifyUser(userPath, 0, diagFile)
@@ -2005,7 +2008,6 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
         pgs = ''' E'%s' ''' % (pgs)
     else:
         pgs = ' null'
-        
     if ref.getPublicationType() in ('Review'):
         isReviewArticle = 1
     else:
