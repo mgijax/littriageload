@@ -27,6 +27,8 @@
 # References: relevance status = "keep", Tumor status = "New"
 # text to search: extracted text except reference section
 # text criteria: exclude list (vocab_key 164). (case insensitive)
+# if number of text matches <= 4, then Status = Not Routed
+# if number of text matches >= 5, then Status = Routed
 #
 # GO Criteria
 # References: relevance status = "keep", GO status = "New"
@@ -182,7 +184,7 @@ def process(sql):
                                                 logFile.write(s + ' [ ' + subText + '] excluded term = ' + str(matchesExcludedTerm) + '\n')
                                                 allSubText.append(subText)
 
-                if groupKey == 31576667 and totalMatchesTerm <= 9:
+                if groupKey == 31576667 and totalMatchesTerm <= 4:
                         termKey = notroutedKey
                         term = 'Not Routed'
 
