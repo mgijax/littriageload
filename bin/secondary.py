@@ -34,6 +34,12 @@
 # References: relevance status = "keep", GO status = "New"
 # Set all GO status = Not Routed
 #
+# PRO Criteria
+# References: relevance status = "keep", PROstatus = "New"
+# Is Reviewed = Not Routed
+# text to search: extracted text except reference section
+# text to look for: (case insensitive)
+#
 # logFile = 
 #       mgiid, pubmedid, confidence, term, totalMatchesTerm, subText
 #
@@ -130,6 +136,9 @@ def process(sql):
 
         # general processing
 
+        countNotRouted = 0
+        countRouted = 0
+
         results = db.sql(sql, 'auto')
 
         # iterate thru each distinct reference
@@ -195,6 +204,11 @@ def process(sql):
                         str(totalMatchesTerm) + ' ' + \
                         'is_review = ' + str(isReviewed) + '\n')
 
+                if termKey == notroutedKey:
+                        countNotRouted += 1
+                else:
+                        countRouted += 1
+
                 statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
                         % (statusKey, refKey, groupKey, termKey, isCurrent, \
                            userKey, userKey, loaddate, loaddate))
@@ -211,6 +225,9 @@ def process(sql):
 
                 # set the existing isCurrent = 0
                 allIsCurrentSql += setIsCurrentSql % (groupKey, refKey)
+
+        logFile.write('\nNot Routed = ' + str(countNotRouted) + '\n')
+        logFile.write('\nRouted = ' + str(countRouted) + '\n')
 
 def bcpFiles():
 
@@ -492,6 +509,52 @@ def processGO():
 
         return 0
 
+def processPRO():
+        global statusFileName, statusFile
+        global logFileName, logFile
+        global outputFileName, outputFile
+        global searchTerms
+        global excludedTerms
+        global bcpCmd
+
+        statusFileName = outputDir + '/' + statusTable + '.PRO.bcp'
+        statusFile = open(statusFileName, 'w')
+        logFileName = logDir + '/secondary.PRO.log'
+        logFile = open(logFileName, 'w')
+        outputFileName = outputDir + '/PRO.txt'
+        outputFile = open(outputFileName, 'w')
+        bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
+
+        searchTerms = [
+        'splice variant',
+        'isoform',
+        'variant',
+        'phosphorylation at',
+        'phosphorylated on',
+        'alternative translation',
+        'isotype',
+        'longer form',
+        'long form',
+        'shorter form',
+        'short form',
+        'modification',
+        'acetylation at',
+        'acetylation on',
+        'glycosylation at',
+        'glycosylation on',
+        'ubiquitination at',
+        'ubiquitination on'
+        ]
+
+        process(sql % ('75601866'))
+
+        logFile.flush()
+        logFile.close()
+        outputFile.flush()
+        outputFile.close()
+
+        return 0
+
 #
 #  MAIN
 #
@@ -522,6 +585,11 @@ if processTumor() != 0:
 
 #print('processGO')
 if processGO() != 0:
+    closeFiles()
+    sys.exit(1)
+
+#print('processPRO')
+if processPRO() != 0:
     closeFiles()
     sys.exit(1)
 
