@@ -155,12 +155,13 @@ def process(sql):
 
                 logFile.write('\n')
                 allSubText = []
+                matchSummary = {}
                 totalMatchesTerm = 0
                 totalMatchesExcludedTerm = 0
                 matchExtractedText = 1
 
-                # if reference is reviewed and group in (AP, GXD), then set Status = Not Routed
-                if isReviewed == 1 and groupKey in (31576664, 31576665):
+                # if reference is reviewed and group in (AP, GXD, PRO), then set Status = Not Routed
+                if isReviewed == 1 and groupKey in (31576664,31576665,75601866):
                         matchExtractedText = 0
 
                 if matchExtractedText == 1:
@@ -173,16 +174,18 @@ def process(sql):
 
                                 for s in searchTerms:
                                         for match in re.finditer(s, extractedText):
+                                                exactMatchText = extractedText[match.start():match.end()]
                                                 subText = extractedText[match.start()-50:match.end()+50]
-                                                if len(subText) == 0:
-                                                        subText = extractedText[match.start()-50:match.end()+50]
+                                                #if len(subText) == 0:
+                                                #        exactMatchText = extractedText[match.start():match.end()]
+                                                #        subText = extractedText[match.start()-50:match.end()+50]
 
                                                 matchesExcludedTerm = 0
                                                 for e in excludedTerms:
-                                                        for match2 in re.finditer(e, subText):
+                                                        for match2 in re.finditer(e, exactMatchText):
                                                                 matchesExcludedTerm = 1
 
-                                                # if subText matches excluded term, don't change to "Routed"
+                                                # if exactMatchText matches excluded term, don't change to "Routed"
                                                 if matchesExcludedTerm == 0:
                                                         termKey = routedKey;
                                                         term = 'Routed'
@@ -191,11 +194,23 @@ def process(sql):
                                                         totalMatchesExcludedTerm += 1
                                                 
                                                 logFile.write(s + ' [ ' + subText + '] excluded term = ' + str(matchesExcludedTerm) + '\n')
+
+                                                # counts by searchTerm
+                                                if s not in matchSummary:
+                                                        matchSummary[s] = []
+                                                matchSummary[s].append(subText)
+
                                                 allSubText.append(subText)
 
                 if groupKey == 31576667 and totalMatchesTerm <= 4:
                         termKey = notroutedKey
                         term = 'Not Routed'
+
+                # counts by searchTerm
+                logFile.write('summary: pubmedid:' + str(pubmedid) + ' ')
+                for s in matchSummary:
+                    logFile.write(s + '(' + str(len(matchSummary[s])) + ') ')
+                logFile.write('\n')
 
                 logFile.write(mgiid + ' ' + \
                         str(pubmedid) + ' ' + \
@@ -368,7 +383,7 @@ def processGXD():
                 and d._extractedtext_key not in (48804491)
                 and d.extractedText is not null
                 )
-        union all
+        union
         select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, c.isreviewarticle
         from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
         where r._refs_key = c._refs_key
