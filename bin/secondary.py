@@ -88,7 +88,6 @@ sql = ''
 extractedSql = ''
 
 def initialize():
-        global excludedTerms
         global sql, extractedSql
 
         # distinct references
@@ -334,7 +333,6 @@ def processAP():
         ]
 
         excludedTerms = []
-
         process(sql % (31576664))
 
         logFile.flush()
@@ -435,7 +433,6 @@ def processQTL():
         ]
 
         excludedTerms = []
-        
         process(sql % (31576668))
 
         logFile.flush()
@@ -516,11 +513,8 @@ def processGO():
         outputFile = open(outputFileName, 'w')
         bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
 
-        searchTerms = [
-        ]
-
+        searchTerms = [] 
         excludedTerms = []
-
         process(sql % (31576666))
 
         logFile.flush()
@@ -568,7 +562,6 @@ def processPRO():
         ]
 
         excludedTerms = []
-
         process(sql % ('75601866'))
 
         logFile.flush()
