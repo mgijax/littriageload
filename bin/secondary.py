@@ -174,15 +174,15 @@ def process(sql):
 
                                 for s in searchTerms:
                                         for match in re.finditer(s, extractedText):
-                                                exactMatchText = extractedText[match.start():match.end()]
+                                                exactMatchText = extractedText[match.start()-10:match.end()+10]
                                                 subText = extractedText[match.start()-50:match.end()+50]
                                                 #if len(subText) == 0:
-                                                #        exactMatchText = extractedText[match.start():match.end()]
+                                                #        exactMatchText = extractedText[match.start()-10:match.end()+10]
                                                 #        subText = extractedText[match.start()-50:match.end()+50]
 
                                                 matchesExcludedTerm = 0
                                                 for e in excludedTerms:
-                                                        for match2 in re.finditer(e, exactMatchText):
+                                                        for match2 in re.finditer(e, subText):
                                                                 matchesExcludedTerm = 1
 
                                                 # if exactMatchText matches excluded term, don't change to "Routed"
@@ -333,6 +333,8 @@ def processAP():
         'transgenic mouse'
         ]
 
+        excludedTerms = []
+
         process(sql % (31576664))
 
         logFile.flush()
@@ -432,6 +434,8 @@ def processQTL():
         'qtl'
         ]
 
+        excludedTerms = []
+        
         process(sql % (31576668))
 
         logFile.flush()
@@ -515,6 +519,8 @@ def processGO():
         searchTerms = [
         ]
 
+        excludedTerms = []
+
         process(sql % (31576666))
 
         logFile.flush()
@@ -560,6 +566,8 @@ def processPRO():
         'ubiquitination at',
         'ubiquitination on'
         ]
+
+        excludedTerms = []
 
         process(sql % ('75601866'))
 
