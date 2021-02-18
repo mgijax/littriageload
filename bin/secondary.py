@@ -279,58 +279,10 @@ def processAP():
         outputFile = open(outputFileName, 'w')
         bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
 
-        searchTerms = [
-        ' es cell',
-        '-/-', 
-        'crispr', 
-        'cyagen', 
-        'eucomm', 
-        'gene trap', 
-        'gene trapped', 
-        'gene-trap', 
-        'gene-trapped', 
-        'generation of mice', 
-        'generation of mutant mice', 
-        'generation of transgenic mice', 
-        'heterozygote', 
-        'homozygote', 
-        'induced mutation', 
-        'jax', 
-        'knock-in mice', 
-        'knock-in mouse', 
-        'knock-out mice', 
-        'knock-out mouse', 
-        'knockin mice', 
-        'knockin mouse', 
-        'knockout mice', 
-        'knockout mouse', 
-        'komp', 
-        'mice were created', 
-        'mice were generated', 
-        'mmrrc', 'mutant mice', 
-        'mutant mouse', 
-        'novel mutant', 
-        'novel mutation', 
-        'ozgene', 
-        'rrid_imsr', 
-        'rrid_jax', 
-        'rrid_mgi', 
-        'rrid_mmrrc', 
-        'rrid:imsr', 
-        'rrid:jax', 
-        'rrid:mgi', 
-        'rrid:mmrrc', 
-        'spontaneous mutant', 
-        'spontaneous mutant', 
-        'spontaneous mutation', 
-        'talen', 
-        'targeted mutation', 
-        'targeting construct', 
-        'targeting vector', 
-        'transgene', 
-        'transgenic mice', 
-        'transgenic mouse'
-        ]
+        results = db.sql('select lower(term) as term from voc_term where _vocab_key = 165 order by term', 'auto')
+        for r in results:
+                searchTerms.append(r['term'])
+        #print(searchTerms)
 
         excludedTerms = []
         process(sql % (31576664))
@@ -358,9 +310,10 @@ def processGXD():
         outputFile = open(outputFileName, 'w')
         bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
 
-        searchTerms = [
-        'embryo',
-        ]
+        results = db.sql('select lower(term) as term from voc_term where _vocab_key = 166 order by term', 'auto')
+        for r in results:
+                searchTerms.append(r['term'])
+        #print(searchTerms)
 
         results = db.sql('select lower(term) as term from voc_term where _vocab_key = 135 order by term', 'auto')
         for r in results:
@@ -428,9 +381,10 @@ def processQTL():
         outputFile = open(outputFileName, 'w')
         bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
 
-        searchTerms = [
-        'qtl'
-        ]
+        results = db.sql('select lower(term) as term from voc_term where _vocab_key = 168 order by term', 'auto')
+        for r in results:
+                searchTerms.append(r['term'])
+        #print(searchTerms)
 
         excludedTerms = []
         process(sql % (31576668))
@@ -458,35 +412,15 @@ def processTumor():
         outputFile = open(outputFileName, 'w')
         bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
 
-        searchTerms = [
-        'tumo',
-        'inoma',
-        'adenoma',
-        'sarcoma',
-        'lymphoma',
-        'neoplas',
-        'gioma',
-        'papilloma',
-        'leukemia',
-        'leukaemia',
-        'ocytoma',
-        'thelioma',
-        'blastoma',
-        'hepatoma',
-        'melanoma',
-        'lipoma',
-        'myoma',
-        'acanthoma',
-        'fibroma',
-        'teratoma',
-        'glioma',
-        'thymoma'
-        ]
+        results = db.sql('select lower(term) as term from voc_term where _vocab_key = 167 order by term', 'auto')
+        for r in results:
+                searchTerms.append(r['term'])
+        #print(searchTerms)
 
         results = db.sql('select lower(term) as term from voc_term where _vocab_key = 164 order by term', 'auto')
         for r in results:
                 excludedTerms.append(r['term'])
-        print(excludedTerms)
+        #print(excludedTerms)
 
         process(sql % (31576667))
 
@@ -540,50 +474,16 @@ def processPRO():
         outputFile = open(outputFileName, 'w')
         bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
 
-        searchTerms = [
-        'splice variant',
-        'isoform',
-        'variant',
-        'phosphorylation at',
-        'phosphorylated on',
-        'alternative translation',
-        'isotype',
-        'longer form',
-        'long form',
-        'shorter form',
-        'short form',
-        'acetylation at',
-        'acetylation on',
-        'glycosylation at',
-        'glycosylation on',
-        'ubiquitination at',
-        'ubiquitination on',
-        'ADP-ribosylation at',
-        'ADP-ribosylation on',
-        'amidation at',
-        'amidation on',
-        'bromination at',
-        'bromination on',
-        'cleavage at',
-        'galactosylated on',
-        'galactosylated at',
-        'galactosylation on',
-        'galactosylation at',
-        'hydroxylation at',
-        'hydroxylation on',
-        'methylation at',
-        'methylation on',
-        'prenylation at',
-        'prenylation on',
-        'sumoylation at',
-        'sumoylation on',
-        'alternatively spliced form',
-        'proteolytic processing',
-        'prepro',
-        'pre-pro'
-        ]
+        results = db.sql('select lower(term) as term from voc_term where _vocab_key = 169 order by term', 'auto')
+        for r in results:
+                searchTerms.append(r['term'])
+        #print(searchTerms)
 
-        excludedTerms = []
+        results = db.sql('select lower(term) as term from voc_term where _vocab_key = 170 order by term', 'auto')
+        for r in results:
+                excludedTerms.append(r['term'])
+        print(excludedTerms)
+
         process(sql % ('75601866'))
 
         logFile.flush()
