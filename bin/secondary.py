@@ -85,10 +85,11 @@ notroutedKey = "31576669"
 searchTerms = []
 excludedTerms = []
 sql = ''
+orderBy = ''
 extractedSql = ''
 
 def initialize():
-        global sql, extractedSql
+        global sql, orderBy, extractedSql
 
         # distinct references
         # where relevance = 'keep'
@@ -111,9 +112,9 @@ def initialize():
                         and d._extractedtext_key not in (48804491)
                         and d.extractedText is not null
                         )
-                )
-                order by mgiid desc
         '''
+
+        orderBy = ') order by mgiid desc'
 
         # extracted_text by _refs_key where extracted text type != 'reference'
         extractedSql = '''
@@ -201,6 +202,7 @@ def process(sql):
 
                                                 allSubText.append(subText)
 
+                # if group in (Tumor) and total match <= 4
                 if groupKey == 31576667 and totalMatchesTerm <= 4:
                         termKey = notroutedKey
                         term = 'Not Routed'
@@ -279,13 +281,14 @@ def processAP():
         outputFile = open(outputFileName, 'w')
         bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
 
+        searchTerms =[]
         results = db.sql('select lower(term) as term from voc_term where _vocab_key = 165 order by term', 'auto')
         for r in results:
                 searchTerms.append(r['term'])
         #print(searchTerms)
 
         excludedTerms = []
-        process(sql % (31576664))
+        process((sql + orderBy) % (31576664))
 
         logFile.flush()
         logFile.close()
@@ -310,32 +313,21 @@ def processGXD():
         outputFile = open(outputFileName, 'w')
         bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
 
+        searchTerms = []
         results = db.sql('select lower(term) as term from voc_term where _vocab_key = 166 order by term', 'auto')
         for r in results:
                 searchTerms.append(r['term'])
         #print(searchTerms)
 
+        excludedTerms = []
         results = db.sql('select lower(term) as term from voc_term where _vocab_key = 135 order by term', 'auto')
         for r in results:
                 excludedTerms.append(r['term'])
         print(excludedTerms)
 
-        sql = '''
-        (
-        select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, c.isreviewarticle
-        from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
-        where r._refs_key = c._refs_key
-        and r._refs_key = v._refs_key
-        and v.isCurrent = 1
-        and v._relevance_key = 70594667
-        and r._refs_key = s._refs_key
-        and s._status_key = 71027551
-        and s._group_key = 31576665
-        and exists (select 1 from bib_workflow_data d
-                where r._refs_key = d._refs_key
-                and d._extractedtext_key not in (48804491)
-                and d.extractedText is not null
-                )
+        mysql = sql
+        mysql = mysql % (31576665) + '\n' + \
+        '''
         union
         select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, c.isreviewarticle
         from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
@@ -352,11 +344,8 @@ def processGXD():
                 and d._extractedtext_key not in (48804491)
                 and d.extractedText is not null
                 )
-        )
-        order by mgiid desc
         '''
-
-        process(sql)
+        process(mysql + orderBy)
 
         logFile.flush()
         logFile.close()
@@ -381,13 +370,14 @@ def processQTL():
         outputFile = open(outputFileName, 'w')
         bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
 
+        searchTerms = []
         results = db.sql('select lower(term) as term from voc_term where _vocab_key = 168 order by term', 'auto')
         for r in results:
                 searchTerms.append(r['term'])
         #print(searchTerms)
 
         excludedTerms = []
-        process(sql % (31576668))
+        process((sql + orderBy) % (31576668))
 
         logFile.flush()
         logFile.close()
@@ -412,17 +402,61 @@ def processTumor():
         outputFile = open(outputFileName, 'w')
         bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
 
+        searchTerms = []
         results = db.sql('select lower(term) as term from voc_term where _vocab_key = 167 order by term', 'auto')
         for r in results:
                 searchTerms.append(r['term'])
         #print(searchTerms)
 
+        excludedTerms = []
         results = db.sql('select lower(term) as term from voc_term where _vocab_key = 164 order by term', 'auto')
         for r in results:
                 excludedTerms.append(r['term'])
         #print(excludedTerms)
 
-        process(sql % (31576667))
+        mysql = sql
+        mysql = mysql % (31576667) + '\n' + \
+        '''
+        union
+        select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, c.isreviewarticle
+        from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
+        where r._refs_key = c._refs_key
+        and r._refs_key = v._refs_key
+        and v.isCurrent = 1
+        and v._relevance_key = 70594666
+        and v.confidence > -1.5
+        and r._refs_key = s._refs_key
+        and s._status_key = 71027551
+        and s._group_key = 31576667
+        and exists (select 1 from bib_workflow_data d
+                where r._refs_key = d._refs_key
+                and d._extractedtext_key not in (48804491)
+                and d.extractedText is not null
+                )
+        '''
+        process(mysql + orderBy)
+        mysql = sql % (31576667)
+        mysql = mysql + '\n' + \
+        '''
+        union
+        select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, c.isreviewarticle
+        from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
+        where r._refs_key = c._refs_key
+        and r._refs_key = v._refs_key
+        and v.isCurrent = 1
+        and v._relevance_key = 70594666
+        and v.confidence > -1.5
+        and r._refs_key = s._refs_key
+        and s._status_key = 71027551
+        and s._group_key = 31576667
+        and exists (select 1 from bib_workflow_data d
+                where r._refs_key = d._refs_key
+                and d._extractedtext_key not in (48804491)
+                and d.extractedText is not null
+                )
+        '''
+
+        process(mysql + orderBy)
 
         logFile.flush()
         logFile.close()
@@ -449,7 +483,7 @@ def processGO():
 
         searchTerms = [] 
         excludedTerms = []
-        process(sql % (31576666))
+        process((sql + orderBy) % (31576666))
 
         logFile.flush()
         logFile.close()
@@ -484,7 +518,7 @@ def processPRO():
                 excludedTerms.append(r['term'])
         print(excludedTerms)
 
-        process(sql % ('75601866'))
+        process((sql + orderBy) % (75601866))
 
         logFile.flush()
         logFile.close()
