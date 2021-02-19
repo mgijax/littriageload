@@ -325,7 +325,7 @@ def processGXD():
         results = db.sql('select lower(term) as term from voc_term where _vocab_key = 135 order by term', 'auto')
         for r in results:
                 excludedTerms.append(r['term'])
-        print(excludedTerms)
+        #print(excludedTerms)
 
         mysql = sql
         mysql = mysql % (31576665) + '\n' + \
@@ -496,7 +496,7 @@ def processPRO():
         results = db.sql('select lower(term) as term from voc_term where _vocab_key = 170 order by term', 'auto')
         for r in results:
                 excludedTerms.append(r['term'])
-        print(excludedTerms)
+        #print(excludedTerms)
 
         process((sql + orderBy) % (75601866))
 
