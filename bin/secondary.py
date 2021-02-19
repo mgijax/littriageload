@@ -437,28 +437,6 @@ def processTumor():
                 )
         '''
         process(mysql + orderBy)
-        mysql = sql % (31576667)
-        mysql = mysql + '\n' + \
-        '''
-        union
-        select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, c.isreviewarticle
-        from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
-        where r._refs_key = c._refs_key
-        and r._refs_key = v._refs_key
-        and v.isCurrent = 1
-        and v._relevance_key = 70594666
-        and v.confidence > -1.5
-        and r._refs_key = s._refs_key
-        and s._status_key = 71027551
-        and s._group_key = 31576667
-        and exists (select 1 from bib_workflow_data d
-                where r._refs_key = d._refs_key
-                and d._extractedtext_key not in (48804491)
-                and d.extractedText is not null
-                )
-        '''
-
-        process(mysql + orderBy)
 
         logFile.flush()
         logFile.close()
