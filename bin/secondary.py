@@ -25,6 +25,7 @@
 #
 # Tumor Criteria
 # References: relevance status = "keep", Tumor status = "New"
+# References: relevance status = "discard", confidence > -1.5
 # text to search: extracted text except reference section
 # text criteria: exclude list (vocab_key 164). (case insensitive)
 # if number of text matches <= 4, then Status = Not Routed
@@ -38,6 +39,7 @@
 # References: relevance status = "keep", PROstatus = "New"
 # Is Reviewed = Not Routed
 # text to search: extracted text except reference section
+# text criteria: exclude list (vocab_key 170). (case insensitive)
 # text to look for: (case insensitive)
 #
 # logFile = 
