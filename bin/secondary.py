@@ -328,6 +328,9 @@ def processGXD():
         #print(excludedTerms)
 
         mysql = sql
+
+        # References: relevance status = "discard", confidence > -1.5
+
         mysql = mysql % (31576665) + '\n' + \
         '''
         union
@@ -418,6 +421,9 @@ def processTumor():
         #print(excludedTerms)
 
         mysql = sql
+
+        # References: relevance status = "discard", confidence > -1.0
+
         mysql = mysql % (31576667) + '\n' + \
         '''
         union
