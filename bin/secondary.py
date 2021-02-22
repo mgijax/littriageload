@@ -41,6 +41,8 @@
 # text to search: extracted text except reference section
 # text criteria: exclude list (vocab_key 170). (case insensitive)
 # text to look for: (case insensitive)
+# if number of text matches <= 3, then Status = Not Routed
+# if number of text matches >= 4, then Status = Routed
 #
 # logFile = 
 #       mgiid, pubmedid, confidence, term, totalMatchesTerm, subText
@@ -206,6 +208,11 @@ def process(sql):
 
                 # if group in (Tumor) and total match <= 4
                 if groupKey == 31576667 and totalMatchesTerm <= 4:
+                        termKey = notroutedKey
+                        term = 'Not Routed'
+
+                # if group in (PRO) and total match <= 3
+                if groupKey == 75601866 and totalMatchesTerm <= 3:
                         termKey = notroutedKey
                         term = 'Not Routed'
 
