@@ -25,7 +25,7 @@
 #
 # Tumor Criteria
 # References: relevance status = "keep", Tumor status = "New"
-# References: relevance status = "discard", confidence > -1.5
+# References: relevance status = "discard", confidence > -1.0
 # text to search: extracted text except reference section
 # text criteria: exclude list (vocab_key 164). (case insensitive)
 # if number of text matches <= 4, then Status = Not Routed
@@ -426,7 +426,7 @@ def processTumor():
         and r._refs_key = v._refs_key
         and v.isCurrent = 1
         and v._relevance_key = 70594666
-        and v.confidence > -1.5
+        and v.confidence > -1.0
         and r._refs_key = s._refs_key
         and s._status_key = 71027551
         and s._group_key = 31576667
