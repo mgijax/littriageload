@@ -186,6 +186,10 @@ def process(sql):
 
                                                 matchesExcludedTerm = 0
                                                 for e in excludedTerms:
+                                                        subText = subText.replace('(', ' ') 
+                                                        subText = subText.replace(')', ' ') 
+                                                        e = e.replace('(', ' ') 
+                                                        e = e.replace(')', ' ') 
                                                         for match2 in re.finditer(e, subText):
                                                                 matchesExcludedTerm = 1
 
