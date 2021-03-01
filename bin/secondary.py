@@ -355,7 +355,7 @@ def processGXD():
         and r._refs_key = s._refs_key
         and s._status_key = 71027551
         and s._group_key = 31576665
-        and s.isCurrent = 1
+        --and s.isCurrent = 1
         and exists (select 1 from bib_workflow_data d
                 where r._refs_key = d._refs_key
                 and d._extractedtext_key not in (48804491)
