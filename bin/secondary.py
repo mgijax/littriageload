@@ -14,7 +14,7 @@
 # GXD Criteria
 # References: relevance status = "keep", GXDstatus = "New"
 # Is Reviewed = Not Routed
-# References: relevance status = "discard", confidence > -1.5
+# References: relevance status = "discard", confidence > -2.75
 # text to search: extracted text except reference section
 # text criteria: '%embryo%' ; exclude list (vocab_key 135). (case insensitive)
 # 
@@ -340,7 +340,7 @@ def processGXD():
 
         mysql = sql
 
-        # References: relevance status = "discard", confidence > -1.5
+        # References: relevance status = "discard", confidence > -2.75
 
         mysql = mysql % (31576665) + '\n' + \
         '''
@@ -351,7 +351,7 @@ def processGXD():
         and r._refs_key = v._refs_key
         and v.isCurrent = 1
         and v._relevance_key = 70594666
-        and v.confidence > -1.5
+        and v.confidence > -2.75
         and r._refs_key = s._refs_key
         and s._status_key = 71027551
         and s._group_key = 31576665
