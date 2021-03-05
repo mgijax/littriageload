@@ -517,7 +517,7 @@ def processPRO():
                 excludedTerms.append(r['term'])
         #print(excludedTerms)
 
-        process((sql + orderBy) % (75601866))
+        process((sql + orderBy) % (78678148))
 
         logFile.flush()
         logFile.close()
