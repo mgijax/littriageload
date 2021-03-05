@@ -165,7 +165,7 @@ def process(sql):
                 matchExtractedText = 1
 
                 # if reference is reviewed and group in (AP, GXD, PRO), then set Status = Not Routed
-                if isReviewed == 1 and groupKey in (31576664,31576665,75601866):
+                if isReviewed == 1 and groupKey in (31576664,31576665,78678148):
                         matchExtractedText = 0
 
                 if matchExtractedText == 1:
@@ -216,7 +216,7 @@ def process(sql):
                         term = 'Not Routed'
 
                 # if group in (PRO) and total match <= 3
-                if groupKey == 75601866 and totalMatchesTerm <= 3:
+                if groupKey == 78678148 and totalMatchesTerm <= 3:
                         termKey = notroutedKey
                         term = 'Not Routed'
 
