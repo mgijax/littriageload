@@ -159,7 +159,8 @@ def process(sql):
 
                 logFile.write('\n')
                 allSubText = []
-                matchSummary = {}
+                searchSummary = {}
+                excludeSummary = {}
                 totalMatchesTerm = 0
                 totalMatchesExcludedTerm = 0
                 matchExtractedText = 1
@@ -193,6 +194,11 @@ def process(sql):
                                                         for match2 in re.finditer(e, subText):
                                                                 matchesExcludedTerm = 1
 
+                                                                # counts by excludeTerm
+                                                                if e not in excludeSummary:
+                                                                        excludeSummary[e] = []
+                                                                excludeSummary[e].append(subText)
+
                                                 # if exactMatchText matches excluded term, don't change to "Routed"
                                                 if matchesExcludedTerm == 0:
                                                         termKey = routedKey;
@@ -204,9 +210,9 @@ def process(sql):
                                                 logFile.write(s + ' [ ' + subText + '] excluded term = ' + str(matchesExcludedTerm) + '\n')
 
                                                 # counts by searchTerm
-                                                if s not in matchSummary:
-                                                        matchSummary[s] = []
-                                                matchSummary[s].append(subText)
+                                                if s not in searchSummary:
+                                                        searchSummary[s] = []
+                                                searchSummary[s].append(subText)
 
                                                 allSubText.append(subText)
 
@@ -221,9 +227,15 @@ def process(sql):
                         term = 'Not Routed'
 
                 # counts by searchTerm
-                logFile.write('summary: pubmedid:' + str(pubmedid) + ' ')
-                for s in matchSummary:
-                    logFile.write(s + '(' + str(len(matchSummary[s])) + ') ')
+                logFile.write('search summary: pubmedid:' + str(pubmedid) + ' ')
+                for s in searchSummary:
+                    logFile.write(s + '(' + str(len(searchSummary[s])) + ') ')
+                logFile.write('\n')
+
+                # counts by excludedTerm
+                logFile.write('exclude summary: pubmedid:' + str(pubmedid) + ' ')
+                for s in excludeSummary:
+                    logFile.write(s + '(' + str(len(excludeSummary[s])) + ') ')
                 logFile.write('\n')
 
                 logFile.write(mgiid + ' ' + \
