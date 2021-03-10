@@ -184,6 +184,7 @@ def process(sql):
 
                                         # if the search term is found in the extracted text
                                         for match in re.finditer(s, extractedText):
+
                                                 subText = extractedText[match.start()-50:match.end()+50]
                                                 matchesExcludedTerm = 0
 
