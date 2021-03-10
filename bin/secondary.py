@@ -179,11 +179,12 @@ def process(sql):
 
                                 for s in searchTerms:
                                         for match in re.finditer(s, extractedText):
-                                                exactMatchText = extractedText[match.start()-10:match.end()+10]
                                                 subText = extractedText[match.start()-50:match.end()+50]
-                                                #if len(subText) == 0:
-                                                #        exactMatchText = extractedText[match.start()-10:match.end()+10]
-                                                #        subText = extractedText[match.start()-50:match.end()+50]
+
+                                                exactMatchText = extractedText[match.start()-10:match.end()+10]
+                                                if len(subText) == 0:
+                                                        exactMatchText = extractedText[match.start()-10:match.end()+10]
+                                                        subText = extractedText[match.start()-50:match.end()+50]
 
                                                 matchesExcludedTerm = 0
                                                 for e in excludedTerms:
@@ -199,7 +200,7 @@ def process(sql):
                                                                         excludeSummary[e] = []
                                                                 excludeSummary[e].append(subText)
 
-                                                # if exactMatchText matches excluded term, don't change to "Routed"
+                                                # if matches excluded term, don't change to "Routed"
                                                 if matchesExcludedTerm == 0:
                                                         termKey = routedKey;
                                                         term = 'Routed'
