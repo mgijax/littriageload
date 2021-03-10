@@ -170,23 +170,32 @@ def process(sql):
                         matchExtractedText = 0
 
                 if matchExtractedText == 1:
+
                         eresults = db.sql(extractedSql % (refKey), 'auto')
+
                         for e in eresults:
                                 matchesExcludedTerm = 0
                                 extractedText = e['extractedText']
                                 extractedText = extractedText.replace('\n', ' ')
                                 extractedText = extractedText.replace('\r', ' ')
 
+                                # iterate thru each search term
                                 for s in searchTerms:
+
+                                        # if the search term is found in the extracted text
                                         for match in re.finditer(s, extractedText):
                                                 subText = extractedText[match.start()-50:match.end()+50]
                                                 matchesExcludedTerm = 0
 
+                                                # iterate thru each exclude term
                                                 for e in excludedTerms:
+
                                                         subText = subText.replace('(', ' ') 
                                                         subText = subText.replace(')', ' ') 
                                                         e = e.replace('(', ' ') 
                                                         e = e.replace(')', ' ') 
+
+                                                        # if the exclude term is found in the subText
                                                         for match2 in re.finditer(e, subText):
                                                                 matchesExcludedTerm = 1
 
