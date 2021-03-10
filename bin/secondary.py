@@ -180,13 +180,8 @@ def process(sql):
                                 for s in searchTerms:
                                         for match in re.finditer(s, extractedText):
                                                 subText = extractedText[match.start()-50:match.end()+50]
-
-                                                exactMatchText = extractedText[match.start()-10:match.end()+10]
-                                                if len(subText) == 0:
-                                                        exactMatchText = extractedText[match.start()-10:match.end()+10]
-                                                        subText = extractedText[match.start()-50:match.end()+50]
-
                                                 matchesExcludedTerm = 0
+
                                                 for e in excludedTerms:
                                                         subText = subText.replace('(', ' ') 
                                                         subText = subText.replace(')', ' ') 
