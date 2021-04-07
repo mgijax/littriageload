@@ -58,7 +58,7 @@
 #
 #	   split text into sections
 #
-#          if not (userSupplement, userPDF, userGOA, userNLM, userDiscard):
+#          if not (userSupplement, userPDF, userGOA, userNOCTUA, userNLM, userDiscard):
 #		run mice check
 #
 #	   supplmental check
@@ -122,6 +122,7 @@ textSplitter = ''
 userSupplement = 'littriage_create_supplement'
 userPDF = 'littriage_update_pdf'
 userGOA = 'littriage_goa'
+userNOCTUA = 'littriage_noctua'
 userNLM = 'littriage_NLM_refresh'
 userDiscard = 'littriage_discard'
 
@@ -132,6 +133,7 @@ count_processPDFs = 0
 count_userSupplement = 0
 count_userPDF = 0
 count_userGOA = 0
+count_userNOCTUA = 0
 count_userNLM = 0
 count_needsreview = 0
 count_duplicate = 0
@@ -271,6 +273,7 @@ userDict = {}
 # objByUser = {('userPath', userPDF, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
 # objByUser = {('userPath', userSupplement, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
 # objByUser = {('userPath', userGOA, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('userPath', userNOCTUA, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
 # objByUser = {('userPath', userNLM, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
 # {('cms, 'doi', '10.112xxx'): ['10.112xxx.pdf, 'text'']}
 # {('cms, 'pm', 'PMID_14440025'): ['PDF_14440025.pdf', 'text'']}
@@ -813,7 +816,7 @@ def bcpFiles():
     db.commit()
 
     # update the max accession ID value for J:
-    if count_userGOA:
+    if count_userGOA or count_userNOCTUA:
         db.sql('select * from ACC_setMax (%d, \'J:\')' % (count_userGOA), None)
         db.commit()
 
@@ -1414,6 +1417,7 @@ def processPDFs():
     global count_processPDFs
     global count_needsreview
     global count_userGOA
+    global count_userNOCTUA
     global count_userPDF
     global count_userNLM
     global count_duplicate
@@ -1439,6 +1443,7 @@ def processPDFs():
     # objByUser = {('userPath', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('userPath', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('userPath', userGOA, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('userPath', userNOCTUA, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('userPath', userDiscard, 'mgiid') : ('pdffile', 'pdftext')}
 
     for key in objByUser:
@@ -1491,7 +1496,7 @@ def processPDFs():
         # only interested in running checkMice for curator folders, etc.
         # if non-refText section checkMice = false, then isDiscard = relevanceDiscardKey
         #
-        if userPath not in (userSupplement, userPDF, userGOA, userNLM, userDiscard):
+        if userPath not in (userSupplement, userPDF, userGOA, userNOCTUA, userNLM, userDiscard):
             if bodyText.lower().find(checkMice) < 0 \
                 and figureText.lower().find(checkMice) < 0 \
                 and suppText.lower().find(checkMice) < 0 \
@@ -1505,7 +1510,7 @@ def processPDFs():
         # ignore 'bonferroni correction'
         checkErratum = 1
         isErratum = 0
-        if userPath not in (userSupplement, userPDF, userGOA, userNLM, userDiscard) and objType not in ('pm'):
+        if userPath not in (userSupplement, userPDF, userGOA, userNOCTUA, userNLM, userDiscard) and objType not in ('pm'):
             diagFile.write('ERRATUM : searching : %s, %s, %s\n' % (objId, userPath, pdfFile))
             for e in erratumExcludeList:
                 if bodyText.lower().find(e) >= 0:
@@ -1652,7 +1657,7 @@ def processPDFs():
             #    isDiscard = relevanceNotSpecKey
 
             #
-            # if same pdf is placed in userSupplement,userPDF,userGOA,userNLM
+            # if same pdf is placed in userSupplement,userPDF,userGOA,userNOCTUA,userNLM
             # skip, no need to report this as an error
             #
             if refKey in refKeyList:
@@ -1688,8 +1693,8 @@ def processPDFs():
             # 1 row per Group
             #
             for groupKey in workflowGroupList:
-                # if userGOA and group = GO, then status = Full-coded
-                if userPath == userGOA and groupKey == 31576666:
+                # if userGOA,userNOCTUA and group = GO, then status = Full-coded
+                if userPath in (userGOA,userNOCTUA) and groupKey == 31576666:
                     statusFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
                         % (statusKey, refKey, groupKey, fullCodedKey, isCurrent, \
                               userKey, userKey, loaddate, loaddate))
@@ -1777,7 +1782,7 @@ def processPDFs():
             #
             # J:xxxx
             #
-            if userPath == userGOA:
+            if userPath in (userGOA,userNOCTUA):
                 accID = 'J:' + str(jnumKey)
                 prefixPart = 'J:'
                 numericPart = jnumKey
@@ -1787,7 +1792,10 @@ def processPDFs():
                         isPrivate, isPreferred, userKey, userKey, loaddate, loaddate))
                 accKey += 1
                 jnumKey += 1
-                count_userGOA += 1
+                if userPath == userGOA:
+                    count_userGOA += 1
+                if userPath == userNOCTUA:
+                    count_userNOCTUA += 1
 
             #
             # if splitter does not find reference section
@@ -2067,6 +2075,7 @@ def writeErrors():
     global count_processPDFs
     global count_needsreview
     global count_userGOA
+    global count_userNOCTUA
     global count_userPDF
     global count_userNLM
     global count_duplicate
@@ -2104,6 +2113,7 @@ def writeErrors():
     allCounts = allCounts + 'Records with Updated PDF\'s: ' + str(count_userPDF) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Updated NLM information: ' + str(count_userNLM) + '<BR>\n\n'
     allCounts = allCounts + 'Records with GOA information: ' + str(count_userGOA) + '<BR>\n\n'
+    allCounts = allCounts + 'Records with Noctua information: ' + str(count_userNOCTUA) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Duplicates: ' + str(count_duplicate) + '<BR>\n\n'
     allCounts = allCounts + 'Records with DOI or Pubmed Ids added: ' + str(count_doipubmedadded) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Mismatched titles: ' + str(count_mismatchedtitles) + '<BR>\n\n'
