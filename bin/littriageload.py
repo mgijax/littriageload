@@ -1047,6 +1047,10 @@ def level1SanityChecks():
             try:
                 pdftext = pdf.getText();
             except:
+                #
+                # stderr examples:
+                #       Permission Error: Copying of text from this document is not allowed.
+                #
                 level1error1 += linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
                 level1error1 += '<pre>\n%s\n</pre>\n' % pdf.getStderr()
                 fileName = os.path.join(needsReviewPath, pdfFile)
