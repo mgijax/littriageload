@@ -139,6 +139,7 @@ count_needsreview = 0
 count_duplicate = 0
 count_doipubmedadded = 0
 count_mismatchedtitles = 0
+count_lowextractedtext = 0
 
 diag = ''
 diagFile = ''
@@ -305,6 +306,7 @@ level3errorStart = '**********<BR>\nLiterature Triage Level 3 Errors : check MGI
 level4errorStart = '**********<BR>\nLiterature Triage Level 4 Errors : Supplemental/Update PDF<BR><BR>\n\n'
 level5errorStart = '**********<BR>\nLiterature Triage Level 5 Errors : Update NLM information<BR><BR>\n\n'
 level6errorStart = '**********<BR>\nLiterature Triage Level 6 Errors : Possible mismatch citation - citation title not found in extracted text<BR><BR>\n\n'
+level7errorStart = '**********<BR>\nLiterature Triage Level 7 Errors : Extracted text null or <100 characters<BR><BR>\n\n'
 
 countStart = '**********<BR>\nLiterature Triage Counts<BR>\n'
 
@@ -324,6 +326,7 @@ level4error2 = ''
 level5error1 = ''
 level5error2 = ''
 level6error1 = ''
+level7error1 = ''
 
 #
 # Purpose: Initialization
@@ -2076,6 +2079,7 @@ def writeErrors():
     global level4error2
     global level5error1, level5error2
     global level6error1
+    global level7error1
     global count_processPDFs
     global count_needsreview
     global count_userGOA
@@ -2085,6 +2089,7 @@ def writeErrors():
     global count_duplicate
     global count_doipubmedadded
     global count_mismatchedtitles
+    global count_lowextractedtext
 
     #
     # write out level2 errors to both error log and curator log
@@ -2109,6 +2114,7 @@ def writeErrors():
     allErrors = allErrors + level5errorStart + level5error1 + level5error2
 
     allErrors = allErrors + level6errorStart + level6error1
+    allErrors = allErrors + level7errorStart + level7error1
 
     # copy all errors to error log, remove html and copy to curator log
     allCounts = allCounts + countStart
@@ -2121,7 +2127,7 @@ def writeErrors():
     allCounts = allCounts + 'Records with Duplicates: ' + str(count_duplicate) + '<BR>\n\n'
     allCounts = allCounts + 'Records with DOI or Pubmed Ids added: ' + str(count_doipubmedadded) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Mismatched titles: ' + str(count_mismatchedtitles) + '<BR>\n\n'
-    allCounts = allCounts + 'New Failed PDF\'s in Needs_Review folder: ' + str(count_needsreview) + '<BR><BR>\n\n'
+    allCounts = allCounts + 'Records with Low Extracted Text: ' + str(count_lowextractedtext) + '<BR>\n\n'
 
     errorFile.write(allCounts)
     errorFile.write(allErrors)
@@ -2219,7 +2225,9 @@ def postSanityCheck_replaceExtracted(r):
 def postSanityCheck():
 
     global level6error1
+    global level7error1
     global count_mismatchedtitles
+    global count_lowextractedtext
 
     querydate = mgi_utils.date('%m/%d/%Y')
 
@@ -2250,6 +2258,29 @@ def postSanityCheck():
             if extractedText.find(title) < 0:
                 level6error1 += r['mgiID'] + '<BR>\n'
                 count_mismatchedtitles += 1
+
+    #
+    # 'Peer Reviewed' references
+    # bodyText = null or len(bodyText) < 100
+    # hasPDF = 1
+    #
+    cmd = '''
+    select distinct c.mgiid, c.pubmedid, c.short_citation, d.extractedText, r.creation_date
+    from bib_refs r, bib_citation_cache c, bib_workflow_data d
+    where r._referencetype_key = 31576687
+    and r._refs_key = c._refs_key
+    and r._refs_key = d._refs_key
+    and d._extractedtext_key = 48804490
+    and d.hasPDF = 1
+    and (d.extractedText is null or length(d.extractedText) < 100)
+    and (r.creation_date between '01/01/2010' and ('%s'::date + '1 day'::interval))
+    ''' % (querydate)
+    #and (r.creation_date between '%s' and ('%s'::date + '1 day'::interval))
+    #''' % (querydate, querydate)
+    results = db.sql(cmd, 'auto')
+    for r in results:
+        level7error1 += r['mgiID'] + '<BR>\n'
+        count_lowextractedtext += 1
 
     return 0
 
