@@ -2273,10 +2273,8 @@ def postSanityCheck():
     and d._extractedtext_key = 48804490
     and d.hasPDF = 1
     and (d.extractedText is null or length(d.extractedText) < 100)
-    and (r.creation_date between '01/01/2010' and ('%s'::date + '1 day'::interval))
-    ''' % (querydate)
-    #and (r.creation_date between '%s' and ('%s'::date + '1 day'::interval))
-    #''' % (querydate, querydate)
+    and (r.creation_date between '%s' and ('%s'::date + '1 day'::interval))
+    ''' % (querydate, querydate)
     results = db.sql(cmd, 'auto')
     for r in results:
         level7error1 += r['mgiID'] + '<BR>\n'
