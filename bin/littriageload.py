@@ -1202,7 +1202,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
     #  3: error getting medline record
     if not pubMedRef.isValid():
-        level2error3 = level2error3 + objId + ', ' + pubmedID + '<BR>\n' + \
+        level2error3 = level2error3 + objId + ', ' + str(pubmedID) + '<BR>\n' + \
                 linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
         return 1
 
