@@ -281,8 +281,9 @@ def bcpFiles():
         # update existing relevance isCurrent = 0
         # must be done *before* the new rows are added
         #print(allIsCurrentSql)
-        db.sql(allIsCurrentSql, None)
-        db.commit()
+        if len(allIsCurrentSql) > 0:
+                db.sql(allIsCurrentSql, None)
+                db.commit()
 
         # enter new relevance data
         for b in bcpCmd:
