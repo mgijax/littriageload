@@ -679,12 +679,12 @@ def bcpFiles():
     #
     # write out to bcp files once
     #
-    accFile.write('\n'.join(accList))
-    refFile.write('\n'.join(refList))
-    statusFile.write('\n'.join(statusList))
-    dataFile.write('\n'.join(dataList))
-    tagFile.write('\n'.join(tagList))
-    relevanceFile.write('\n'.join(relevanceList))
+    accFile.write('\n'.join(accList) + '\n')
+    refFile.write('\n'.join(refList) + '\n')
+    statusFile.write('\n'.join(statusList) + '\n')
+    dataFile.write('\n'.join(dataList) + '\n')
+    tagFile.write('\n'.join(tagList) + '\n')
+    relevanceFile.write('\n'.join(relevanceList) + '\n')
 
     #
     # flush bcp files
@@ -1640,7 +1640,7 @@ def processPDFs():
                 numericPart = ''
                 logicalDBKey = 65
 
-            accRow = '%s|%s|%s|%s|%s|%d|%d|0|1|%s|%s|%s|%s\n' \
+            accRow = '%s|%s|%s|%s|%s|%d|%d|0|1|%s|%s|%s|%s' \
                 % (accKey, accID, prefixPart, numericPart, logicalDBKey, objectKey, mgiTypeKey, \
                    userKey, userKey, loaddate, loaddate)
             accList.append(accRow)
@@ -1692,7 +1692,7 @@ def processPDFs():
             if refKey in refKeyList:
                 continue
 
-            refRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+            refRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s' \
                 % (refKey, referenceTypeKey, 
                    authors, \
                    primaryAuthor, \
@@ -1714,7 +1714,7 @@ def processPDFs():
             #
             # bib_workflow_relevance
             # 1 row; set isCurrent = 1; set confidence = null
-            relevanceRow = '%s|%s|%s|1||%s|%s|%s|%s|%s\n' \
+            relevanceRow = '%s|%s|%s|1||%s|%s|%s|%s|%s' \
                         %(relevanceKey, refKey, isDiscard, relevanceVersion, userLTKey, userLTKey, loaddate, loaddate)
             relevanceList.append(relevanceRow)
             relevanceKey += 1
@@ -1726,12 +1726,12 @@ def processPDFs():
             for groupKey in workflowGroupList:
                 # if userGOA,userNOCTUA and group = GO, then status = Full-coded
                 if userPath in (userGOA,userNOCTUA) and groupKey == 31576666:
-                    statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+                    statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s' \
                         % (statusKey, refKey, groupKey, fullCodedKey, isCurrent, \
                               userKey, userKey, loaddate, loaddate)
                     statusList.append(statusRow)
                 else:
-                    statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+                    statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s' \
                         % (statusKey, refKey, groupKey, newCodedKey, isCurrent, \
                               userKey, userKey, loaddate, loaddate)
                     statusList.append(statusRow)
@@ -1742,7 +1742,7 @@ def processPDFs():
             # check full extracted text to set supplemental key
             hasPDF = 1
             suppKey = setSupplemental(userPath, extractedText)
-            dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+            dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s' \
                 % (dataKey, refKey, hasPDF, suppKey, bodySectionKey, bodyText, userKey, userKey, loaddate, loaddate)
             dataList.append(dataRow)
             dataKey += 1
@@ -1751,24 +1751,24 @@ def processPDFs():
             hasPDF = 0
             suppKey = suppNotApplKey
             if len(refText) > 0:
-                dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+                dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s' \
                     % (dataKey, refKey, hasPDF, suppKey, refSectionKey, refText, userKey, userKey, loaddate, loaddate)
-                dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+                dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s' \
                         % (dataKey, refKey, hasPDF, suppKey, bodySectionKey, bodyText, userKey, userKey, loaddate, loaddate)
                 dataList.append(dataRow)
                 dataKey += 1
             if len(figureText) > 0:
-                dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+                dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s' \
                     % (dataKey, refKey, hasPDF, suppKey, figureSectionKey, figureText, userKey, userKey, loaddate, loaddate)
                 dataList.append(dataRow)
                 dataKey += 1
             if len(starMethodText) > 0:
-                dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+                dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s' \
                     % (dataKey, refKey, hasPDF, suppKey, starMethodSectionKey, starMethodText, userKey, userKey, loaddate, loaddate)
                 dataList.append(dataRow)
                 dataKey += 1
             if len(suppText) > 0:
-                dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+                dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s' \
                     % (dataKey, refKey, hasPDF, suppKey, suppSectionKey, suppText, userKey, userKey, loaddate, loaddate)
                 dataList.append(dataRow)
                 dataKey += 1
@@ -1776,7 +1776,7 @@ def processPDFs():
             #
             # bib_workflow_tag/mice is in reference only
             if isMice == 1:
-                tagRow = '%s|%s|%s|%s|%s|%s|%s\n' \
+                tagRow = '%s|%s|%s|%s|%s|%s|%s' \
                         %(tagKey, refKey, miceInRefOnlyKey, userKey, userKey, loaddate, loaddate)
                 tagList.append(tagRow)
                 tagKey += 1
@@ -1788,7 +1788,7 @@ def processPDFs():
             # MGI:xxxx
             #
             mgiID = mgiPrefix + str(mgiKey)
-            accRow = '%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
+            accRow = '%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s' \
                 % (accKey, mgiID, mgiPrefix, mgiKey, logicalDBKey, refKey, mgiTypeKey, \
                    isPrivate, isPreferred, userKey, userKey, loaddate, loaddate)
             accList.append(accRow)
@@ -1802,7 +1802,7 @@ def processPDFs():
             numericPart = accID
             logicalDBKey = 29
 
-            accRow = '%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
+            accRow = '%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s' \
                 % (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
                    isPrivate, isPreferred, userKey, userKey, loaddate, loaddate)
             accList.append(accRow)
@@ -1817,7 +1817,7 @@ def processPDFs():
                 numericPart = ''
                 logicalDBKey = 65
 
-                accRow = '%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
+                accRow = '%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s' \
                         % (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
                         isPrivate, isPreferred, userKey, userKey, loaddate, loaddate)
                 accList.append(accRow)
@@ -1831,7 +1831,7 @@ def processPDFs():
                 prefixPart = 'J:'
                 numericPart = jnumKey
                 logicalDBKey = 1
-                accRow = '%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s\n' \
+                accRow = '%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s' \
                         % (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
                         isPrivate, isPreferred, userKey, userKey, loaddate, loaddate)
                 accList.append(accRow)
@@ -1947,7 +1947,7 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
 
     # re-add body
     hasPDF = 1
-    dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+    dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s' \
         % (dataKey, existingRefKey, hasPDF, dataSuppKey, bodySectionKey, bodyText, userKey, userKey, loaddate, loaddate)
     dataList.append(dataRow)
     dataKey += 1 
@@ -1956,22 +1956,22 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
     hasPDF = 0
     dataSuppKey = suppNotApplKey
     if len(refText) > 0: 
-        dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+        dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s' \
             % (dataKey, existingRefKey, hasPDF, dataSuppKey, refSectionKey, refText, userKey, userKey, loaddate, loaddate)
         dataList.append(dataRow)
         dataKey += 1 
     if len(figureText) > 0: 
-        dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+        dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s' \
             % (dataKey, existingRefKey, hasPDF, dataSuppKey, figureSectionKey, figureText, userKey, userKey, loaddate, loaddate)
         dataList.append(dataRow)
         dataKey += 1 
     if len(starMethodText) > 0: 
-        dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+        dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s' \
             % (dataKey, existingRefKey, hasPDF, dataSuppKey, starMethodSectionKey, starMethodText, userKey, userKey, loaddate, loaddate)
         dataList.append(dataRow)
         dataKey += 1 
     if len(suppText) > 0: 
-        dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s\n' \
+        dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s' \
             % (dataKey, existingRefKey, hasPDF, dataSuppKey, suppSectionKey, suppText, userKey, userKey, loaddate, loaddate)
         dataList.append(dataRow)
         dataKey += 1 
