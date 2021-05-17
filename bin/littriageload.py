@@ -671,7 +671,7 @@ def setPrimaryKeys():
 #
 def bcpFiles():
 
-    diagFile.write('\nstart: bcpFiles(), running sanity checks only = %s\n' % (runSanityCheckOnly))
+    diagFile.write('\n%s:bcpFiles():running sanity checks only = %s\n' % (mgi_utils.date(), runSanityCheckOnly))
 
     bcpI = '%s %s %s' % (bcpScript, db.get_sqlServer(), db.get_sqlDatabase())
     bcpII = '"|" "\\n" mgd'
@@ -679,12 +679,18 @@ def bcpFiles():
     #
     # write out to bcp files once
     #
-    accFile.write('\n'.join(accList) + '\n')
-    refFile.write('\n'.join(refList) + '\n')
-    statusFile.write('\n'.join(statusList) + '\n')
-    dataFile.write('\n'.join(dataList) + '\n')
-    tagFile.write('\n'.join(tagList) + '\n')
-    relevanceFile.write('\n'.join(relevanceList) + '\n')
+    if len(accList) > 0:
+        accFile.write('\n'.join(accList) + '\n')
+    if len(refList) > 0:
+        refFile.write('\n'.join(refList) + '\n')
+    if len(statusList) > 0:
+        statusFile.write('\n'.join(statusList) + '\n')
+    if len(dataList) > 0:
+        dataFile.write('\n'.join(dataList) + '\n')
+    if len(tagList) > 0:
+        tagFile.write('\n'.join(tagList) + '\n')
+    if len(relevanceList) > 0:
+        relevanceFile.write('\n'.join(relevanceList) + '\n')
 
     #
     # flush bcp files
@@ -731,7 +737,7 @@ def bcpFiles():
     # delete of BIB_Workflow_Data records
     # these will be reloaded via bcp
     #
-    diagFile.write('\nstart: delete/update sql commands\n')
+    diagFile.write('\n%s:delete/update sql commands\n' % (mgi_utils.date()))
     sqllogFile.write('\nstart: delete/update sql commands\n')
     sqllogFile.write(deleteSQLAll)
     sqllogFile.write(updateSQLAll)
@@ -756,7 +762,7 @@ def bcpFiles():
             sqllogFile.write('bcpFiles(): failed: update sql commands\n')
             return 0
 
-    diagFile.write('\nend: delete/update sql commands\n')
+    diagFile.write('\n%s:delete/update sql commands\n' % (mgi_utils.date()))
     sqllogFile.write('\nend: delete/update sql commands\n')
     db.commit()
 
@@ -767,7 +773,7 @@ def bcpFiles():
     # and can be used in the next running of the load
     #
 
-    diagFile.write('\nstart: copy bcp files into database\n')
+    diagFile.write('\n%s:copy bcp files into database\n' % (mgi_utils.date()))
     for r in bcpRun:
         diagFile.write('%s\n' % r)
         diagFile.flush()
@@ -776,7 +782,7 @@ def bcpFiles():
         except:
             diagFile.write('bcpFiles(): failed : os.system(%s)\n' (r))
             return 0
-    diagFile.write('\nend: copy bcp files into database\n')
+    diagFile.write('\n%s:copy bcp files into database\n' % (mgi_utils.date()))
     diagFile.flush()
 
     #
@@ -799,7 +805,7 @@ def bcpFiles():
     # /data/loads/mgi/littriageload/input/cms/28473584_g.pdf is moved to: 
     #	-> /data/littriage/5904000/5904760.pdf
     #
-    diagFile.write('\nstart: move oldPDF to newPDF\n')
+    diagFile.write('\n%s: move oldPDF to newPDF\n' % (mgi_utils.date()))
     for oldPDF in mvPDFtoMasterDir:
         for newFileDir, newPDF in mvPDFtoMasterDir[oldPDF]:
             diagFile.write(oldPDF + '\t' +  newFileDir + '\t' + newPDF + '\n')
@@ -812,7 +818,7 @@ def bcpFiles():
             except:
                 diagFile.write('bcpFiles(): needs review : shutil.move(' + oldPDF + ',' + newFileDir + '/' + newPDF + '\n')
                 #return 0
-    diagFile.write('\nend: move oldPDF to newPDF\n')
+    diagFile.write('\n%s: move oldPDF to newPDF\n' % (mgi_utils.date()))
 
     # update the max accession ID value
     db.sql('select * from ACC_setMax (%d)' % (count_processPDFs), None)
@@ -843,7 +849,7 @@ def bcpFiles():
         db.sql('select * from ACC_setMax (%d, \'J:\')' % (count_userGOA), None)
         db.commit()
 
-    diagFile.write('\nend: bcpFiles() : successful\n')
+    diagFile.write('\n%s:bcpFiles():successful\n' % (mgi_utils.date()))
     diagFile.flush()
 
     return 0
@@ -982,6 +988,7 @@ def level1SanityChecks():
     for userPath in os.listdir(inputDir):
 
         pdfPath = inputDir + '/' + userPath + '/'
+        diagFile.write('%s:level1SanityChecks:step 1:%s\n' % (mgi_utils.date(), pdfPath))
 
         try:
                 for pdfFile in os.listdir(pdfPath):
@@ -1020,6 +1027,7 @@ def level1SanityChecks():
     for userPath in os.listdir(inputDir):
 
         pdfPath = inputDir + '/' + userPath + '/'
+        diagFile.write('%s:level1SanityChecks:step 2:%s\n' % (mgi_utils.date(), pdfPath))
 
         try:
                 needsReviewPath = os.path.join(needsReviewDir, userPath)
@@ -1055,6 +1063,7 @@ def level1SanityChecks():
 
         pdfPath = os.path.join(inputDir, userPath)
         needsReviewPath = os.path.join(needsReviewDir, userPath)
+        diagFile.write('%s:level1SanityChecks:userDict:%s\n' % (mgi_utils.date(), pdfPath))
 
         #
         # for each pdfFile
@@ -1066,6 +1075,7 @@ def level1SanityChecks():
 
             pdf = PdfParser.PdfParser(os.path.join(pdfPath, pdfFile))
             doiid = ''
+            diagFile.write('%s:level1SanityChecks:PdfParser:%s,%s\n' % (mgi_utils.date(), pdfPath, pdfFile))
 
             try:
                 pdftext = pdf.getText();
@@ -1146,7 +1156,7 @@ def level1SanityChecks():
                         if doiid not in doiidById:
                             doiidById[doiid] = []
                             doiidById[doiid].append(pdfFile)
-                            diagFile.write('pdf.getFirstDoiID() : successful : %s/%s : %s\n' % (pdfPath, pdfFile, doiid))
+                            diagFile.write('%s:pdf.getFirstDoiID():%s/%s:%s\n' % (mgi_utils.date(), pdfPath, pdfFile, doiid))
                             diagFile.flush()
                         else:
                             level1error3 += str(doiid) + '<BR>\n' + \
@@ -1213,7 +1223,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
     global level5error1, level5error2
     global pubtypelogFile
 
-    diagFile.write('level2SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
+    diagFile.write('%s:level2SanityChecks: %s, %s, %s\n' % (mgi_utils.date(), userPath, objId, pdfFile))
 
     #
     # userNLM : part 1
@@ -1361,7 +1371,7 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
     # return 3   : add new accession ids (includes userNLM)
     # return 4   : userNLM : will call processNLMRefresh()
 
-    diagFile.write('level3SanityChecks: %s, %s, %s\n' % (userPath, objId, pdfFile))
+    diagFile.write('%s:level3SanityChecks:%s, %s, %s\n' % (mgi_utils.date(), userPath, objId, pdfFile))
 
     pubmedID = ref.getPubMedID()
 
@@ -1464,7 +1474,7 @@ def processPDFs():
     #   track pdf -> MGI numeric ####
     #
 
-    diagFile.write('\nprocessPDFs()\n')
+    diagFile.write('\n%s:processPDFs\n' % (mgi_utils.date()))
 
     # objByUser = {('userPath', 'doi', 'doiid') : ('pdffile', 'pdftext')}
     # objByUser = {('userPath', 'pm', 'pmid') : ('pdffile', 'pdftext')}
@@ -1476,7 +1486,7 @@ def processPDFs():
 
     for key in objByUser:
 
-        diagFile.write('\nobjByUser: %s\n' % (str(key)))
+        diagFile.write('\n%s:objByUser:%s\n' % (mgi_utils.date(), str(key)))
 
         pdfFile = objByUser[key][0][0]
         extractedText = objByUser[key][0][1]
@@ -1539,10 +1549,10 @@ def processPDFs():
         checkErratum = 1
         isErratum = 0
         if userPath not in (userSupplement, userPDF, userGOA, userNOCTUA, userNLM, userDiscard) and objType not in ('pm'):
-            diagFile.write('ERRATUM : searching : %s, %s, %s\n' % (objId, userPath, pdfFile))
+            diagFile.write('ERRATUM:searching:%s, %s, %s\n' % (objId, userPath, pdfFile))
             for e in erratumExcludeList:
                 if bodyText.lower().find(e) >= 0:
-                        diagFile.write('ERRATUM : skipping/excluded : %s, %s, %s, %s\n' % (e, objId, userPath, pdfFile))
+                        diagFile.write('ERRATUM:skipping/excluded:%s, %s, %s, %s\n' % (e, objId, userPath, pdfFile))
                         checkErratum = 0
             if checkErratum == 1:
                 for e in erratumIncludeList:
@@ -1551,20 +1561,20 @@ def processPDFs():
                                 isErratum = 1
             # continue to next pdf
             if isErratum == 1:
-                diagFile.write('ERRATUM : found/included : %s, %s, %s, %s\n' % (e, objId, userPath, pdfFile))
+                diagFile.write('ERRATUM:found/included:%s, %s, %s, %s\n' % (e, objId, userPath, pdfFile))
                 level2error5 += linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
                 shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                 count_needsreview += 1
                 continue
         else:
-            diagFile.write('ERRATUM : skipping : %s, %s, %s\n' % (objId, userPath, pdfFile))
+            diagFile.write('ERRATUM:skipping:%s, %s, %s\n' % (objId, userPath, pdfFile))
 
         # process supplemental but suppText not found
         if userPath in (userSupplement) and len(suppText) == 0:
             level4error2 += str(objId) + '<BR>\n' + \
                     linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
             count_needsreview += 1
-            diagFile.write('userSupplement : needs review : %s, %s, %s\n' % (objId, userPath, pdfFile))
+            diagFile.write('userSupplement:needs review:%s, %s, %s\n' % (objId, userPath, pdfFile))
             shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
             continue
 
@@ -1583,7 +1593,7 @@ def processPDFs():
            continue
 
         if pubmedRef == 1:
-           diagFile.write('level2SanityChecks() : needs review : %s, %s, %s, %s\n' % (objId, userPath, pdfFile, str(pubmedRef)))
+           diagFile.write('level2SanityChecks():needs review:%s, %s, %s, %s\n' % (objId, userPath, pdfFile, str(pubmedRef)))
            shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
            count_needsreview += 1
            continue
@@ -1591,10 +1601,11 @@ def processPDFs():
         try:
            pubmedID = pubmedRef.getPubMedID()
         except:
-           diagFile.write('process:pubmedRef.getPubMedID()() needs review: %s, %s, %s\n' % (objId, userPath, pdfFile))
+           diagFile.write('process:pubmedRef.getPubMedID()() needs review:%s, %s, %s\n' % (objId, userPath, pdfFile))
            continue
 
-        diagFile.write('level2SanityChecks() : successful : %s, %s, %s, %s\n' % (objId, userPath, pdfFile, pubmedID))
+        diagFile.write('level2SanityChecks():successful:%s, %s, %s, %s\n' % (objId, userPath, pdfFile, pubmedID))
+        diagFile.flush()
 
         #
         # level3SanityChecks()
@@ -1608,7 +1619,7 @@ def processPDFs():
         rc, mgdRef = level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath, pubmedRef)
 
         if rc == 1 or rc == 2:
-            diagFile.write('level3SanityChecks() : needs review : %s, %s, %s, %s\n' \
+            diagFile.write('level3SanityChecks():needs review:%s, %s, %s, %s\n' \
                         % (objId, userPath, pdfFile, pubmedID))
             continue
 
@@ -1617,8 +1628,9 @@ def processPDFs():
         #
         elif rc == 3:
 
-            diagFile.write('level3SanityChecks() : successful : add PubMed ID or DOI ID : %s, %s, %s, %s, %s\n' \
+            diagFile.write('level3SanityChecks():successful:add PubMed ID or DOI ID:%s, %s, %s, %s, %s\n' \
                 % (objId, userPath, pdfFile, pubmedID, str(mgdRef)))
+            diagFile.flush()
 
             # add pubmedID or doiId
             userKey = loadlib.verifyUser(userPath, 0, diagFile)
@@ -1653,8 +1665,9 @@ def processPDFs():
         #
         elif rc == 0 and objType not in (userNLM): 
 
-            diagFile.write('level3SanityChecks() : successful : add new : %s, %s, %s, %s\n' \
+            diagFile.write('level3SanityChecks():successful:add new:%s, %s, %s, %s\n' \
                 % (objId, userPath, pdfFile, pubmedID))
+            diagFile.flush()
 
             # add pubmedID or doiId
             userKey = loadlib.verifyUser(userPath, 0, diagFile)
@@ -1892,7 +1905,7 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
     global dataKey
     global accList, refList, statusList, dataList, tagList, relevanceList 
 
-    diagFile.write('\nprocessExtractedText()\n')
+    diagFile.write('\n%s:processExtractedText()\n' % (mgi_utils.date()))
 
     # objByUser = {('userPath', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('userPath', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
@@ -1919,7 +1932,7 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
         level4error1 += str(mgiID) + '<BR>\n' + \
                 linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
         count_needsreview += 1
-        diagFile.write('userPDF/userSupplement/userNLM level1 : needs review : %s, %s, %s\n' % (mgiID, userPath, pdfFile))
+        diagFile.write('userPDF/userSupplement/userNLM level1:needs review:%s, %s, %s\n' % (mgiID, userPath, pdfFile))
         shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
 
         return
@@ -1999,7 +2012,7 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
 def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText, suppText):
     global updateSQLAll
 
-    diagFile.write('\nprocessNLMRefresh()\n')
+    diagFile.write('\n%s:processNLMRefresh()\n' % (mgi_utils.date()))
 
     # objByUser = {('userPath', userNLM, 'mgiid') : ('pdffile', 'pdftext')}
 
@@ -2020,7 +2033,7 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
     results = db.sql(sql, 'auto')
 
     if len(results) == 0:
-        diagFile.write('reference skipped : relevance = discard ' + mgiID + '\n')
+        diagFile.write('reference skipped:relevance = discard ' + mgiID + '\n')
         return;
 
     userKey = loadlib.verifyUser(userPath, 0, diagFile)
