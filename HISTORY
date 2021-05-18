@@ -1,8 +1,10 @@
+TAG: littriageload-6-0-17-5
 TAG: littriageload-6-0-17-4
 DATE: 05/18/2021
 STAFF: lec
 b39-509/Lit Triage load issue/improve execution time
 fix bug
+secondary: change from 30 to 50
 
 TAG: littriageload-6-0-17-3
 DATE: 05/17/2021, 05/18/2021
