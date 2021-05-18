@@ -156,7 +156,6 @@ def process(sql):
                 isReviewed = r['isreviewarticle']
                 termKey = notroutedKey
                 term = 'Not Routed'
-                print(mgiid)
 
                 logFile.write('\n')
                 allSubText = []
@@ -188,7 +187,6 @@ def process(sql):
                                         for match in re.finditer(s, extractedText):
 
                                                 subText = extractedText[match.start()-50:match.end()+50]
-                                                print(subText)
                                                 matchesExcludedTerm = 0
 
                                                 # iterate thru each exclude term
@@ -201,8 +199,6 @@ def process(sql):
 
                                                         # if the exclude term is found in the subText
                                                         for match2 in re.finditer(e, subText):
-                                                                print(e)
-                                                                print(subText)
                                                                 matchesExcludedTerm = 1
 
                                                                 # counts by excludeTerm
