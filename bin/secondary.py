@@ -122,7 +122,7 @@ def initialize():
 
         # extracted_text by _refs_key where extracted text type != 'reference'
         extractedSql = '''
-                select lower(d.extractedText) as extractedText
+                select distinct lower(d.extractedText) as extractedText
                 from bib_workflow_data d
                 where d._refs_key = %s
                 and d._extractedtext_key not in (48804491)
@@ -156,9 +156,11 @@ def process(sql):
                 isReviewed = r['isreviewarticle']
                 termKey = notroutedKey
                 term = 'Not Routed'
+                print(mgiid)
 
                 logFile.write('\n')
                 allSubText = []
+                logSummary = {}
                 searchSummary = {}
                 excludeSummary = {}
                 totalMatchesTerm = 0
@@ -186,6 +188,7 @@ def process(sql):
                                         for match in re.finditer(s, extractedText):
 
                                                 subText = extractedText[match.start()-30:match.end()+30]
+                                                print(subText)
                                                 matchesExcludedTerm = 0
 
                                                 # iterate thru each exclude term
@@ -198,6 +201,8 @@ def process(sql):
 
                                                         # if the exclude term is found in the subText
                                                         for match2 in re.finditer(e, subText):
+                                                                print(e)
+                                                                print(subText)
                                                                 matchesExcludedTerm = 1
 
                                                                 # counts by excludeTerm
@@ -213,7 +218,12 @@ def process(sql):
                                                 else:
                                                         totalMatchesExcludedTerm += 1
                                                 
-                                                logFile.write(s + ' [ ' + subText + '] excluded term = ' + str(matchesExcludedTerm) + '\n')
+                                                # don't show duplicates
+                                                key = s + ' [ ' + subText + ']'
+                                                value = 'excluded term = ' + str(matchesExcludedTerm)
+                                                if key not in logSummary:
+                                                        logSummary[key] = [];
+                                                        logSummary[key].append(value)
 
                                                 # counts by searchTerm
                                                 if s not in searchSummary:
@@ -231,6 +241,9 @@ def process(sql):
                 if groupKey == 78678148 and totalMatchesTerm <= 3:
                         termKey = notroutedKey
                         term = 'Not Routed'
+
+                for s in logSummary:
+                        logFile.write(str(s) + ' ' + str(logSummary[s][0]) + '\n')
 
                 # counts by searchTerm
                 logFile.write('search summary: pubmedid:' + str(pubmedid) + ' ')

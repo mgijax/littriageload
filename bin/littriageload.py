@@ -1766,8 +1766,6 @@ def processPDFs():
             if len(refText) > 0:
                 dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s' \
                     % (dataKey, refKey, hasPDF, suppKey, refSectionKey, refText, userKey, userKey, loaddate, loaddate)
-                dataRow = '%s|%s|%s|%s||%s|%s|%s|%s|%s|%s' \
-                        % (dataKey, refKey, hasPDF, suppKey, bodySectionKey, bodyText, userKey, userKey, loaddate, loaddate)
                 dataList.append(dataRow)
                 dataKey += 1
             if len(figureText) > 0:

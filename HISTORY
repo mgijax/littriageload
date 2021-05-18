@@ -1,6 +1,13 @@
-TAG: littriageload-6-0-17-3
-DATE: 05/17/2021
+TAG: littriageload-6-0-17-4
+DATE: 05/18/2021
 STAFF: lec
+b39-509/Lit Triage load issue/improve execution time
+fix bug
+
+TAG: littriageload-6-0-17-3
+DATE: 05/17/2021, 05/18/2021
+STAFF: lec
+b39-509/Lit Triage load issue/improve execution time
 secondary/GXD/turn back on: and s.isCurrent = 1
 
 TAG: littriageload-6-0-17-2
