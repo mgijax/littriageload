@@ -69,7 +69,7 @@ echo $LITTRIAGE_MASTER | tee -a ${LOG}
 
 cat ${PDF} | while read line
 do
-if [ -f ${LITTRIAGE_MASTER}/*/$line.pdf ]
+if [ -f ${LITTRIAGE_MASTER}/*/$line.pdf -a ! -f ${LITTRIAGE_NEWNEW}/littriage_update_pdf/$line.pdf ]
 then
 echo 'coping to littriage master folder', $line | tee -a ${LOG}
 ls ${LITTRIAGE_MASTER}/*/$line.pdf

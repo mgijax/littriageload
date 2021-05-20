@@ -95,10 +95,13 @@ ls -l ${NEEDSREVIEWTRIAGEDIR} >> ${LOG} 2>&1
 # run findNLMrefres.sh to find references that are mising DOI ids
 # this will copy the pdfs for this set (if pdf exists)
 # into the ${LITTRIAGE_NEWNEW}/littriage_NLM_refresh directory
+# turn off if not on production server
 #
+if [ `uname -n` = "bhmgiapp01" ]
 date >> ${LOG}
 echo "running findNLMrefresh.sh..." >> ${LOG} 2>&1
 ${LITTRIAGELOAD}/bin/findNLMrefresh.sh >> ${LOG} 2>&1
+fi
 
 #
 # if DEV, use 'cp'
