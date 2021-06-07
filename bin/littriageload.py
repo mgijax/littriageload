@@ -2186,8 +2186,8 @@ def writeErrors():
     allCounts = allCounts + 'Records with Duplicates: ' + str(count_duplicate) + '<BR>\n\n'
     allCounts = allCounts + 'Records with DOI or Pubmed Ids added: ' + str(count_doipubmedadded) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Mismatched titles: ' + str(count_mismatchedtitles) + '<BR>\n\n'
-    allCounts = allCounts + 'New Failed PDFs in Needs_Review folder: ' + str(count_needsreview) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Low Extracted Text: ' + str(count_lowextractedtext) + '<BR>\n\n'
+    allCounts = allCounts + 'New Failed PDFs in Needs_Review folder: ' + str(count_needsreview) + '<BR>\n\n'
 
     errorFile.write(allCounts)
     errorFile.write(allErrors)
