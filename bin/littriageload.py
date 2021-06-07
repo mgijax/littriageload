@@ -1018,7 +1018,11 @@ def level1SanityChecks():
                         if pdfFile not in nodupFileName:
                                 nodupFileName.append(pdfFile)
                         else:
-                                dupFileName.append(pdfFile)
+                                # if duplicate userPDF/userNLM, then remove the duplicate
+                                if userPath in (userPDF, userNLM):
+                                        os.remove(os.path.join(pdfPath, pdfFile))
+                                else:
+                                        dupFileName.append(pdfFile)
         except:
                 diagFile.write('skipping folder path: ' + pdfPath + '\n')
                 continue
@@ -2182,6 +2186,7 @@ def writeErrors():
     allCounts = allCounts + 'Records with Duplicates: ' + str(count_duplicate) + '<BR>\n\n'
     allCounts = allCounts + 'Records with DOI or Pubmed Ids added: ' + str(count_doipubmedadded) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Mismatched titles: ' + str(count_mismatchedtitles) + '<BR>\n\n'
+    allCounts = allCounts + 'New Failed PDFs in Needs_Review folder: ' + str(count_needsreview) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Low Extracted Text: ' + str(count_lowextractedtext) + '<BR>\n\n'
 
     errorFile.write(allCounts)
