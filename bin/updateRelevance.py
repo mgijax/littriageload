@@ -58,18 +58,40 @@ for line in inFile.readlines():
         # ignore; this term is not stored in the database
         #absvalue = tokens[3]
 
+        isCurrent = 1
         refKey = db.sql('''select _refs_key from BIB_Citation_Cache where mgiid = '%s' '''% (mgiID), 'auto')[0]['_refs_key']
         termKey = loadlib.verifyTerm('', 149, term, lineNum, None)
 
-        relevanceFile.write('%s|%s|%s|1|%s|%s|%s|%s|%s|%s\n' \
-                %(relevanceKey, refKey, termKey, confidence, relevanceVersion, userKey, userKey, loaddate, loaddate))
+        # GO/Full-Coded exists
+        # then set relevance = keep, user in (1575, 1623) littriage_goa/littriage_noctua
+        if termKey == 70594666:
+                goresult = db.sql('''
+                        select _refs_key, _createdby_key from BIB_Workflow_Status
+                        where _refs_key = %s
+                        and isCurrent = 1
+                        and _group_key = 31576666
+                        and _status_key = 31576674
+                        and _createdby_key in (1575, 1623)
+                        ''' % (refKey), 'auto')
+                for r in goresult:
+                        gotermKey = 70594667
+                        gouserKey = r['_createdby_key']
+                        relevanceFile.write('%s|%s|%s|%s||%s|%s|%s|%s|%s\n' \
+                                %(relevanceKey, refKey, gotermKey, isCurrent, relevanceVersion, gouserKey, gouserKey, loaddate, loaddate))
+                        relevanceKey += 1
+                        isCurrent = 0
 
+        relevanceFile.write('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+                %(relevanceKey, refKey, termKey, isCurrent, confidence, relevanceVersion, userKey, userKey, loaddate, loaddate))
         relevanceKey += 1
+
+        # if relevance = discard 
 
         # set the existing isCurrent = 0
         allIsCurrentSql += isCurrentSql % (refKey)
 
 inFile.close()
+
 relevanceFile.flush()
 relevanceFile.close()
 

@@ -132,14 +132,16 @@ userLTKey = '1569'
 count_processPDFs = 0
 count_userSupplement = 0
 count_userPDF = 0
-count_userGOA = 0
-count_userNOCTUA = 0
 count_userNLM = 0
 count_needsreview = 0
 count_duplicate = 0
 count_doipubmedadded = 0
 count_mismatchedtitles = 0
 count_lowextractedtext = 0
+
+count_userGOA = 0
+count_userNOCTUA = 0
+count_userGO = 0
 
 diag = ''
 diagFile = ''
@@ -845,8 +847,8 @@ def bcpFiles():
     db.commit()
 
     # update the max accession ID value for J:
-    if count_userGOA or count_userNOCTUA:
-        db.sql('select * from ACC_setMax (%d, \'J:\')' % (count_userGOA), None)
+    if count_userGO:
+        db.sql('select * from ACC_setMax (%d, \'J:\')' % (count_userGO), None)
         db.commit()
 
     diagFile.write('\n%s:bcpFiles():successful\n' % (mgi_utils.date()))
@@ -1459,6 +1461,7 @@ def processPDFs():
     global count_needsreview
     global count_userGOA
     global count_userNOCTUA
+    global count_userGO
     global count_userPDF
     global count_userNLM
     global count_duplicate
@@ -1856,6 +1859,8 @@ def processPDFs():
                     count_userGOA += 1
                 if userPath == userNOCTUA:
                     count_userNOCTUA += 1
+                if userPath in (userGOA, userNOCTUA):
+                    count_userGO += 1
 
             #
             # if splitter does not find reference section
@@ -2143,6 +2148,7 @@ def writeErrors():
     global count_needsreview
     global count_userGOA
     global count_userNOCTUA
+    global count_userGO
     global count_userPDF
     global count_userNLM
     global count_duplicate
