@@ -1,3 +1,8 @@
+TAG: littriageload-6-0-17-11
+DATE: 07/26/2021
+STAFF: lec
+littriageload.py/do not attach to diagFile; abstract may contain 'fail' which gets reported by Dave's checker
+
 TAG: littriageload-6-0-17-10
 DATE: 06/10/2021
 STAFF: lec

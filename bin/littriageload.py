@@ -260,9 +260,6 @@ workflowGroupList = []
 # list of supplemental words
 suppWordList = []
 
-# list of refFile keys for checking duplicates
-refFileList = []
-
 # moving input/pdfs to master dir/pdfs
 mvPDFtoMasterDir = {}
 
@@ -755,8 +752,9 @@ def bcpFiles():
 
     if len(updateSQLAll) > 0:
         try:
-            diagFile.write('\nupdateSQLAll\n')
-            diagFile.write(updateSQLAll + '\n')
+            #do not attach to diagFile; abstract may contain "fail" which gets reported by Dave's checker
+            #diagFile.write('\nupdateSQLAll\n')
+            #diagFile.write(updateSQLAll + '\n')
             db.sql(updateSQLAll, None)
             db.commit()
         except:
