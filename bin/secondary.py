@@ -28,8 +28,8 @@
 # References: relevance status = "discard", confidence > -1.0
 # text to search: extracted text except reference section
 # text criteria: exclude list (vocab_key 164). (case insensitive)
-# if number of text matches <= 4, then Status = Not Routed
-# if number of text matches >= 5, then Status = Routed
+# if number of text matches <= 9, then Status = Not Routed
+# if number of text matches >= 10, then Status = Routed
 #
 # GO Criteria
 # References: relevance status = "keep", GO status = "New"
@@ -228,8 +228,8 @@ def process(sql):
 
                                                 allSubText.append(subText)
 
-                # if group in (Tumor) and total match <= 4
-                if groupKey == 31576667 and totalMatchesTerm <= 4:
+                # if group in (Tumor) and total match <= 9
+                if groupKey == 31576667 and totalMatchesTerm <= 9:
                         termKey = notroutedKey
                         term = 'Not Routed'
 
@@ -459,31 +459,7 @@ def processTumor():
                 excludedTerms.append(r['term'])
         #print(excludedTerms)
 
-        mysql = sql
-
-        # References: relevance status = "discard", confidence > -1.0
-
-        mysql = mysql % (31576667) + '\n' + \
-        '''
-        union
-        select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, c.isreviewarticle
-        from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
-        where r._refs_key = c._refs_key
-        and r._refs_key = v._refs_key
-        and v.isCurrent = 1
-        and v._relevance_key = 70594666
-        and v.confidence > -1.0
-        and r._refs_key = s._refs_key
-        and s._status_key = 71027551
-        and s._group_key = 31576667
-        and s.isCurrent = 1
-        and exists (select 1 from bib_workflow_data d
-                where r._refs_key = d._refs_key
-                and d._extractedtext_key not in (48804491)
-                and d.extractedText is not null
-                )
-        '''
-        process(mysql + orderBy)
+        process((sql + orderBy) % (31576667))
 
         logFile.flush()
         logFile.close()
