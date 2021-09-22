@@ -43,21 +43,27 @@ date | tee -a ${LOG}
 cat - <<EOSQL | ${PG_DBUTILS}/bin/doisql.csh $0 | tee -a ${LOG}
 
 select count(c.*)
-from bib_citation_cache c, bib_refs r
+from bib_citation_cache c, bib_refs r, bib_workflow_relevance v
 where c.referencetype = 'Peer Reviewed Article'
 and c.pubmedID is not null
 and c.doiID is null
 and c._refs_key = r._refs_key
 and r.creation_date between (now() + interval '-7 day') and now()
+and c._refs_key = v._refs_key
+and v.isCurrent = 1
+and v._relevance_key not in (70594666)
 ;
 
 select c.mgiID, c.pubmedID
-from bib_citation_cache c, bib_refs r
+from bib_citation_cache c, bib_refs r, bib_workflow_relevance v
 where c.referencetype = 'Peer Reviewed Article'
 and c.pubmedID is not null
 and c.doiID is null
 and c._refs_key = r._refs_key
 and r.creation_date between (now() + interval '-7 day') and now()
+and c._refs_key = v._refs_key
+and v.isCurrent = 1
+and v._relevance_key not in (70594666)
 ;
 EOSQL
 

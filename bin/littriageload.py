@@ -2029,17 +2029,10 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
     #
     sql = '''
            select c._Refs_key
-           from BIB_Citation_Cache c, BIB_Workflow_Relevance v
+           from BIB_Citation_Cache c
            where c.mgiID = '%s'
-           and c._refs_key = v._refs_key
-           and v.isCurrent = 1
-           and v._relevance_key not in (70594666)
            ''' % (mgiID)
     results = db.sql(sql, 'auto')
-
-    if len(results) == 0:
-        diagFile.write('reference skipped:relevance = discard ' + mgiID + '\n')
-        return;
 
     userKey = loadlib.verifyUser(userPath, 0, diagFile)
     objectKey = results[0]['_Refs_key']
