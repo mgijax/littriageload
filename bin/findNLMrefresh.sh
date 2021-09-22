@@ -11,6 +11,7 @@
 #	. have pubmed id
 #	. do not have doi id
 #	. creation date of MGD Reference is between today-7 and today
+#       . relevance != discard
 #
 # 2. find the PDF (by using MGI ID) of the Reference in the Lit Triage Master folder
 #
