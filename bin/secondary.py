@@ -54,9 +54,11 @@
 import sys
 import os
 import re
+import shutil
 import db
 import mgi_utils
 import loadlib
+import reportlib
 
 db.setTrace()
 
@@ -505,8 +507,10 @@ def processPRO():
 
         statusFileName = outputDir + '/' + statusTable + '.PRO.bcp'
         statusFile = open(statusFileName, 'w')
-        logFileName = logDir + '/secondary.PRO.log'
+        secondaryFileName = 'secondary.PRO.log'
+        logFileName = logDir + '/' + secondaryFileName
         logFile = open(logFileName, 'w')
+        reportlib.header(logFile)
         outputFileName = outputDir + '/PRO.txt'
         outputFile = open(outputFileName, 'w')
         bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
@@ -527,6 +531,13 @@ def processPRO():
         logFile.close()
         outputFile.flush()
         outputFile.close()
+
+        # copy log file to QC/pro folder
+        try:
+                archiveFile = os.getenv('QCREPORTDIR') + '/archive/pro/' + secondaryFileName + '.' + mgi_utils.date('%Y%m%d')
+                shutil.copy(logFileName, archiveFile);
+        except:
+                pass
 
         return 0
 

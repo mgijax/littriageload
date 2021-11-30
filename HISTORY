@@ -1,3 +1,13 @@
+TAG: littriageload-6-0-17-14
+DATE: 11/30/2021
+STAFF: lec
+wts2-687/archiving files for PRO auto-triagesh fix
+#       processSecondary.sh
+#       secondary.py
+#       PRO_extracted_text.sql
+#       PRO_ignored_text.sql
+#       secondaryReports.csh
+
 TAG: littriageload-6-0-17-13
 DATE: 09/22/2021
 STAFF: lec

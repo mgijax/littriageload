@@ -24,3 +24,5 @@ ${PYTHON} secondary.py >> ${LOG} 2>&1
 date >> ${LOG} 2>&1
 
 date >> ${LOG} 2>&1
+./secondaryReports.csh >> ${LOG} 2>&1
+date >> ${LOG} 2>&1
