@@ -1,3 +1,11 @@
+TAG: littriageload-6-0-17-20
+DATE: 12/28/2021
+STAFF: sc
+YAKS-439 - Update Relevance Classifier wrapper script in littriageload
+a) updateRelevance.py - don't execute sql file if empty
+b) processRelevance.sh - use DLAJOBSTREAMFUNCTIONS checkStatus for each call to
+   exit gracefully on failure
+
 TAG: littriageload-6-0-17-19
 TAG: littriageload-6-0-17-18
 DATE: 12/28/2021
