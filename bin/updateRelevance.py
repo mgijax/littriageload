@@ -95,10 +95,12 @@ inFile.close()
 relevanceFile.flush()
 relevanceFile.close()
 
-# update existing relevance isCurrent = 0
-# must be done *before* the new rows are added
-db.sql(allIsCurrentSql, None)
-db.commit()
+if allIsCurrentSql != '':
+    # update existing relevance isCurrent = 0
+    # must be done *before* the new rows are added
+    db.sql(allIsCurrentSql, None)
+
+    db.commit()
 
 # enter new relevance data
 os.system(bcpCmd)
