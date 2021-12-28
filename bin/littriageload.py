@@ -2294,6 +2294,8 @@ def postSanityCheck():
     lower(d.extractedText) as extractedText
     from acc_accession a, bib_refs r, bib_workflow_data d
     where r._referencetype_key = 31576687
+    and r.title is not null
+    and r.journal not in ('J Virol', 'J Neurochem')
     and r._refs_key = a._object_key
     and a._logicaldb_key = 1
     and a._mgitype_key = 1
@@ -2301,16 +2303,11 @@ def postSanityCheck():
     and a._object_key = d._refs_key
     and d._extractedtext_key = 48804490
     and d.extractedText is not null
-    and r.journal not in ('J Virol', 'J Neurochem')
     and (r.creation_date between '%s' and ('%s'::date + '1 day'::interval))
     ''' % (querydate, querydate)
 
     results = db.sql(cmd, 'auto')
     for r in results:
-
-        # skip if title is null
-        if (r['title'] == None):
-                continue
 
         title = postSanityCheck_replaceTitle1(r)
         extractedText = postSanityCheck_replaceExtracted(r)
