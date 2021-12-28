@@ -2307,6 +2307,11 @@ def postSanityCheck():
 
     results = db.sql(cmd, 'auto')
     for r in results:
+
+        # skip if title is null
+        if (r['title'] == None):
+                continue
+
         title = postSanityCheck_replaceTitle1(r)
         extractedText = postSanityCheck_replaceExtracted(r)
 

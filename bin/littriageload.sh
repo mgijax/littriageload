@@ -133,7 +133,7 @@ done
 date >> ${LOG} 2>&1
 echo "---------------------" >> ${LOG} 2>&1
 echo "${PUBLISHEDDIR} listing : NOT MOVED TO INPUT DIRECTORY" >> ${LOG} 2>&1
-ls -l ${PUBLISHEDDIR}/*/* >> ${LOG} 2>&1
+ls -l ${PUBLISHEDDIR}/* >> ${LOG} 2>&1
 
 #
 # copy the ${INPUTDIR} to a separate archive
