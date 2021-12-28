@@ -71,7 +71,7 @@ date | tee -a ${LOG_RELEVANCE}
 echo "Running makePredicted.py" >> ${LOG_RELEVANCE} 2>&1
 ${PYTHON} makePredicted.py  >> ${LOG_RELEVANCE} 2>&1
 STAT=$?
-checkStatus ${STAT} "${GXDHTLOAD}/bin/makePredicted.py"
+checkStatus ${STAT} "${LITTRIAGELOAD}/bin/makePredicted.py"
 
 date | tee -a ${LOG_RELEVANCE}
 echo "Running predict.py" | tee -a  ${LOG_RELEVANCE}
@@ -79,12 +79,12 @@ rm -rf ${PREDICTED_RELEVANCE}
 
 ${ANACONDAPYTHON} ${ANACONDAPYTHONLIB}/predict.py -m ${RELEVANCECLASSIFIERPKL} -p figureTextLegCloseWords50 -p removeURLsCleanStem ${NOTSPECIFIED_RELEVANCE} > ${PREDICTED_RELEVANCE}
 STAT=$?
-checkStatus ${STAT} "${GXDHTLOAD}/bin/predict.py"
+checkStatus ${STAT} "${LITTRIAGELOAD}/bin/predict.py"
 
 date | tee -a ${LOG_RELEVANCE}
 echo "Running updateRelevance.py" | tee -a ${LOG_RELEVANCE}
 ${PYTHON} updateRelevance.py  >> ${LOG_RELEVANCE} 2>&1
 STAT=$?
-checkStatus ${STAT} "${GXDHTLOAD}/bin/updateRelevance.py"
+checkStatus ${STAT} "${LITTRIAGELOAD}/bin/updateRelevance.py"
 
 date | tee -a ${LOG_RELEVANCE}
