@@ -78,6 +78,10 @@ export NOTSPECIFIED_RELEVANCE PREDICTED_RELEVANCE LOG_RELEVANCE RELEVANCE_VERSIO
 LOG_SECONDARY=${LOGDIR}/secondary.log
 export LOG_SECONDARY
 
+# pubmed review updates
+LOG_PUBMEDREVIEW=${LOGDIR}/pubmedreview.log
+export LOG_PUBMEDREVIEW
+
 #  The name of the job stream for the load
 JOBSTREAM=littriageload
 export JOBSTREAM

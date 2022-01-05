@@ -1,3 +1,11 @@
+TAG: littriageload-6-0-17-22
+DATE: 01/05/2022
+STAFF: lec
+wts2-450/LTLO: Reviews are underlabeled in the database (TR13043)
+#       littriageload.config.default
+#       bin/processPubMedReview.py
+#       bin/processPubMedReview.sh
+
 TAG: littriageload-6-0-17-21
 TAG: littriageload-6-0-17-20
 DATE: 12/28/2021
