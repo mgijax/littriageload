@@ -129,8 +129,8 @@ print('addTagSQL:\n', addTagSQL);
 print('total # of references found: ', len(results))
 print('total # of review to update: ', yesCounter)
 sys.stdout.flush()
-#if updateReviewSQL != "":
-#        db.sql(updateReviewSQL, None)
-#        db.sql(addTagSQL, None)
+if updateReviewSQL != "":
+        db.sql(updateReviewSQL, None)
+        db.sql(addTagSQL, None)
 db.commit()
 
