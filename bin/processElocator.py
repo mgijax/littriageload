@@ -66,7 +66,12 @@ and r.journal in (
 'Endocrinology',
 'Cancer Res',
 'J Clin Invest',
-'J Immunol'
+'J Immunol',
+'Proc Natl Acad Sci U S A',
+'Am J Physiol Lung Cell Mol Physiol',
+'Am J Physiol Cell Physiol',
+'J Natl Cancer Inst',
+'Am J Physiol Heart Circ Physiol'
 )
 and exists (select 1 from bib_workflow_relevance v where r._refs_key = v._refs_key and v.isCurrent = 1 and v._relevance_key = 70594667)
 order by r.journal
