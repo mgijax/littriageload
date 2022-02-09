@@ -70,7 +70,6 @@ and r.journal in (
 )
 and exists (select 1 from bib_workflow_relevance v where r._refs_key = v._refs_key and v.isCurrent = 1 and v._relevance_key = 70594667)
 order by r.journal
-limit 1
 ''', 'auto')
 
 sys.stdout.flush()
