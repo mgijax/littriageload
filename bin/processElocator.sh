@@ -24,7 +24,7 @@ fi
 # Initialize the log file.
 # open LOG in append mode and redirect stdout
 #
-LOG=${LOG_SECONDARY}
+LOG=${LOGDIR}/processElocator.log
 rm -rf ${LOG}
 >>${LOG}
 
