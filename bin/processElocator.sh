@@ -24,7 +24,7 @@ fi
 # Initialize the log file.
 # open LOG in append mode and redirect stdout
 #
-setenv LOG $0.log
+LOG=${LOG_SECONDARY}
 rm -rf ${LOG}
 >>${LOG}
 
