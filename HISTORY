@@ -1,3 +1,13 @@
+TAG: littriageload-6-0-18-1
+DATE: 02/09/2022
+STAFF: lec
+wts2-599/PNAS journal no longer has page numbers in PubMed/PG tag
+added elocator logic
+#	modified:   bin/littriageload.py
+#	new file:   bin/processElocator.sh
+updated LOG
+#	modified:   bin/processPubMedReview.sh
+
 TAG: littriageload-6-0-17-22
 DATE: 01/05/2022
 STAFF: lec

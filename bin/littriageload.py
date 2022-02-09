@@ -275,11 +275,12 @@ loaddate = loadlib.loaddate
 userDict = {}
 
 #
-# objByUser will process 'doi' or 'pm' objects
+# objByUser will process 'doi' or 'pm' or 'pmc' objects
 #
 # objByUser = {('userPath', 'object type', 'object id') : ('pdffile', 'pdftext', 'splittext')}
 # objByUser = {('userPath', 'doi', 'doiid') : ('pdffile', 'pdftext', 'splittext')}
 # objByUser = {('userPath', 'pm', 'pmid') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('userPath', 'pmc', 'pmcid') : ('pdffile', 'pdftext', 'splittext')}
 # objByUser = {('userPath', userPDF, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
 # objByUser = {('userPath', userSupplement, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
 # objByUser = {('userPath', userGOA, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
@@ -287,6 +288,7 @@ userDict = {}
 # objByUser = {('userPath', userNLM, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
 # {('cms, 'doi', '10.112xxx'): ['10.112xxx.pdf, 'text'']}
 # {('cms, 'pm', 'PMID_14440025'): ['PDF_14440025.pdf', 'text'']}
+# {('cms, 'pmc', 'PMCxxxx'): ['PMCxxxx.pdf', 'text'']}
 objByUser = {}
 
 #
@@ -884,6 +886,7 @@ def replaceText(extractedText):
 #	getVolumn()
 #	getIssue()
 #	getPages()
+#       getELocator()
 #
 # 	remove non-ascii characters
 # 	carriage returns, etc.
@@ -893,7 +896,7 @@ def replaceText(extractedText):
 #
 # Returns:  new abstract, title value
 #
-def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract, vol, issue, pgs):
+def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract, vol, issue, pgs, elocator):
 
     if authors == None or authors == '':
         authors = ''
@@ -931,7 +934,10 @@ def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract, vol, issue,
         issue = issue.replace('|', '\\|')
 
     if pgs == None or pgs == '':
-        pgs = ''
+        if elocator != None and elocator != '':
+                pgs = elocator
+        else:
+                pgs = ''
     elif isSQL:
         pgs = pgs.replace("'", "''")
     else:
@@ -1690,7 +1696,8 @@ def processPDFs():
                 pubmedRef.getAbstract(), \
                 pubmedRef.getVolume(), \
                 pubmedRef.getIssue(), \
-                pubmedRef.getPages())
+                pubmedRef.getPages(),
+                pubmedRef.getElocator())
 
             if pubmedRef.getPublicationType() in ('Review'):
                 isReviewArticle = 1
@@ -2024,9 +2031,6 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
     userPath = objKey[0]
     mgiID = 'MGI:' + objKey[2]
 
-    #
-    # relevance is not discard
-    #
     sql = '''
            select c._Refs_key
            from BIB_Citation_Cache c
@@ -2045,7 +2049,8 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
         ref.getAbstract(),
         ref.getVolume(),
         ref.getIssue(),
-        ref.getPages())
+        ref.getPages(),
+        ref.getElocator())
 
     #
     # set '' to true null, not 'None'

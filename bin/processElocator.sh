@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-# The purpose of this script is to run the PubMedReview python script
+# The purpose of this script is to run the processElocator python script
 #
 
 
@@ -24,15 +24,15 @@ fi
 # Initialize the log file.
 # open LOG in append mode and redirect stdout
 #
-LOG=${LOG_PUBMEDREVIEW}
+setenv LOG $0.log
 rm -rf ${LOG}
 >>${LOG}
 
 date >> ${LOG} 2>&1
-${PYTHON} ${LITTRIAGELOAD}/bin/processPubMedReview.py >> ${LOG} 2>&1
+${PYTHON} ${LITTRIAGELOAD}/bin/processElocator.py >> ${LOG} 2>&1
 
-#date >> ${LOG} 2>&1
-#${MGICACHELOAD}/bibcitation.csh >> ${LOG} 2>&1
+date >> ${LOG} 2>&1
+${MGICACHELOAD}/bibcitation.csh >> ${LOG} 2>&1
 
 date |tee -a $LOG
 
