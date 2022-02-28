@@ -1251,8 +1251,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
         if len(results) > 0:
             objId = results[0]['pubmedID']
         else:
-            level5error1 += str(mgiID) + '<BR>\n' + \
-                linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+            level5error1 += str(mgiID) + '<BR>\n' + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
             return 1
 
     if objType in (objDOI, userDiscard):
@@ -1280,8 +1279,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
         #  2: DOI ID not found in pubmed
         for ref in refMappingList:
             if ref == None:
-                level2error2 += str(objId) + '<BR>\n' + \
-                            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+                level2error2 += str(objId) + '<BR>\n' + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
                 return 1
 
         pubMedRef = refMappingList[0]
@@ -1292,8 +1290,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
 
     #  3: error getting medline record
     if not pubMedRef.isValid():
-        level2error3 += str(objId) + ', ' + str(pubmedID) + '<BR>\n' + \
-                linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+        level2error3 += str(objId) + ', ' + str(pubmedID) + '<BR>\n' + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
         return 1
 
     # check for required NLM fields
@@ -1322,8 +1319,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
         if len(missingList):
            diagFile.write(str(requiredDict))
            diagFile.write('\n')
-           level2error4 += str(objId) + ', ' + str(pubmedID) + '<BR>\n' + \
-                linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+           level2error4 += str(objId) + ', ' + str(pubmedID) + '<BR>\n' + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
            return 1
 
         # skip & delete these publication types
@@ -1401,10 +1397,8 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
     if objType not in (userNLM) and len(results) > 1:
 
         # 1: input PubMed ID or DOI ID associated with different MGI references
-        diagFile.write('2: input PubMed ID or DOI ID associated with different MGI references: ' \
-        + objId + ',' + pubmedID + '\n')
-        level3error1 += str(objId) + ', ' + str(pubmedID) + '<BR>\n' + \
-            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+        diagFile.write('2: input PubMed ID or DOI ID associated with different MGI references: ' + objId + ',' + pubmedID + '\n')
+        level3error1 += str(objId) + ', ' + str(pubmedID) + '<BR>\n' + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
         shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
         count_needsreview += 1
         return 2, results
@@ -1417,10 +1411,8 @@ def level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
             if results[0]['pubmedID'] != None and results[0]['doiID'] != None:
                 if (pubmedID == results[0]['pubmedID'] and objId != results[0]['doiID']) or \
                    (pubmedID != results[0]['pubmedID'] and objId == results[0]['doiID']):
-                    diagFile.write('1: input PubMed ID or DOI ID associated with different MGI references: ' \
-                            + objId + ',' + pubmedID + '\n')
-                    level3error1 += str(objId) + ', ' + str(pubmedID) + '<BR>\n' + \
-                            linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+                    diagFile.write('1: input PubMed ID or DOI ID associated with different MGI references: ' + objId + ',' + pubmedID + '\n')
+                    level3error1 += str(objId) + ', ' + str(pubmedID) + '<BR>\n' + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
                     shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                     count_needsreview += 1
                     return 2, results
@@ -1582,8 +1574,7 @@ def processPDFs():
 
         # process supplemental but suppText not found
         if userPath in (userSupplement) and len(suppText) == 0:
-            level4error2 += str(objId) + '<BR>\n' + \
-                    linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+            level4error2 += str(objId) + '<BR>\n' + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
             count_needsreview += 1
             diagFile.write('userSupplement:needs review:%s, %s, %s\n' % (objId, userPath, pdfFile))
             shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
@@ -1630,8 +1621,7 @@ def processPDFs():
         rc, mgdRef = level3SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPath, pubmedRef)
 
         if rc == 1 or rc == 2:
-            diagFile.write('level3SanityChecks():needs review:%s, %s, %s, %s\n' \
-                        % (objId, userPath, pdfFile, pubmedID))
+            diagFile.write('level3SanityChecks():needs review:%s, %s, %s, %s\n' % (objId, userPath, pdfFile, pubmedID))
             continue
 
         #
@@ -1664,8 +1654,7 @@ def processPDFs():
                 logicalDBKey = 65
 
             accRow = '%s|%s|%s|%s|%s|%d|%d|0|1|%s|%s|%s|%s' \
-                % (accKey, accID, prefixPart, numericPart, logicalDBKey, objectKey, mgiTypeKey, \
-                   userKey, userKey, loaddate, loaddate)
+                % (accKey, accID, prefixPart, numericPart, logicalDBKey, objectKey, mgiTypeKey, userKey, userKey, loaddate, loaddate)
             accList.append(accRow)
 
             accKey += 1
@@ -1676,8 +1665,7 @@ def processPDFs():
         #
         elif rc == 0 and objType not in (userNLM): 
 
-            diagFile.write('level3SanityChecks():successful:add new:%s, %s, %s, %s\n' \
-                % (objId, userPath, pdfFile, pubmedID))
+            diagFile.write('level3SanityChecks():successful:add new:%s, %s, %s, %s\n' % (objId, userPath, pdfFile, pubmedID))
             diagFile.flush()
 
             # add pubmedID or doiId
@@ -1752,13 +1740,11 @@ def processPDFs():
                 # if userGOA,userNOCTUA and group = GO, then status = Full-coded
                 if userPath in (userGOA,userNOCTUA) and groupKey == 31576666:
                     statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s' \
-                        % (statusKey, refKey, groupKey, fullCodedKey, isCurrent, \
-                              userKey, userKey, loaddate, loaddate)
+                        % (statusKey, refKey, groupKey, fullCodedKey, isCurrent, userKey, userKey, loaddate, loaddate)
                     statusList.append(statusRow)
                 else:
                     statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s' \
-                        % (statusKey, refKey, groupKey, newCodedKey, isCurrent, \
-                              userKey, userKey, loaddate, loaddate)
+                        % (statusKey, refKey, groupKey, newCodedKey, isCurrent, userKey, userKey, loaddate, loaddate)
                     statusList.append(statusRow)
                 statusKey += 1
 
@@ -1941,12 +1927,10 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
     results = db.sql(sql, 'auto')
 
     if len(results) == 0:
-        level4error1 += str(mgiID) + '<BR>\n' + \
-                linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
+        level4error1 += str(mgiID) + '<BR>\n' + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR><BR>\n\n'
         count_needsreview += 1
         diagFile.write('userPDF/userSupplement/userNLM level1:needs review:%s, %s, %s\n' % (mgiID, userPath, pdfFile))
         shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-
         return
 
     existingRefKey = results[0]['_Refs_key']
@@ -2167,7 +2151,7 @@ def writeErrors():
     allErrors = allErrors + level3errorStart + level3error1
 
     level4error1 = '<B>1: MGI ID in filename does not match reference in MGI</B><BR><BR>\n\n' + level4error1 + '<BR>\n\n'
-    level4error2 = '<B>2: PDF does not contain the text "MGI Lit Triage Supplemental Data".  Cannot find the Supplmental data section.</B><BR><BR>\n\n' + level4error2 + '<BR>\n\n'
+    level4error2 = '<B>2: PDF does not contain the text "MGI Lit Triage Supplemental Data".  Cannot find the Supplemental data section.</B><BR><BR>\n\n' + level4error2 + '<BR>\n\n'
     allErrors = allErrors + level4errorStart + level4error1 + level4error2
 
     level5error1 = '<B>1: MGI ID not found or no pubmedID</B><BR><BR>\n\n' + level5error1 + '<BR>\n\n'
