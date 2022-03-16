@@ -1091,9 +1091,9 @@ def level1SanityChecks():
 
             try:
                 pdftext = pdf.getText();
-                print('start: PDFTEXT\n')
-                print(pdftext)
-                print('\nend: PDFTEXT\n')
+                #print('start: PDFTEXT\n')
+                #print(pdftext)
+                #print('\nend: PDFTEXT\n')
             except:
                 #
                 # stderr examples:
