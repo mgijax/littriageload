@@ -158,28 +158,28 @@ STAT=$?
 checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" >> ${LOG_DIAG} 2>&1
 
 # update cache
-date >> ${LOG_DIAG} 2>&1
-echo "Update BIB_Citation_Cache"  >> ${LOG_DIAG} 2>&1
-${MGICACHELOAD}/bibcitation.csh >> ${LOG_DIAG} 2>&1
-STAT=$?
-checkStatus ${STAT} "${MGICACHELOAD}/bibcitation.csh" >> ${LOG_DIAG} 2>&1
+#date >> ${LOG_DIAG} 2>&1
+#echo "Update BIB_Citation_Cache"  >> ${LOG_DIAG} 2>&1
+#${MGICACHELOAD}/bibcitation.csh >> ${LOG_DIAG} 2>&1
+#STAT=$?
+#checkStatus ${STAT} "${MGICACHELOAD}/bibcitation.csh" >> ${LOG_DIAG} 2>&1
 
 # relevance classifier
-date >> ${LOG_DIAG} 2>&1
-echo "process relevance classifier" >> ${LOG_DIAG} 2>&1
-${LITTRIAGELOAD}/bin/processRelevance.sh >> ${LOG_DIAG} 2>&1
-STAT=$?
-checkStatus ${STAT} "${LITTRIAGELOAD}/bin/processRelevance.csh" >> ${LOG_DIAG} 2>&1
+#date >> ${LOG_DIAG} 2>&1
+#echo "process relevance classifier" >> ${LOG_DIAG} 2>&1
+#${LITTRIAGELOAD}/bin/processRelevance.sh >> ${LOG_DIAG} 2>&1
+#STAT=$?
+#checkStatus ${STAT} "${LITTRIAGELOAD}/bin/processRelevance.csh" >> ${LOG_DIAG} 2>&1
 
 # secondary triage
-date >> ${LOG_DIAG} 2>&1
-echo "process secondary triage" >> ${LOG_DIAG} 2>&1
-${LITTRIAGELOAD}/bin/processSecondary.sh >> ${LOG_DIAG} 2>&1
-STAT=$?
-checkStatus ${STAT} "${LITTRIAGELOAD}/bin/processSecondary.csh" >> ${LOG_DIAG} 2>&1
+#date >> ${LOG_DIAG} 2>&1
+#echo "process secondary triage" >> ${LOG_DIAG} 2>&1
+#${LITTRIAGELOAD}/bin/processSecondary.sh >> ${LOG_DIAG} 2>&1
+#STAT=$?
+#checkStatus ${STAT} "${LITTRIAGELOAD}/bin/processSecondary.csh" >> ${LOG_DIAG} 2>&1
 
 # log OUTPUTDIR
-cp -r ${OUTPUTDIR} ${OUTPUTDIR}.${timestamp} >> ${LOG} 2>&1
+#cp -r ${OUTPUTDIR} ${OUTPUTDIR}.${timestamp} >> ${LOG} 2>&1
 
 # run postload cleanup and email logs
 shutDown

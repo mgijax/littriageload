@@ -905,6 +905,8 @@ def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract, vol, issue,
         authors = authors.replace("'", "''")
         primaryAuthor = primaryAuthor.replace("'", "''")
 
+    authors = authors.replace("||", "")
+
     if title == None or title == '':
         title = ''
     elif isSQL:
@@ -982,8 +984,8 @@ def level1SanityChecks():
     global userDict
     global objByUser
     global doiidById
-    global allErrors, level0error1, level1error1, level1error2, level1error3, level1error4
-    global count_needsreview
+    global allErrors, level0error1, level1error1, level1error2, level1error3, level1error4, level7error1
+    global count_needsreview, count_lowextractedtext
 
     nodupFileName = []
     dupFileName = []
@@ -1089,6 +1091,9 @@ def level1SanityChecks():
 
             try:
                 pdftext = pdf.getText();
+                print('start: PDFTEXT\n')
+                print(pdftext)
+                print('\nend: PDFTEXT\n')
             except:
                 #
                 # stderr examples:
@@ -1114,6 +1119,15 @@ def level1SanityChecks():
                 pdflogFile.write(pdf.getStderr())
                 pdflogFile.write('\n')
                 pdflogFile.flush()
+
+            #
+            # if pdftext is null/empty or < 100, needsReview
+            #
+            if pdftext == None or len(pdftext) < 1:
+                level7error1 += 'pdftext file is empty ' + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
+                shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
+                count_lowextractedtext += 1
+                continue;
 
             #
             # if userPath is in the 'userSupplement, userPDF or userNLM' folder
