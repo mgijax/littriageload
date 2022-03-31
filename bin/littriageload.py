@@ -1701,7 +1701,7 @@ def processPDFs():
                 pubmedRef.getPages(),
                 pubmedRef.getElocator())
 
-            if pubmedRef.getPublicationType() in ('Review'):
+            if pubmedRef.getPublicationType() in ('Review', 'Systematic Review'):
                 isReviewArticle = 1
             else:
                 isReviewArticle = 0
@@ -2081,7 +2081,7 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
         pgs = ''' E'%s' ''' % (pgs)
     else:
         pgs = ' null'
-    if ref.getPublicationType() in ('Review'):
+    if ref.getPublicationType() in ('Review', 'Systematic Review'):
         isReviewArticle = 1
     else:
         isReviewArticle = 0
