@@ -317,7 +317,7 @@ level3errorStart = '**********<BR>\nLiterature Triage Level 3 Errors : check MGI
 level4errorStart = '**********<BR>\nLiterature Triage Level 4 Errors : Supplemental/Update PDF<BR><BR>\n\n'
 level5errorStart = '**********<BR>\nLiterature Triage Level 5 Errors : Update NLM information<BR><BR>\n\n'
 level6errorStart = '**********<BR>\nLiterature Triage Level 6 Errors : Possible mismatch citation - citation title not found in extracted text<BR><BR>\n\n'
-level7errorStart = '**********<BR>\nLiterature Triage Level 7 Errors : Extracted text null or <100 characters<BR><BR>\n\n'
+level7errorStart = '**********<BR>\nLiterature Triage Level 7 Errors : Extracted text null or less than 100 characters<BR><BR>\n\n'
 
 countStart = '**********<BR>\nLiterature Triage Counts<BR>\n'
 
@@ -1123,7 +1123,7 @@ def level1SanityChecks():
             #
             # if pdftext is null/empty or < 100, needsReview
             #
-            if pdftext == None or len(pdftext) < 1:
+            if pdftext == None or len(pdftext) < 100:
                 level7error1 += 'pdftext file is empty ' + linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
                 shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
                 count_lowextractedtext += 1
