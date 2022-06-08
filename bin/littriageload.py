@@ -739,7 +739,6 @@ def bcpFiles():
     # these will be reloaded via bcp
     #
     diagFile.write('\n%s:delete/update sql commands\n' % (mgi_utils.date()))
-    sqllogFile.write('\nstart: delete/update sql commands\n')
     sqllogFile.write(deleteSQLAll)
     sqllogFile.write(updateSQLAll)
 
@@ -758,7 +757,7 @@ def bcpFiles():
             #diagFile.write('\nupdateSQLAll\n')
             #diagFile.write(updateSQLAll + '\n')
             db.sql(updateSQLAll, None)
-            db.commit()
+        #    db.commit()
         except:
             diagFile.write('bcpFiles(): failed: update sql commands\n')
             sqllogFile.write('bcpFiles(): failed: update sql commands\n')
