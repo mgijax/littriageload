@@ -738,28 +738,28 @@ def bcpFiles():
     # delete of BIB_Workflow_Data records
     # these will be reloaded via bcp
     #
-    diagFile.write('\n%s:delete/update sql commands\n' % (mgi_utils.date()))
+    diagFile.write('\n%s:running deleteSQLAll/updateSQLAll commands\n' % (mgi_utils.date()))
     sqllogFile.write(deleteSQLAll)
     sqllogFile.write(updateSQLAll)
 
     if len(deleteSQLAll) > 0:
+        diagFile.write('\ndeleteSQLAll - details in littriageload.sql.log\n')
         try:
-            diagFile.write('\ndeleteSQLAll - see littriageload.sql.log\n')
             db.sql(deleteSQLAll, None)
             db.commit()
         except:
-            diagFile.write('\ndeleteSQLAll/bcpFiles(): failed\n')
+            diagFile.write('\ndeleteSQLAll: failed\n')
             return 0
 
     if len(updateSQLAll) > 0:
+        diagFile.write('\nupdateSQLAll - details in littriageload.sql.log\n')
         try:
-            diagFile.write('\nupdateSQLAll - see littriageload.sql.log\n')
             db.sql(updateSQLAll, None)
         except:
-            diagFile.write('\nupdateSQLAll/bcpFiles(): failed\n')
+            diagFile.write('\nupdateSQLAll/check non-ascii characters: failed\n')
             return 0
 
-    diagFile.write('\n%s:delete/update sql commands\n' % (mgi_utils.date()))
+    diagFile.write('\n%s:deleteSQLAll/updateSQLAll: successful\n' % (mgi_utils.date()))
     db.commit()
 
     #
@@ -776,9 +776,9 @@ def bcpFiles():
         try:
             os.system(r)
         except:
-            diagFile.write('bcpFiles(): failed : os.system(%s)\n' (r))
+            diagFile.write('copy bcp files into database: failed : os.system(%s)\n' (r))
             return 0
-    diagFile.write('\n%s:copy bcp files into database\n' % (mgi_utils.date()))
+    diagFile.write('\n%s:copy bcp files into database : successful\n' % (mgi_utils.date()))
     diagFile.flush()
 
     #
