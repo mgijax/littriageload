@@ -744,27 +744,22 @@ def bcpFiles():
 
     if len(deleteSQLAll) > 0:
         try:
+            diagFile.write('\ndeleteSQLAll - see littriageload.sql.log\n')
             db.sql(deleteSQLAll, None)
             db.commit()
         except:
-            diagFile.write('bcpFiles(): failed: delete sql commands\n')
-            sqllogFile.write('bcpFiles(): failed: delete sql commands\n')
+            diagFile.write('\ndeleteSQLAll/bcpFiles(): failed\n')
             return 0
 
     if len(updateSQLAll) > 0:
         try:
-            #do not attach to diagFile; abstract may contain "fail" which gets reported by Dave's checker
-            #diagFile.write('\nupdateSQLAll\n')
-            #diagFile.write(updateSQLAll + '\n')
+            diagFile.write('\nupdateSQLAll - see littriageload.sql.log\n')
             db.sql(updateSQLAll, None)
-        #    db.commit()
         except:
-            diagFile.write('bcpFiles(): failed: update sql commands\n')
-            sqllogFile.write('bcpFiles(): failed: update sql commands\n')
+            diagFile.write('\nupdateSQLAll/bcpFiles(): failed\n')
             return 0
 
     diagFile.write('\n%s:delete/update sql commands\n' % (mgi_utils.date()))
-    sqllogFile.write('\nend: delete/update sql commands\n')
     db.commit()
 
     #
@@ -917,6 +912,7 @@ def replacePubMedRef(isSQL, authors, primaryAuthor, title, abstract, vol, issue,
         abstract = ''
     elif isSQL:
         abstract = abstract.replace("'", "''")
+        abstract = abstract.replace("\\", "")
     else:
         abstract = abstract.replace('|', '\\|')
 

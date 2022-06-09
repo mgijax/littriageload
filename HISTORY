@@ -1,7 +1,8 @@
+TAG: littriageload-6-0-19-2
 TAG: littriageload-6-0-19-1
 DATE: 06/08/2022
 STAFF: lec
-remove comment in SQL command
+abstracts contain non-asci characters/must remove
 
 TAG: littriageload-6-0-18-11
 DATE: 04/11/2022
