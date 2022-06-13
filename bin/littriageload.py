@@ -1946,12 +1946,11 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
     suppKey = results[0]['_Supplemental_key']
     userKey = loadlib.verifyUser(userPath, 0, diagFile)
 
+    # if this reference's extracted text has already been processed by another folder, skip it
     if existingRefKey not in existingRefKeyList:
         existingRefKeyList.append(existingRefKey)
-    #
-    # log issue/do nothing/leave in input dir to retry next day
-    #else:
-    #    return
+    else:
+        return
 
     if objType == userSupplement:
         dataSuppKey = suppAttachedKey
