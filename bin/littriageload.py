@@ -565,7 +565,7 @@ def initialize():
     for r in results:
         workflowGroupList.append(r['_Term_key'])
 
-    results = db.sql('select term from VOC_Term where _Vocab_key = 143', 'auto')
+    results = db.sql('select lower(term) as term from VOC_Term where _Vocab_key = 143', 'auto')
     for r in results:
         suppWordList.append(r['term'])
 
