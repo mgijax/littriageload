@@ -15,6 +15,6 @@ setenv QCPROARCHIVE             ${QCARCHIVEDIR}/pro
 
 foreach i (PRO_extracted_text PRO_ignored_text)
         ${QCRPTS}/reports.csh $i ${QCOUTPUTDIR}/$i.rpt ${PG_DBSERVER} ${PG_DBNAME}
-        cp -p ${QCOUTPUTDIR}/$i.rpt ${QCPROARCHIVE}/$i.`date +%Y%m%d`
+        cp -p ${QCOUTPUTDIR}/$i.rpt ${QCPROARCHIVE}/$i.`date +%Y%m%d.%H%M`
 end
 
