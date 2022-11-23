@@ -265,7 +265,8 @@ mvPDFtoMasterDir = {}
 
 # delete SQL commands
 deleteSQLAll = ''
-updateSQLAll = ''
+# update SQL commands; in a list
+updateSQLAll = []
 
 loaddate = loadlib.loaddate
 
@@ -738,9 +739,8 @@ def bcpFiles():
     # delete of BIB_Workflow_Data records
     # these will be reloaded via bcp
     #
-    diagFile.write('\n%s:running deleteSQLAll/updateSQLAll commands\n' % (mgi_utils.date()))
+    diagFile.write('\n%s:running deleteSQLAll commands\n' % (mgi_utils.date()))
     sqllogFile.write(deleteSQLAll)
-    sqllogFile.write(updateSQLAll)
 
     if len(deleteSQLAll) > 0:
         diagFile.write('\ndeleteSQLAll - details in littriageload.sql.log\n')
@@ -751,24 +751,12 @@ def bcpFiles():
             diagFile.write('\ndeleteSQLAll: failed\n')
             return 0
 
-    if len(updateSQLAll) > 0:
-        diagFile.write('\nupdateSQLAll - details in littriageload.sql.log\n')
-        try:
-            db.sql(updateSQLAll, None)
-        except:
-            diagFile.write('\nupdateSQLAll/check non-ascii characters: failed\n')
-            return 0
-
-    diagFile.write('\n%s:deleteSQLAll/updateSQLAll: successful\n' % (mgi_utils.date()))
-    db.commit()
-
     #
     # copy bcp files into database
     # if any bcp fails, return (0)
     # this means the input files will remain
     # and can be used in the next running of the load
     #
-
     diagFile.write('\n%s:copy bcp files into database\n' % (mgi_utils.date()))
     for r in bcpRun:
         diagFile.write('%s\n' % r)
@@ -794,6 +782,23 @@ def bcpFiles():
         diagFile.write('FATAL BCP ERROR:  reload database from backup/contact SE\n')
         return 0
 
+    #
+    # updateSQLAll
+    # if this fails, ok to keep going
+    # if this fails, check details and manually run SQL to find issue
+    #
+    diagFile.write('\n%s:running updateSQLAll commands\n' % (mgi_utils.date()))
+    for i in updateSQLAll:
+        diagFile.write('\n' + i + '\n')
+        db.sql(i, None)
+        db.commit()
+        #try:
+        #    db.sql(i, None)
+        #except:
+        #    diagFile.write('\nupdateSQLAll:check non-ascii:ok to continue\n')
+        ##    return 0
+    diagFile.write('\n%s:updateSQLAll: successful\n' % (mgi_utils.date()))
+    
     #
     # move PDF from inputdir to master directory
     # using numeric part of MGI id
@@ -1994,9 +1999,7 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
         dataKey += 1 
 
     deleteSQLAll += 'delete from BIB_Workflow_Data where _Refs_key = %s;\n' % (existingRefKey)
-
-    updateSQLAll += 'update BIB_Refs set _ModifiedBy_key = %s, modification_date = now() where _Refs_key = %s;\n' \
-                % (userKey, existingRefKey)
+    updateSQLAll.append('update BIB_Refs set _ModifiedBy_key = %s, modification_date = now() where _Refs_key = %s;\n' % (userKey, existingRefKey))
 
     # store dictionary : move pdf file from inputDir to masterPath
     newPath = Pdfpath.getPdfpath(masterDir, mgiID)
@@ -2080,7 +2083,7 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
     else:
         isReviewArticle = 0
 
-    updateSQLAll += '''
+    newUpdate = '''
                 update BIB_Refs 
                 set 
                 authors = %s,
@@ -2110,6 +2113,8 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
                        isReviewArticle, \
                        abstract, \
                        userKey, objectKey)
+
+    updateSQLAll.append(newUpdate)
 
     #
     # process extracted text
