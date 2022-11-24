@@ -789,14 +789,9 @@ def bcpFiles():
     #
     diagFile.write('\n%s:running updateSQLAll commands\n' % (mgi_utils.date()))
     for i in updateSQLAll:
-        diagFile.write('\n' + i + '\n')
+        sqllogFile.write(i)
         db.sql(i, None)
         db.commit()
-        #try:
-        #    db.sql(i, None)
-        #except:
-        #    diagFile.write('\nupdateSQLAll:check non-ascii:ok to continue\n')
-        ##    return 0
     diagFile.write('\n%s:updateSQLAll: successful\n' % (mgi_utils.date()))
     
     #
