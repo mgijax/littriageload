@@ -2083,6 +2083,9 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
     else:
         isReviewArticle = 0
 
+#                abstract = %s,
+#                       abstract, \
+
     newUpdate = '''
                 update BIB_Refs 
                 set 
@@ -2096,7 +2099,6 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
                 year = %s,
                 pgs = %s,
                 isReviewArticle = %s,
-                abstract = %s,
                 _ModifiedBy_key = %s, 
                 modification_date = now() 
                 where _Refs_key = %s
@@ -2111,7 +2113,6 @@ def processNLMRefresh(objKey, ref, bodyText, refText, figureText, starMethodText
                        ref.getYear(), \
                        pgs, \
                        isReviewArticle, \
-                       abstract, \
                        userKey, objectKey)
 
     updateSQLAll.append(newUpdate)
