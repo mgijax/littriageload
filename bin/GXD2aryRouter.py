@@ -23,7 +23,7 @@
                 cat2Exclude,    # [category 2 exclude terms]
                 )
     ### to route a reference, text = extracted text w/o the references section
-    routing =  router.routeThisRef(text, journal)
+    routing =  router.routeThisRef(lower(text), journal)
     if routing == 'Yes':
         # route it to GXD...
 
