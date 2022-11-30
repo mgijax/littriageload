@@ -23,7 +23,7 @@
                 cat2Exclude,    # [category 2 exclude terms]
                 )
     ### to route a reference, text = extracted text w/o the references section
-    routing =  router.routeThisRef(lower(text), journal)
+    routing =  router.routeThisRef(text, journal)
     if routing == 'Yes':
         # route it to GXD...
 
@@ -235,7 +235,7 @@ class GXDrouter (object):
     def routeThisRef(self, text, journal):
         """ Given info about a reference, return "Yes" or "No"
             text is full extracted text, typically w/o references section
-            Assumes the text is all lower case.
+            Never assumes the text is in lower case.
             Checks journal.
             Searches the full text for cat1 terms.
             Searches figure text for mouse_age and cat2 terms.
@@ -247,9 +247,7 @@ class GXDrouter (object):
         self.cat2Matches = []
         self.cat2Excludes = []
 
-        # uncomment out next line if we are not guarranteed that text is
-        #  already all lower case.
-        # text = text.lower() # to make things case insensitive
+        text = text.lower() # to make things case insensitive
 
         # for reporting purposes, do all the checks, even though we could
         #   return "No" upon the first failed check

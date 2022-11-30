@@ -1,3 +1,13 @@
+TAG: littriageload-6-0-22-5
+DATE: 11/30/2022
+STAFF: lec
+fl2/gxd secondary triage
+mgidbmigration/fl2-gxd
+littriageload/bin/GXD2aryRouter.py
+littriageload/bin/secondary.py
+autolittriage/figureText.py
+MLtextTools/utilsLib.py
+
 TAG: littriageload-6-0-22-4
 TAG: littriageload-6-0-22-3
 TAG: littriageload-6-0-22-2

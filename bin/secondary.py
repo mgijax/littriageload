@@ -11,12 +11,8 @@
 # text to search: extracted text except reference section
 # text to look for: (case insensitive)
 # 
-# GXD Criteria
-# References: relevance status = "keep", GXDstatus = "New"
-# Is Reviewed = Not Routed
-# References: relevance status = "discard", confidence > -2.75
-# text to search: extracted text except reference section
-# text criteria: '%embryo%' ; exclude list (vocab_key 135). (case insensitive)
+# GXD Criteria : Florida 2 Project
+# see processGXD; uses GXD2aryRouter
 # 
 # QTL Criteria
 # References: relevance status = "keep", QTLstatus = "New"
@@ -59,6 +55,9 @@ import db
 import mgi_utils
 import loadlib
 import reportlib
+
+import GXD2aryRouter
+import utilsLib
 
 db.setTrace()
 
@@ -340,67 +339,6 @@ def processAP():
 
         return 0
 
-def processGXD():
-        global statusFileName, statusFile
-        global logFileName, logFile
-        global outputFileName, outputFile
-        global searchTerms
-        global excludedTerms
-        global bcpCmd
-
-        statusFileName = outputDir + '/' + statusTable + '.GXD.bcp'
-        statusFile = open(statusFileName, 'w')
-        logFileName = logDir + '/secondary.GXD.log'
-        logFile = open(logFileName, 'w')
-        outputFileName = outputDir + '/GXD.txt'
-        outputFile = open(outputFileName, 'w')
-        bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
-
-        searchTerms = []
-        results = db.sql('select lower(term) as term from voc_term where _vocab_key = 166 order by term', 'auto')
-        for r in results:
-                searchTerms.append(r['term'])
-        #print(searchTerms)
-
-        excludedTerms = []
-        results = db.sql('select lower(term) as term from voc_term where _vocab_key = 135 order by term', 'auto')
-        for r in results:
-                excludedTerms.append(r['term'])
-        #print(excludedTerms)
-
-        mysql = sql
-
-        # References: relevance status = "discard", confidence > -2.75
-
-        mysql = mysql % (31576665) + '\n' + \
-        '''
-        union
-        select c._refs_key, c.mgiid, c.pubmedid, s._group_key, v.confidence, c.isreviewarticle
-        from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s
-        where r._refs_key = c._refs_key
-        and r._refs_key = v._refs_key
-        and v.isCurrent = 1
-        and v._relevance_key = 70594666
-        and v.confidence > -2.75
-        and r._refs_key = s._refs_key
-        and s._status_key = 71027551
-        and s._group_key = 31576665
-        and s.isCurrent = 1
-        and exists (select 1 from bib_workflow_data d
-                where r._refs_key = d._refs_key
-                and d._extractedtext_key not in (48804491)
-                and d.extractedText is not null
-                )
-        '''
-        process(mysql + orderBy)
-
-        logFile.flush()
-        logFile.close()
-        outputFile.flush()
-        outputFile.close()
-
-        return 0
-
 def processQTL():
         global statusFileName, statusFile
         global logFileName, logFile
@@ -541,6 +479,241 @@ def processPRO():
 
         return 0
 
+def processGXD():
+        # a bit different than the rest
+        # uses GXD2aryRouter instead of SQL logic
+
+        global statusFileName, statusFile
+        global logFileName, logFile
+        global allIsCurrentSql
+        global bcpCmd
+        global statusKey
+
+        statusFileName = outputDir + '/' + statusTable + '.GXD.bcp'
+        statusFile = open(statusFileName, 'w')
+        logFileName = logDir + '/gxd/secondary.GXD.log'
+        logFile = open(logFileName, 'w')
+        bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
+
+        detailsFileName = logDir + '/gxd/Details.txt'
+        detailsFile = open(detailsFileName, 'w')
+        routingsFileName = logDir + '/gxd/Routings.txt'
+        routingsFile = open(routingsFileName, 'w')
+        cat1MatchesFileName = logDir + '/gxd/Cat1Matches.txt'
+        cat1MatchesFile = open(cat1MatchesFileName, 'w')
+        cat2MatchesFileName = logDir + '/gxd/Cat2Matches.txt'
+        cat2MatchesFile = open(cat2MatchesFileName, 'w')
+        ageMatchesFileName = logDir + '/gxd/AgeMatches.txt'
+        ageMatchesFile = open(ageMatchesFileName, 'w')
+
+        logFile.write('step 1: build the vocabularies\n')
+
+        #
+        # 184 | Lit Triage GXD Secondary Journals skipped
+        # 166 | Lit Triage GXD Category 1 Terms
+        # 135 | Lit Triage GXD Category 1 Exclude
+        # 181 | Lit Triage GXD Age Excluded
+        # 183 | Lit Triage GXD Category 2 Terms
+        # 182 | Lit Triage GXD Category 2 Exclude
+
+        skipJournals = []
+        cat1Terms = []
+        cat1Exclude = []
+        ageExclude = []
+        cat2Terms = []
+        cat2Exclude = []
+
+        results = db.sql('select term from voc_term where _vocab_key = 184', 'auto')
+        for r in results:
+                skipJournals.append(r['term'])
+
+        results = db.sql('select term from voc_term where _vocab_key = 166', 'auto')
+        for r in results:
+                cat1Terms.append(r['term'])
+
+        results = db.sql('select term from voc_term where _vocab_key = 135', 'auto')
+        for r in results:
+                cat1Exclude.append(r['term'])
+
+        results = db.sql('select term from voc_term where _vocab_key = 181', 'auto')
+        for r in results:
+                ageExclude.append(r['term'])
+
+        results = db.sql('select term from voc_term where _vocab_key = 183', 'auto')
+        for r in results:
+                cat2Terms.append(r['term'])
+
+        results = db.sql('select term from voc_term where _vocab_key = 182', 'auto')
+        for r in results:
+                cat2Exclude.append(r['term'])
+
+        # instantiate the Router class
+        router = GXD2aryRouter.GXDrouter(
+                skipJournals,   # [journal names] whose articles don't route
+                cat1Terms,      # [category 1 terms]
+                cat1Exclude,    # [category 1 exclude terms]
+                ageExclude,     # [age exclude terms]
+                cat2Terms,      # [category 2 terms]
+                cat2Exclude,    # [category 2 exclude terms]
+                )
+
+        # Details report - summarized all the vocabs, regex, used by the router (GXDrouter has a getExplanation() method)
+        detailsFile.write(mgi_utils.date() + '\n')
+        detailsFile.write(router.getExplanation())
+        detailsFile.flush()
+        detailsFile.close()
+
+        logFile.write('step 2: start building report\n')
+
+        # Routings report
+        routingsFile.write(mgi_utils.date() + '\n')
+        routingsFile.write('MGI_ID|pubmedID|routing|goodJournal|Cat1 matches|Cat1 Excludes|Age matches|Age Excludes|Cat2 matches|Cat2 Excludes|relevance|confidence|isReviewArticle|journal\n')
+
+        # Cat1Matches report
+        cat1MatchesFile.write(mgi_utils.date() + '\n')
+        cat1MatchesFile.write('MGI_ID|pubmedID|routing|Cat1 matches|matchType|preText|matchText|postText|relevance|confidence\n')
+
+        # Cat2Matches report
+        cat2MatchesFile.write(mgi_utils.date() + '\n')
+        cat2MatchesFile.write('MGI_ID|pubmedID|routing|Cat2 matches|matchType|preText|matchText|postText|relevance|confidence\n')
+
+        # AgeMatches report
+        ageMatchesFile.write(mgi_utils.date() + '\n')
+        ageMatchesFile.write('MGI_ID|pubmedID|routing|Age matches|matchType|preText|matchText|postText|relevance|confidence\n')
+
+        logFile.write('step 3: search the database for references that match criteria\n')
+
+        #
+        # search criteria
+        #       group = GXD
+        #       relevance = any
+        #       status = New
+        #       confidence > -2.75
+        #       _extractedtext_key != reference (48804491)
+        #       isReviewArticle = 0
+        #
+        # for each reference:
+        #       step 5: concatenate all extracted text for this reference and then send to route
+        #       step 6: send to router
+        #       step 7: generate report log
+        #       step 8: set GXD Status = Routed or Not Routed
+        #
+
+        results = db.sql('''
+                select c._refs_key, c.mgiid, c.pubmedid, c.isreviewarticlestring, s._group_key, r.journal, t.term as relevanceTerm, v.confidence
+                from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s, voc_term t
+                where r._refs_key = c._refs_key
+                and c.isReviewArticle = 0
+                and r._refs_key = v._refs_key
+                and v.isCurrent = 1
+                and v._relevance_key = t._term_key
+                and v.confidence >= -2.75
+                and r._refs_key = s._refs_key
+                and s._status_key = 71027551
+                and s._group_key = 31576665
+                and s.isCurrent = 1
+                and exists (select 1 from bib_workflow_data d
+                        where r._refs_key = d._refs_key
+                        and d._extractedtext_key != 48804491
+                        )
+                order by pubmedid desc
+        ''', 'auto')
+
+        logFile.write('step 4: iterate thru references\n')
+
+        for r in results:
+
+                logFile.write('\n' + r['mgiid'] + '|' + r['pubmedid'] + '|' + r['journal'] + '\n')
+
+                logFile.write('step 5: concatenate all extracted text for this reference and then send to route\n')
+                eresults = db.sql('''
+                        select extractedtext
+                        from bib_workflow_data
+                        where _refs_key = %s
+                        and _extractedtext_key != 48804491
+                ''' % (r['_refs_key']), 'auto')
+                extractedText = ""
+                for e in eresults:
+                        extractedText += e['extractedText'] + '\n'
+
+                logFile.write('step 6: send to router\n')
+                routing = router.routeThisRef(extractedText, r['journal'])
+
+                logFile.write('step 7: generate report log\n')
+
+                if router.getGoodJournal() == 1:
+                        goodJournal = "Yes"
+                else:
+                        goodJournal = "No"
+
+                # Routing report
+                routingsFile.write(r['mgiid'] + '|' + r['pubmedid'] + '|' + routing + '|' + goodJournal + '|')
+                routingsFile.write(str(len(router.getCat1Matches())) + '|')
+                routingsFile.write(str(len(router.getCat1Excludes())) + '|')
+                routingsFile.write(str(len(router.getAgeMatches())) + '|')
+                routingsFile.write(str(len(router.getAgeExcludes())) + '|')
+                routingsFile.write(str(len(router.getCat2Matches())) + '|')
+                routingsFile.write(str(len(router.getCat2Excludes())) + '|')
+                routingsFile.write(r['relevanceTerm'] + '|' + str(r['confidence']) + '|' + r['isreviewarticlestring'] + '|' + r['journal'] + '\n')
+
+                # Cat1 Matches
+                for c in router.getCat1Matches():
+                        cat1MatchesFile.write(r['mgiid'] + '|' + r['pubmedid'] + '|' + routing + '|')
+                        cat1MatchesFile.write(str(len(router.getCat1Matches())) + '|')
+                        cat1MatchesFile.write(c.matchType + '|')
+                        cat1MatchesFile.write(c.preText.replace('\n','\\n').replace('\t','\\t') + '|')
+                        cat1MatchesFile.write(c.matchText.replace('\n','\\n').replace('\t','\\t') + '|')
+                        cat1MatchesFile.write(c.postText.replace('\n','\\n').replace('\t','\\t') + '|')
+                        cat1MatchesFile.write(r['relevanceTerm'] + '|' + str(r['confidence']) + '\n')
+
+                # Cat2 Matches
+                for c in router.getCat2Matches():
+                        cat2MatchesFile.write(r['mgiid'] + '|' + r['pubmedid'] + '|' + routing + '|')
+                        cat2MatchesFile.write(str(len(router.getCat2Matches())) + '|')
+                        cat2MatchesFile.write(c.matchType + '|')
+                        cat2MatchesFile.write(c.preText.replace('\n','\\n').replace('\t','\\t') + '|')
+                        cat2MatchesFile.write(c.matchText.replace('\n','\\n').replace('\t','\\t') + '|')
+                        cat2MatchesFile.write(c.postText.replace('\n','\\n').replace('\t','\\t') + '|')
+                        cat2MatchesFile.write(r['relevanceTerm'] + '|' + str(r['confidence']) + '\n')
+
+                # Age Matches
+                for c in router.getAgeMatches():
+                        ageMatchesFile.write(r['mgiid'] + '|' + r['pubmedid'] + '|' + routing + '|')
+                        ageMatchesFile.write(str(len(router.getAgeMatches())) + '|')
+                        ageMatchesFile.write(c.matchType + '|')
+                        ageMatchesFile.write(c.preText.replace('\n','\\n').replace('\t','\\t') + '|')
+                        ageMatchesFile.write(c.matchText.replace('\n','\\n').replace('\t','\\t') + '|')
+                        ageMatchesFile.write(c.postText.replace('\n','\\n').replace('\t','\\t') + '|')
+                        ageMatchesFile.write(r['relevanceTerm'] + '|' + str(r['confidence']) + '\n')
+
+                if routing == "Yes":
+                        termKey = routedKey;
+                        logFile.write('step 8: set GXD Status = Routed\n')
+                else:
+                        termKey = notroutedKey;
+                        logFile.write('step 8: set GXD Status = Not Route\n')
+
+                statusFile.write('%s|%s|31576665|%s|%s|%s|%s|%s|%s\n' \
+                          % (statusKey, r['_refs_key'], termKey, isCurrent, userKey, userKey, loaddate, loaddate))
+                statusKey += 1
+
+                # set the existing isCurrent = 0
+                allIsCurrentSql += setIsCurrentSql % (r['_group_key'], r['_refs_key'])
+
+        routingsFile.flush()
+        routingsFile.close()
+        cat1MatchesFile.flush()
+        cat1MatchesFile.close()
+        cat2MatchesFile.flush()
+        cat2MatchesFile.close()
+        ageMatchesFile.flush()
+        ageMatchesFile.close()
+
+        logFile.flush()
+        logFile.close()
+
+        return 0
+
 #
 #  MAIN
 #
@@ -551,11 +724,6 @@ if initialize() != 0:
 
 #print('processAP')
 if processAP() != 0:
-    closeFiles()
-    sys.exit(1)
-
-#print('processGXD')
-if processGXD() != 0:
     closeFiles()
     sys.exit(1)
 
@@ -576,6 +744,11 @@ if processGO() != 0:
 
 #print('processPRO')
 if processPRO() != 0:
+    closeFiles()
+    sys.exit(1)
+
+#print('processGXD')
+if processGXD() != 0:
     closeFiles()
     sys.exit(1)
 
