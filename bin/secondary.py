@@ -600,12 +600,13 @@ def processGXD():
         #
 
         results = db.sql('''
-                select c._refs_key, c.mgiid, c.pubmedid, c.isreviewarticlestring, s._group_key, r.journal, t.term as relevanceTerm, v.confidence
+                select c._refs_key, c.mgiid, c.pubmedid, c.isreviewarticlestring, 
+                        s._group_key, r.journal, t.term as relevanceTerm, v.confidence
                 from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s, voc_term t
                 where r._refs_key = c._refs_key
                 and c.isReviewArticle = 0
                 and r._refs_key = v._refs_key
-                and v.isCurrent = 1
+                and v._modifiedby_key = 1617
                 and v._relevance_key = t._term_key
                 and v.confidence >= -2.75
                 and r._refs_key = s._refs_key
