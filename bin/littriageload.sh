@@ -53,9 +53,8 @@ else
 fi
 
 #
-# clean out archive, logs.*, input.* after 30 days
+# clean out logs.*, input.* after 30 days
 #
-find ${FILEDIR}/archive/* -type f -mtime +30 -exec rm -rf {} \; >> ${LOG} 2>&1
 find ${FILEDIR}/logs.* -type d -mtime +30 -exec rm -rf {} \; >> ${LOG} 2>&1
 find ${FILEDIR}/input.* -type d -mtime +14 -exec rm -rf {} \; >> ${LOG} 2>&1
 
