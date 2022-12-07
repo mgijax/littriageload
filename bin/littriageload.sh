@@ -69,7 +69,7 @@ cp -r ${LOGDIR} ${LOGDIR}.`date '+%Y%m%d.%H%M'` >> ${LOG} 2>&1
 # createArchive including OUTPUTDIR, INPUTDIR, etc.
 # sets "JOBKEY"
 # preload will create the LOG_DIAG, LOG_ERROR, etc. files
-preload ${OUTPUTDIR}
+preloadNoArchive ${OUTPUTDIR}
 
 #
 # Create curator subdirectories in input directory
