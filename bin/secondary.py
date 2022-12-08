@@ -585,12 +585,23 @@ def processGXD():
 
         #
         # search criteria
+        #
         #       group = GXD
-        #       relevance = any
+        #       relevance = discard
         #       status = New
         #       confidence > -2.75
         #       _extractedtext_key != reference (48804491)
         #       isReviewArticle = 0
+        #       extractedText is not null
+        #
+        #       union
+        #
+        #       group = GXD
+        #       relevance = keep
+        #       status = New
+        #       _extractedtext_key != reference (48804491)
+        #       isReviewArticle = 0
+        #       extractedText is not null
         #
         # for each reference:
         #       step 5: concatenate all extracted text for this reference and then send to route
@@ -600,6 +611,7 @@ def processGXD():
         #
 
         results = db.sql('''
+                (
                 select c._refs_key, c.mgiid, c.pubmedid, c.isreviewarticlestring, 
                         s._group_key, r.journal, t.term as relevanceTerm, v.confidence
                 from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s, voc_term t
@@ -607,8 +619,9 @@ def processGXD():
                 and c.isReviewArticle = 0
                 and r._refs_key = v._refs_key
                 and v._modifiedby_key = 1617
+                and v._relevance_key = 70594666
                 and v._relevance_key = t._term_key
-                and v.confidence >= -2.75
+                and v.confidence > -2.75
                 and r._refs_key = s._refs_key
                 and s._status_key = 71027551
                 and s._group_key = 31576665
@@ -616,13 +629,38 @@ def processGXD():
                 and exists (select 1 from bib_workflow_data d
                         where r._refs_key = d._refs_key
                         and d._extractedtext_key != 48804491
+                        and d.extractedText is not null
                         )
+                union
+                select c._refs_key, c.mgiid, c.pubmedid, c.isreviewarticlestring, 
+                        s._group_key, r.journal, t.term as relevanceTerm, v.confidence
+                from bib_citation_cache c, bib_refs r, bib_workflow_relevance v, bib_workflow_status s, voc_term t
+                where r._refs_key = c._refs_key
+                and c.isReviewArticle = 0
+                and r._refs_key = v._refs_key
+                and v.isCurrent = 1
+                and v._relevance_key = 70594667
+                and v._relevance_key = t._term_key
+                and r._refs_key = s._refs_key
+                and s._status_key = 71027551
+                and s._group_key = 31576665
+                and s.isCurrent = 1
+                and exists (select 1 from bib_workflow_data d
+                        where r._refs_key = d._refs_key
+                        and d._extractedtext_key != 48804491
+                        and d.extractedText is not null
+                        )
+                )
                 order by pubmedid desc
         ''', 'auto')
 
         logFile.write('step 4: iterate thru references\n')
 
         for r in results:
+
+                # pubmed id may be null
+                if r['pubmedid'] == None:
+                        r['pubmedid'] = ""
 
                 logFile.write('\n' + r['mgiid'] + '|' + r['pubmedid'] + '|' + r['journal'] + '\n')
 
@@ -632,6 +670,7 @@ def processGXD():
                         from bib_workflow_data
                         where _refs_key = %s
                         and _extractedtext_key != 48804491
+                        and extractedtext is not null
                 ''' % (r['_refs_key']), 'auto')
                 extractedText = ""
                 for e in eresults:
