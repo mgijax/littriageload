@@ -505,6 +505,8 @@ def processGXD():
         cat2MatchesFile = open(cat2MatchesFileName, 'w')
         ageMatchesFileName = logDir + '/gxd/AgeMatches.txt'
         ageMatchesFile = open(ageMatchesFileName, 'w')
+        ageExcludesFileName = logDir + '/gxd/AgeExcludes.txt'
+        ageExcludesFile = open(ageExcludesFileName, 'w')
 
         logFile.write('step 1: build the vocabularies\n')
 
@@ -580,6 +582,10 @@ def processGXD():
         # AgeMatches report
         ageMatchesFile.write(mgi_utils.date() + '\n')
         ageMatchesFile.write('MGI_ID|pubmedID|routing|Age matches|matchType|preText|matchText|postText|relevance|confidence\n')
+
+        # AgeExcludes report
+        ageExcludesFile.write(mgi_utils.date() + '\n')
+        ageExcludesFile.write('MGI_ID|pubmedID|routing|Age excludes|matchType|preText|matchText|postText|relevance|confidence\n')
 
         logFile.write('step 3: search the database for references that match criteria\n')
 
@@ -726,6 +732,16 @@ def processGXD():
                         ageMatchesFile.write(c.postText.replace('\n','\\n').replace('\t','\\t') + '|')
                         ageMatchesFile.write(r['relevanceTerm'] + '|' + str(r['confidence']) + '\n')
 
+                # Age Excludes
+                for c in router.getAgeExcludes():
+                        ageExcludesFile.write(r['mgiid'] + '|' + r['pubmedid'] + '|' + routing + '|')
+                        ageExcludesFile.write(str(len(router.getAgeMatches())) + '|')
+                        ageExcludesFile.write(c.matchType + '|')
+                        ageExcludesFile.write(c.preText.replace('\n','\\n').replace('\t','\\t') + '|')
+                        ageExcludesFile.write(c.matchText.replace('\n','\\n').replace('\t','\\t') + '|')
+                        ageExcludesFile.write(c.postText.replace('\n','\\n').replace('\t','\\t') + '|')
+                        ageExcludesFile.write(r['relevanceTerm'] + '|' + str(r['confidence']) + '\n')
+
                 if routing == "Yes":
                         termKey = routedKey;
                         logFile.write('step 8: set GXD Status = Routed\n')
@@ -748,6 +764,8 @@ def processGXD():
         cat2MatchesFile.close()
         ageMatchesFile.flush()
         ageMatchesFile.close()
+        ageExcludesFile.flush()
+        ageExcludesFile.close()
 
         logFile.flush()
         logFile.close()
