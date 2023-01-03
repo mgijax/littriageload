@@ -480,12 +480,10 @@ def processPRO():
         return 0
 
 def processGXD():
-        # a bit different than the rest
-        # uses GXD2aryRouter instead of SQL logic
+        # process GXD
 
         global statusFileName, statusFile
         global logFileName, logFile
-        global allIsCurrentSql
         global bcpCmd
         global statusKey
 
@@ -494,6 +492,22 @@ def processGXD():
         logFileName = logDir + '/gxd/secondary.GXD.log'
         logFile = open(logFileName, 'w')
         bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
+
+        processGXDRouter()
+        processGXDReviewArticle()
+
+        logFile.flush()
+        logFile.close()
+
+        return 0
+
+def processGXDRouter():
+        # uses GXD2aryRouter instead of SQL logic
+
+        global statusFileName, statusFile
+        global logFileName, logFile
+        global allIsCurrentSql
+        global statusKey
 
         detailsFileName = logDir + '/gxd/Details.txt'
         detailsFile = open(detailsFileName, 'w')
@@ -517,6 +531,7 @@ def processGXD():
         # 181 | Lit Triage GXD Age Excluded
         # 183 | Lit Triage GXD Category 2 Terms
         # 182 | Lit Triage GXD Category 2 Exclude
+        #
 
         skipJournals = []
         cat1Terms = []
@@ -593,16 +608,22 @@ def processGXD():
         # search criteria
         #
         #       group = GXD
+        #       isCurrent = 1
         #       relevance = discard
         #       status = New
+        #       user = relevance_classifier
         #       confidence > -2.75
         #       _extractedtext_key != reference (48804491)
         #       isReviewArticle = 0
         #       extractedText is not null
         #
+        #       relevance = discard must be one row 1 (isCurrent = 1)
+        #        user = relevance_classifier/confidence > -2.75 can be on *any* line
+        #
         #       union
         #
         #       group = GXD
+        #       isCurrent = 1
         #       relevance = keep
         #       status = New
         #       _extractedtext_key != reference (48804491)
@@ -615,6 +636,9 @@ def processGXD():
         #       step 7: generate report log
         #       step 8: set GXD Status = Routed or Not Routed
         #
+        #
+        #  step 9: group = GXD, status = New, reviewArticle = yes, set to Not Routed
+        #
 
         results = db.sql('''
                 (
@@ -624,10 +648,14 @@ def processGXD():
                 where r._refs_key = c._refs_key
                 and c.isReviewArticle = 0
                 and r._refs_key = v._refs_key
-                and v._modifiedby_key = 1617
+                and v.isCurrent = 1
                 and v._relevance_key = 70594666
                 and v._relevance_key = t._term_key
-                and v.confidence > -2.75
+                and exists (select 1 from bib_workflow_relevance vv
+                        where r._refs_key = vv._refs_key
+                        and vv._modifiedby_key = 1617
+                        and vv.confidence > -2.75
+                        )
                 and r._refs_key = s._refs_key
                 and s._status_key = 71027551
                 and s._group_key = 31576665
@@ -767,8 +795,52 @@ def processGXD():
         ageExcludesFile.flush()
         ageExcludesFile.close()
 
-        logFile.flush()
-        logFile.close()
+        return 0
+
+def processGXDReviewArticle():
+        # process gxd review articles
+
+        global statusFileName, statusFile
+        global logFileName, logFile
+        global allIsCurrentSql
+        global statusKey
+
+        #
+        # search criteria
+        #
+        #       group = GXD
+        #       status = New
+        #       isReviewArticle = 1
+        #
+        results = db.sql('''
+                select c._refs_key, c.mgiid, c.pubmedid, s._group_key, r.journal
+                from bib_citation_cache c, bib_refs r, bib_workflow_status s
+                where r._refs_key = c._refs_key
+                and c.isReviewArticle = 1
+                and r._refs_key = s._refs_key
+                and s._status_key = 71027551
+                and s._group_key = 31576665
+                and s.isCurrent = 1
+                order by pubmedid desc
+        ''', 'auto')
+
+        logFile.write('\nstep 9: group = GXD, status = New, reviewArticle = Yes, set status = Not Routed\n')
+
+        for r in results:
+
+                # pubmed id may be null
+                if r['pubmedid'] == None:
+                        r['pubmedid'] = ""
+
+                logFile.write('\n' + r['mgiid'] + '|' + r['pubmedid'] + '|' + r['journal'] + '\n')
+
+                termKey = notroutedKey;
+                statusFile.write('%s|%s|31576665|%s|%s|%s|%s|%s|%s\n' \
+                          % (statusKey, r['_refs_key'], termKey, isCurrent, userKey, userKey, loaddate, loaddate))
+                statusKey += 1
+                
+                # set the existing isCurrent = 0
+                allIsCurrentSql += setIsCurrentSql % (r['_group_key'], r['_refs_key'])
 
         return 0
 
@@ -782,32 +854,26 @@ if initialize() != 0:
 
 #print('processAP')
 if processAP() != 0:
-    closeFiles()
     sys.exit(1)
 
 #print('processQTL')
 if processQTL() != 0:
-    closeFiles()
     sys.exit(1)
 
 #print('processTumor')
 if processTumor() != 0:
-    closeFiles()
     sys.exit(1)
 
 #print('processGO')
 if processGO() != 0:
-    closeFiles()
     sys.exit(1)
 
 #print('processPRO')
 if processPRO() != 0:
-    closeFiles()
     sys.exit(1)
 
 #print('processGXD')
 if processGXD() != 0:
-    closeFiles()
     sys.exit(1)
 
 # flush the status 
