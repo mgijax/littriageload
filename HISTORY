@@ -1,7 +1,13 @@
+TAG: littriageload-6-0-22-12
+DATE: 01/10/2023
+STAFF: lec
+wts2-1092/fl2-122/GXD secondary supplemental data tweak
+littriageload.py
+
 TAG: littriageload-6-0-22-11
 DATE: 01/03/2023
 STAFF: lec
-wts2-846/fl2-56/new supplemental logic
+wts2-848/fl2-56/new supplemental logic
 wts2-1081/fl2-100/Set Reviews to Not Routed status for GXD
 littriageload.py
 secondary.py
