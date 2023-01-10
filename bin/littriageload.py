@@ -1959,13 +1959,14 @@ def processExtractedText(objKey, bodyText, refText, figureText, starMethodText, 
 
         #
         # flr2-56/if GXD Status = Not Routed or Rejected, then set GXD Status = New
+        # wts2-1092/remove Rejected
         #
         gxdCheck = db.sql('''
                 select _assoc_key from bib_workflow_status 
                 where _refs_key = %s
                 and isCurrent = 1 
                 and _group_key = 31576665
-                and _status_key in (31576669,31576672)
+                and _status_key = 31576669
                 ''' % (existingRefKey), 'auto')
         if len(gxdCheck) == 1:
             updateSQLAll.append('update BIB_Refs set _ModifiedBy_key = %s, modification_date = now() where _Refs_key = %s;\n' \
