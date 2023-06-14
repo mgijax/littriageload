@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 '''
   Purpose: Define the classes that implement the GXD 2ary triage routing
             algorithm.
