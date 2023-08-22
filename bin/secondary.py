@@ -694,9 +694,16 @@ def processGXDRouter():
 
                 # pubmed id may be null
                 if r['pubmedid'] == None:
-                        r['pubmedid'] = ""
+                        pubmedid = ""
+                else:
+                        pubmedid = r['pubmedid']
 
-                logFile.write('\n' + r['mgiid'] + '|' + r['pubmedid'] + '|' + r['journal'] + '\n')
+                if r['journal'] == None:
+                        journal = ""
+                else:
+                        journal = r['journal']
+
+                logFile.write('\n' + r['mgiid'] + '|' + pubmedid + '|' + journal + '\n')
 
                 logFile.write('step 5: concatenate all extracted text for this reference and then send to route\n')
                 eresults = db.sql('''
@@ -711,7 +718,7 @@ def processGXDRouter():
                         extractedText += e['extractedText'] + '\n'
 
                 logFile.write('step 6: send to router\n')
-                routing = router.routeThisRef(extractedText, r['journal'])
+                routing = router.routeThisRef(extractedText, journal)
 
                 logFile.write('step 7: generate report log\n')
 
@@ -721,18 +728,18 @@ def processGXDRouter():
                         goodJournal = "No"
 
                 # Routing report
-                routingsFile.write(r['mgiid'] + '|' + r['pubmedid'] + '|' + routing + '|' + goodJournal + '|')
+                routingsFile.write(r['mgiid'] + '|' + pubmedid + '|' + routing + '|' + goodJournal + '|')
                 routingsFile.write(str(len(router.getCat1Matches())) + '|')
                 routingsFile.write(str(len(router.getCat1Excludes())) + '|')
                 routingsFile.write(str(len(router.getAgeMatches())) + '|')
                 routingsFile.write(str(len(router.getAgeExcludes())) + '|')
                 routingsFile.write(str(len(router.getCat2Matches())) + '|')
                 routingsFile.write(str(len(router.getCat2Excludes())) + '|')
-                routingsFile.write(r['relevanceTerm'] + '|' + str(r['confidence']) + '|' + r['isreviewarticlestring'] + '|' + r['journal'] + '\n')
+                routingsFile.write(r['relevanceTerm'] + '|' + str(r['confidence']) + '|' + r['isreviewarticlestring'] + '|' + journal + '\n')
 
                 # Cat1 Matches
                 for c in router.getCat1Matches():
-                        cat1MatchesFile.write(r['mgiid'] + '|' + r['pubmedid'] + '|' + routing + '|')
+                        cat1MatchesFile.write(r['mgiid'] + '|' + pubmedid + '|' + routing + '|')
                         cat1MatchesFile.write(str(len(router.getCat1Matches())) + '|')
                         cat1MatchesFile.write(c.matchType + '|')
                         cat1MatchesFile.write(c.preText.replace('\n','\\n').replace('\t','\\t') + '|')
@@ -742,7 +749,7 @@ def processGXDRouter():
 
                 # Cat2 Matches
                 for c in router.getCat2Matches():
-                        cat2MatchesFile.write(r['mgiid'] + '|' + r['pubmedid'] + '|' + routing + '|')
+                        cat2MatchesFile.write(r['mgiid'] + '|' + pubmedid + '|' + routing + '|')
                         cat2MatchesFile.write(str(len(router.getCat2Matches())) + '|')
                         cat2MatchesFile.write(c.matchType + '|')
                         cat2MatchesFile.write(c.preText.replace('\n','\\n').replace('\t','\\t') + '|')
@@ -752,7 +759,7 @@ def processGXDRouter():
 
                 # Age Matches
                 for c in router.getAgeMatches():
-                        ageMatchesFile.write(r['mgiid'] + '|' + r['pubmedid'] + '|' + routing + '|')
+                        ageMatchesFile.write(r['mgiid'] + '|' + pubmedid + '|' + routing + '|')
                         ageMatchesFile.write(str(len(router.getAgeMatches())) + '|')
                         ageMatchesFile.write(c.matchType + '|')
                         ageMatchesFile.write(c.preText.replace('\n','\\n').replace('\t','\\t') + '|')
@@ -762,7 +769,7 @@ def processGXDRouter():
 
                 # Age Excludes
                 for c in router.getAgeExcludes():
-                        ageExcludesFile.write(r['mgiid'] + '|' + r['pubmedid'] + '|' + routing + '|')
+                        ageExcludesFile.write(r['mgiid'] + '|' + pubmedid + '|' + routing + '|')
                         ageExcludesFile.write(str(len(router.getAgeMatches())) + '|')
                         ageExcludesFile.write(c.matchType + '|')
                         ageExcludesFile.write(c.preText.replace('\n','\\n').replace('\t','\\t') + '|')
@@ -830,9 +837,16 @@ def processGXDReviewArticle():
 
                 # pubmed id may be null
                 if r['pubmedid'] == None:
-                        r['pubmedid'] = ""
+                        pubmedid = ""
+                else:
+                        pubmedid = r['pubmedid']
 
-                logFile.write('\n' + r['mgiid'] + '|' + r['pubmedid'] + '|' + r['journal'] + '\n')
+                if r['journal'] == None:
+                        journal = ""
+                else:
+                        journal = r['journal']
+
+                logFile.write('\n' + r['mgiid'] + '|' + pubmedid + '|' + journal + '\n')
 
                 termKey = notroutedKey;
                 statusFile.write('%s|%s|31576665|%s|%s|%s|%s|%s|%s\n' \
