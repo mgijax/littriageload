@@ -58,7 +58,7 @@
 #
 #	   split text into sections
 #
-#          if not (userSupplement, userPDF, userGOA, userNOCTUA, userNLM, userDiscard):
+#          if not (userSupplement, userPDF, userGO, userNLM, userDiscard):
 #		run mice check
 #
 #	   supplmental check
@@ -121,8 +121,7 @@ textSplitter = ''
 # special processing for specific cases
 userSupplement = 'littriage_create_supplement'
 userPDF = 'littriage_update_pdf'
-userGOA = 'littriage_goa'
-userNOCTUA = 'littriage_noctua'
+userGO = 'littriage_go'
 userNLM = 'littriage_NLM_refresh'
 userDiscard = 'littriage_discard'
 
@@ -138,9 +137,6 @@ count_duplicate = 0
 count_doipubmedadded = 0
 count_mismatchedtitles = 0
 count_lowextractedtext = 0
-
-count_userGOA = 0
-count_userNOCTUA = 0
 count_userGO = 0
 
 diag = ''
@@ -284,8 +280,7 @@ userDict = {}
 # objByUser = {('userPath', 'pmc', 'pmcid') : ('pdffile', 'pdftext', 'splittext')}
 # objByUser = {('userPath', userPDF, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
 # objByUser = {('userPath', userSupplement, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
-# objByUser = {('userPath', userGOA, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
-# objByUser = {('userPath', userNOCTUA, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
+# objByUser = {('userPath', userGO, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
 # objByUser = {('userPath', userNLM, 'mgiid') : ('pdffile', 'pdftext', 'splittext')}
 # {('cms, 'doi', '10.112xxx'): ['10.112xxx.pdf, 'text'']}
 # {('cms, 'pm', 'PMID_14440025'): ['PDF_14440025.pdf', 'text'']}
@@ -1464,8 +1459,6 @@ def processPDFs():
     global refKeyList
     global count_processPDFs
     global count_needsreview
-    global count_userGOA
-    global count_userNOCTUA
     global count_userGO
     global count_userPDF
     global count_userNLM
@@ -1492,8 +1485,7 @@ def processPDFs():
     # objByUser = {('userPath', 'pm', 'pmid') : ('pdffile', 'pdftext')}
     # objByUser = {('userPath', userPDF, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('userPath', userSupplement, 'mgiid') : ('pdffile', 'pdftext')}
-    # objByUser = {('userPath', userGOA, 'mgiid') : ('pdffile', 'pdftext')}
-    # objByUser = {('userPath', userNOCTUA, 'mgiid') : ('pdffile', 'pdftext')}
+    # objByUser = {('userPath', userGO, 'mgiid') : ('pdffile', 'pdftext')}
     # objByUser = {('userPath', userDiscard, 'mgiid') : ('pdffile', 'pdftext')}
 
     for key in objByUser:
@@ -1546,7 +1538,7 @@ def processPDFs():
         # only interested in running checkMice for curator folders, etc.
         # if non-refText section checkMice = false, then isDiscard = relevanceDiscardKey
         #
-        if userPath not in (userSupplement, userPDF, userGOA, userNOCTUA, userNLM, userDiscard):
+        if userPath not in (userSupplement, userPDF, userGO, userNLM, userDiscard):
             if bodyText.lower().find(checkMice) < 0 \
                 and figureText.lower().find(checkMice) < 0 \
                 and suppText.lower().find(checkMice) < 0 \
@@ -1560,7 +1552,7 @@ def processPDFs():
         # ignore 'bonferroni correction'
         checkErratum = 1
         isErratum = 0
-        if userPath not in (userSupplement, userPDF, userGOA, userNOCTUA, userNLM, userDiscard) and objType not in ('pm'):
+        if userPath not in (userSupplement, userPDF, userGO, userNLM, userDiscard) and objType not in ('pm'):
             diagFile.write('ERRATUM:searching:%s, %s, %s\n' % (objId, userPath, pdfFile))
             for e in erratumExcludeList:
                 if bodyText.lower().find(e) >= 0:
@@ -1708,7 +1700,7 @@ def processPDFs():
             #    isDiscard = relevanceNotSpecKey
 
             #
-            # if same pdf is placed in userSupplement,userPDF,userGOA,userNOCTUA,userNLM
+            # if same pdf is placed in userSupplement,userPDF,userGO,userNLM
             # skip, no need to report this as an error
             #
             if refKey in refKeyList:
@@ -1746,8 +1738,8 @@ def processPDFs():
             # 1 row per Group
             #
             for groupKey in workflowGroupList:
-                # if userGOA,userNOCTUA and group = GO, then status = Full-coded
-                if userPath in (userGOA,userNOCTUA) and groupKey == 31576666:
+                # if userGO and group = GO, then status = Full-coded
+                if userPath in (userGO) and groupKey == 31576666:
                     statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s' \
                         % (statusKey, refKey, groupKey, fullCodedKey, isCurrent, userKey, userKey, loaddate, loaddate)
                     statusList.append(statusRow)
@@ -1844,7 +1836,7 @@ def processPDFs():
             #
             # J:xxxx
             #
-            if userPath in (userGOA,userNOCTUA):
+            if userPath in (userGO):
                 accID = 'J:' + str(jnumKey)
                 prefixPart = 'J:'
                 numericPart = jnumKey
@@ -1855,11 +1847,7 @@ def processPDFs():
                 accList.append(accRow)
                 accKey += 1
                 jnumKey += 1
-                if userPath == userGOA:
-                    count_userGOA += 1
-                if userPath == userNOCTUA:
-                    count_userNOCTUA += 1
-                if userPath in (userGOA, userNOCTUA):
+                if userPath in (userGO):
                     count_userGO += 1
 
             #
@@ -2155,8 +2143,6 @@ def writeErrors():
     global level7error1
     global count_processPDFs
     global count_needsreview
-    global count_userGOA
-    global count_userNOCTUA
     global count_userGO
     global count_userPDF
     global count_userNLM
@@ -2196,8 +2182,7 @@ def writeErrors():
     allCounts = allCounts + 'Records with Supplemental data added: ' + str(count_userSupplement) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Updated PDF\'s: ' + str(count_userPDF) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Updated NLM information: ' + str(count_userNLM) + '<BR>\n\n'
-    allCounts = allCounts + 'Records with GOA information: ' + str(count_userGOA) + '<BR>\n\n'
-    allCounts = allCounts + 'Records with Noctua information: ' + str(count_userNOCTUA) + '<BR>\n\n'
+    allCounts = allCounts + 'Records with GO information: ' + str(count_userGO) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Duplicates: ' + str(count_duplicate) + '<BR>\n\n'
     allCounts = allCounts + 'Records with DOI or Pubmed Ids added: ' + str(count_doipubmedadded) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Mismatched titles: ' + str(count_mismatchedtitles) + '<BR>\n\n'

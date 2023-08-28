@@ -1,3 +1,10 @@
+TAG: littriageload-6-0-22-15
+DATE: 08/28/2023
+STAFF: lec
+wts2-1155/fl2-491/GOC:  littriageload/merge littriage_goa/littriage_noctua folders -> littriage_go
+#       modified:   bin/littriageload.py
+#       modified:   bin/updateRelevance.py
+
 TAG: littriageload-6-0-22-14
 DATE: 08/22/2023
 STAFF: lec

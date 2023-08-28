@@ -63,7 +63,7 @@ for line in inFile.readlines():
         termKey = loadlib.verifyTerm('', 149, term, lineNum, None)
 
         # GO/Full-Coded exists
-        # then set relevance = keep, user in (1575, 1623) littriage_goa/littriage_noctua
+        # then set relevance = keep, user = 1575/littriage_go
         if termKey == 70594666:
                 goresult = db.sql('''
                         select _refs_key, _createdby_key from BIB_Workflow_Status
@@ -71,7 +71,7 @@ for line in inFile.readlines():
                         and isCurrent = 1
                         and _group_key = 31576666
                         and _status_key = 31576674
-                        and _createdby_key in (1575, 1623)
+                        and _createdby_key = 1575
                         ''' % (refKey), 'auto')
                 for r in goresult:
                         gotermKey = 70594667
