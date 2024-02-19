@@ -759,7 +759,7 @@ def bcpFiles():
         try:
             os.system(r)
         except:
-            diagFile.write('copy bcp files into database: failed : %s\n' (r))
+            diagFile.write('copy bcp files into database: failed\n')
             return 0
     diagFile.write('\n%s:copy bcp files into database : successful\n' % (mgi_utils.date()))
     diagFile.flush()
