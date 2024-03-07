@@ -34,6 +34,8 @@ fi
 LOG=${LOG_FILE}
 rm -rf ${LOG}
 >>${LOG}
+rm -rf ${LOG_RENAME}
+>>${LOG_RENAME}
 
 #
 # Source the DLA library functions.
