@@ -104,7 +104,7 @@ ${LITTRIAGELOAD}/bin/findNLMrefresh.sh >> ${LOG} 2>&1
 
 #
 # rename PUBLISHEDDIR/user pdf files that contain terms that will 
-# are chechedk by jenkins_admin/logList.tasks.daily
+# are cheched by jenkins_admin/logList.tasks.daily
 # log the renames to a different log:  logs/littriageload.rename.log
 # and do *not* add this log to jenkins_admin/logList.tasks.daily
 #
