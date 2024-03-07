@@ -53,6 +53,7 @@ LOG_PROC=${LOGDIR}/littriageload.proc.log
 LOG_DIAG=${LOGDIR}/littriageload.diag.log
 LOG_CUR=${LOGDIR}/littriageload.cur.log
 LOG_VAL=${LOGDIR}/littriageload.val.log
+LOG_RENAME=${LOGDIR}/littriageload.rename.log
 LOG_ERROR=${LOGDIR}/littriageload.error.shtml
 LOG_SQL=${LOGDIR}/littriageload.sql.log
 LOG_DUPLICATE=${LOGDIR}/littriageload.dups.log
@@ -63,8 +64,8 @@ LOG_NLMREFRESHPDF=${LOGDIR}/littriageload.nlmrefreshpdf.log
 LOG_SPLITTER=${LOGDIR}/littriageload.splitter.log
 LOG_PDF=${LOGDIR}/littriageload.pdf.log
 
-export LOG_FILE LOG_PROC LOG_DIAG LOG_CUR LOG_VAL LOG_ERROR LOG_SQL LOG_DUPLICATE LOG_PUBTYPE LOG_DOIPUBMEDADDED
-export LOG_NLMREFRESHFIND LOG_NLMREFRESHPDF
+export LOG_FILE LOG_PROC LOG_DIAG LOG_CUR LOG_VAL LOG_RENAME LOG_ERROR LOG_SQL 
+export LOG_DUPLICATE LOG_PUBTYPE LOG_DOIPUBMEDADDED LOG_NLMREFRESHFIND LOG_NLMREFRESHPDF
 export LOG_SPLITTER LOG_PDF
 
 # relevance classifier

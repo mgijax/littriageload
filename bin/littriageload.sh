@@ -101,8 +101,23 @@ echo "running findNLMrefresh.sh..." >> ${LOG} 2>&1
 ${LITTRIAGELOAD}/bin/findNLMrefresh.sh >> ${LOG} 2>&1
 
 #
-# if DEV, use 'cp'
-# else use 'mv'
+# rename PUBLISHEDDIR/user pdf files that contain terms that will 
+# are chechedk by jenkins_admin/logList.tasks.daily
+# log the renames to a different log:  logs/littriageload.rename.log
+# and do *not* add this log to jenkins_admin/logList.tasks.daily
+#
+date >> ${LOG}
+date >> ${LOG_RENAME}
+echo "---------------------" >> ${LOG} 2>&1
+echo "Rename ${PUBLISHEDDIR} files that contain bad terms" >> ${LOG} 2>&1
+cd ${PUBLISHEDDIR}
+for i in `find . -maxdepth 2 -iname "*fail*.pdf"`
+do
+NEW_FILE=$(echo $i | sed 's/fail//')
+echo "mv ${i} $NEW_FILE" >> ${LOG_RENAME} 2>&1
+mv "$i" "$NEW_FILE" >> ${LOG_RENAME} 2>&1
+done
+
 #
 # cp/mv PUBLISHEDDIR/user pdf files to INPUTDIR/user
 #
@@ -112,20 +127,9 @@ echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}" >> ${LOG} 2>&1
 cd ${PUBLISHEDDIR}
 for i in `find . -maxdepth 2 -iname "[a-zA-Z0-9]*.pdf"`
 do
-if [ `uname -n` = "bhmgidevapp01" ]
-then
 echo "cp/rm -f ${i} ${INPUTDIR}/${i}" >> ${LOG} 2>&1
 cp -f ${i} ${INPUTDIR}/${i} >> ${LOG} 2>&1
 rm -rf ${i} >> ${LOG} 2>&1
-elif [ "${INSTALL_TYPE}" = "dev" ]
-then
-echo "cp -f ${i} ${INPUTDIR}/${i}" >> ${LOG} 2>&1
-cp -f ${i} ${INPUTDIR}/${i} >> ${LOG} 2>&1
-else
-echo "cp/rm -f ${i} ${INPUTDIR}/${i}" >> ${LOG} 2>&1
-cp -f ${i} ${INPUTDIR}/${i} >> ${LOG} 2>&1
-rm -rf ${i} >> ${LOG} 2>&1
-fi
 done
 
 # results of cp/mv
