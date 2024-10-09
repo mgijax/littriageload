@@ -27,6 +27,13 @@ else
     exit 1
 fi
 
+# Check that PUBLISHEDDIR directory exists
+if [ ! -d ${PUBLISHEDDIR} ]
+then
+    echo "Missing _New_Newcurrent directory: ${PUBLISHEDDIR}"
+    exit 1
+fi
+
 #
 # Initialize the log file.
 # open LOG in append mode and redirect stdout
@@ -101,6 +108,11 @@ ls -l ${NEEDSREVIEWTRIAGEDIR} >> ${LOG} 2>&1
 date >> ${LOG}
 echo "running findNLMrefresh.sh..." >> ${LOG} 2>&1
 ${LITTRIAGELOAD}/bin/findNLMrefresh.sh >> ${LOG} 2>&1
+
+# move needs_review files to INPUT/user
+date >> ${LOG} 2>&1
+echo "running restore_needsreview_folder.sh..." >> ${LOG} 2>&1
+${LITTRIAGELOAD}/bin/restore_needsreview_folder.sh >> ${LOG} 2>&1
 
 #
 # rename PUBLISHEDDIR/user pdf files that contain terms that will 
