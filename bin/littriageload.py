@@ -98,6 +98,7 @@ import os
 import shutil
 import re
 import traceback
+import time
 import db
 import mgi_utils
 import loadlib
@@ -1291,6 +1292,12 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
     else:
         pubmedID = objId
         pubMedRef = pma.getReferenceInfo(pubmedID)
+        if pubMedRef.getPubMedID() == None:
+            pubMedRef = pma.getReferenceInfo(pubmedID)
+        if pubMedRef.getPubMedID() == None:
+            pubMedRef = pma.getReferenceInfo(pubmedID)
+        if pubMedRef.getPubMedID() == None:
+            pubMedRef = pma.getReferenceInfo(pubmedID)
 
     #  3: error getting medline record
     if not pubMedRef.isValid():
