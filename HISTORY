@@ -1,8 +1,12 @@
+TAG: littriageload-6-0-23-7
 TAG: littriageload-6-0-23-6
 TAG: littriageload-6-0-23-5
 DATE: 10/09/2024
 STAFF: lec
 wts2-1564/e4g-32/Lit Triage : needs_review/missing data from required field for DOI ID
+NCBI fixed their issue Case # CAS-1381052-C7Y5N5: PubMed and E-Utils API Errors TRACKING:000435001374767
+bin/littriageload.sh:commented out call to restore_needsreview_folder.sh
+see bin/testeutilsapi.py for testing 
 
 TAG: littriageload-6-0-23-4
 TAG: littriageload-6-0-23-3
