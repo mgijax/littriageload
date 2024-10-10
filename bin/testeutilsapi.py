@@ -1,5 +1,7 @@
 #
-# use this to test the pubmed agent and/or directlry to the eutils/api
+# use this to test the:
+#   pubmed agent 
+#   directly to the eutils/api
 #
 # usage:  
 # edit pubmedids as needed
