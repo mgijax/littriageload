@@ -1754,7 +1754,7 @@ def processPDFs():
                     statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s' \
                         % (statusKey, refKey, groupKey, statusFullCodedKey, isCurrent, userKey, userKey, loaddate, loaddate)
                     statusList.append(statusRow)
-                elif userPath in (userGXDHT) and groupKey == 31576665:
+                elif userPath in (userGXDHT) and groupKey == 114000000:
                     statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s' \
                         % (statusKey, refKey, groupKey, statusIndexedKey, isCurrent, userKey, userKey, loaddate, loaddate)
                     statusList.append(statusRow)
