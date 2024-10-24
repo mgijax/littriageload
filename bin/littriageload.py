@@ -215,7 +215,8 @@ mgiTypeKey = 1
 mgiPrefix = 'MGI:'
 referenceTypeKey = 31576687 	# Peer Reviewed Article
 newCodedKey = 71027551;
-fullCodedKey = 31576674		# Full-coded (workflow_status/_vocab_key = 128)
+statusIndexedKey = 31576673;      # Indexed (workflow_status/_vocab_key = 128)
+statusFullCodedKey = 31576674		# Full-coded (workflow_status/_vocab_key = 128)
 miceInRefOnlyKey = 49170000	# MGI:Mice in reference only
 
 # default isDiscard = not specified
@@ -839,8 +840,9 @@ def bcpFiles():
     db.commit()
 
     # update the max accession ID value for J:
-    if count_userGO:
-        db.sql('select * from ACC_setMax (%d, \'J:\')' % (count_userGO), None)
+    if count_userGO or count_userGXDHT:
+        count_acc = count_userGO + count_userGXDHT
+        db.sql('select * from ACC_setMax (%d, \'J:\')' % (count_acc), None)
         db.commit()
 
     diagFile.write('\n%s:bcpFiles():successful\n' % (mgi_utils.date()))
@@ -1750,7 +1752,11 @@ def processPDFs():
                 # if userGO and group = GO, then status = Full-coded
                 if userPath in (userGO) and groupKey == 31576666:
                     statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s' \
-                        % (statusKey, refKey, groupKey, fullCodedKey, isCurrent, userKey, userKey, loaddate, loaddate)
+                        % (statusKey, refKey, groupKey, statusFullCodedKey, isCurrent, userKey, userKey, loaddate, loaddate)
+                    statusList.append(statusRow)
+                elif userPath in (userGXDHT) and groupKey == 31576665:
+                    statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s' \
+                        % (statusKey, refKey, groupKey, statusIndexedKey, isCurrent, userKey, userKey, loaddate, loaddate)
                     statusList.append(statusRow)
                 else:
                     statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s' \
@@ -1845,7 +1851,7 @@ def processPDFs():
             #
             # J:xxxx
             #
-            if userPath in (userGO):
+            if userPath in (userGO, userGXDHT):
                 accID = 'J:' + str(jnumKey)
                 prefixPart = 'J:'
                 numericPart = jnumKey
@@ -1858,6 +1864,8 @@ def processPDFs():
                 jnumKey += 1
                 if userPath in (userGO):
                     count_userGO += 1
+                elif userPath in (userGXDHT):
+                    count_userGXDHT += 1
 
             #
             # if splitter does not find reference section
