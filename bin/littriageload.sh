@@ -85,19 +85,19 @@ preloadNoArchive ${OUTPUTDIR}
 # note: this will not remove old/obsolete input directories
 #       archive obsolete curator directories manually
 #
-cd ${PUBLISHEDDIR}
-for i in *
-do
-mkdir -p ${INPUTDIR}/${i}
-mkdir -p ${NEEDSREVIEWTRIAGEDIR}/${i}
-done
-date >> ${LOG}
-echo "---------------------" >> ${LOG} 2>&1
-echo "input directory" >> ${LOG} 2>&1
-ls -l ${INPUTDIR_DIAG} >> ${LOG} 2>&1
-echo "---------------------" >> ${LOG} 2>&1
-echo "needs review directory" >> ${LOG} 2>&1
-ls -l ${NEEDSREVIEWTRIAGEDIR} >> ${LOG} 2>&1
+#cd ${PUBLISHEDDIR}
+#for i in *
+#do
+#mkdir -p ${INPUTDIR}/${i}
+#mkdir -p ${NEEDSREVIEWTRIAGEDIR}/${i}
+#done
+#date >> ${LOG}
+#echo "---------------------" >> ${LOG} 2>&1
+#echo "input directory" >> ${LOG} 2>&1
+#ls -l ${INPUTDIR_DIAG} >> ${LOG} 2>&1
+#echo "---------------------" >> ${LOG} 2>&1
+#echo "needs review directory" >> ${LOG} 2>&1
+#ls -l ${NEEDSREVIEWTRIAGEDIR} >> ${LOG} 2>&1
 
 #
 # run findNLMrefres.sh to find references that are mising DOI ids
@@ -156,10 +156,15 @@ ls -l ${PUBLISHEDDIR}/* >> ${LOG} 2>&1
 # copy the ${INPUTDIR} to a separate archive
 # this will be used if help restart a load
 # make sure this happens *before* next step
+#cp -r ${INPUTDIR} ${INPUTDIR}.${timestamp} >> ${LOG} 2>&1
 #
 timestamp=`date '+%Y%m%d.%H%M'`
-cp -r ${INPUTDIR} ${INPUTDIR}.${timestamp} >> ${LOG} 2>&1
-rm -rf ${LASTINPUTDIR} >> ${LOG} 2>&1
+cd ${INPUTDIR}
+tar -cvf ${INPUTDIR}.${timestamp}.tar . >> ${LOG} 2>&1
+mkdir ${INPUTDIR}.${timestamp} >> ${LOG} 2>&1
+cd ${INPUTDIR}.${timestamp}
+tar -xvf ${INPUTDIR}.${timestamp}.tar . >> ${LOG} 2>&1
+rm -rf ${LASTINPUTDIR} ${INPUTDIR}.${timestamp}.tar >> ${LOG} 2>&1
 ln -s ${INPUTDIR}.${timestamp} ${LASTINPUTDIR} >> ${LOG} 2>&1
 
 cd ${LITTRIAGELOAD}
