@@ -1,3 +1,8 @@
+TAG: littriageload-6-0-24-5
+DATE: 12/20/2024
+STAFF: lec
+added logic to add pubmedid *and* doiid from EUTILS api
+
 TAG: littriageload-6-0-24-4
 TAG: littriageload-6-0-24-3
 TAG: littriageload-6-0-24-2

@@ -24,21 +24,7 @@ pma = PubMedAgent.PubMedAgentMedline()
 
 #pubmedids = ['38880789', '7734751', '7735680', '7735690', '7736054', '7736420', '7736432', '7736510', '7736652', '30026924']
 pubmedids = [
-'37842081',
-'37946043',
-'37961316',
-'38124345',
-'38143961',
-'38169386',
-'38187646',
-'38346723',
-'38419621',
-'38622407',
-'38661305',
-'38813868',
-'38849535',
-'38915624',
-'38957358'
+'23060193'
 ]
 
 
@@ -58,6 +44,7 @@ for pid in pubmedids:
     #    pubMedRef = pma.getReferenceInfo(pid)
     #    print("3", pubMedRef.getPubMedID(), pubMedRef.getTitle() ,pubMedRef.getJournal() ,pubMedRef.getDate() ,pubMedRef.getYear() ,pubMedRef.getPublicationType())
     else:
+        print(pubMedRef.getDoiID())
         print(pubMedRef.getPubMedID(), pubMedRef.getTitle() ,pubMedRef.getJournal() ,pubMedRef.getDate() ,pubMedRef.getYear() ,pubMedRef.getPublicationType())
     print()
 
