@@ -1619,6 +1619,11 @@ def processPDFs():
            diagFile.write('process:pubmedRef.getPubMedID()() needs review:%s, %s, %s\n' % (objId, userPath, pdfFile))
            continue
 
+        try:
+           doiID = pubmedRef.getDoiID()
+        except:
+           doiID = ''
+
         diagFile.write('level2SanityChecks():successful:%s, %s, %s, %s\n' % (objId, userPath, pdfFile, pubmedID))
         diagFile.flush()
 
@@ -1834,9 +1839,21 @@ def processPDFs():
             accKey += 1
 
             #
-            # doiId only
+            # doiID only
             #
-            if objType in (objDOI, userDiscard):
+            if doiID != '':
+                accID = doiID
+                prefixPart = accID
+                numericPart = ''
+                logicalDBKey = 65
+
+                accRow = '%s|%s|%s|%s|%s|%d|%d|%s|%s|%s|%s|%s|%s' \
+                        % (accKey, accID, prefixPart, numericPart, logicalDBKey, refKey, mgiTypeKey, \
+                        isPrivate, isPreferred, userKey, userKey, loaddate, loaddate)
+                accList.append(accRow)
+                accKey += 1
+
+            elif objType in (objDOI, userDiscard):
                 accID = objId
                 prefixPart = accID
                 numericPart = ''
