@@ -1,26 +1,32 @@
 #
 # use this to test the:
-#   pubmed agent 
-#   directly to the eutils/api
+#   pdf parser
 #
 # usage:  
-# edit pubmedids as needed
-# $PYTHON testeutilsapi.py
+# edit pdfFile = '1s20S2589004221005058main.pdf'
+# $PYTHON testpdftotext.py
+# will send output to textpdftotext.log
 #
 
 import sys 
 import os
-import db
-import Pdfpath
+import PdfParser
 import extractedTextSplitter
 
-db.setTrace()
+PdfParser.setLitParserDir(os.getenv('MGIUTILS') + '/litparser')
 
-pdf = PdfParser.PdfParser(os.getenv('DATALOADSOUTPUT') + '/input.last/??', pdfFile))
+os.system('rm -rf textpdftotext.log')
+logFile = open('textpdftotext.log', 'w')
+
+pdfPath = os.getenv('DATALOADSOUTPUT') + '/mgi/littriageload/input.last/' + 'smb'
+pdfFile = '1s20S2589004221005058main.pdf'
+pdf = PdfParser.PdfParser(os.path.join(pdfPath, pdfFile))
 pdftext = pdf.getText();
-print(pdftext)
-textSplitter = extractedTextSplitter.ExtTextSplitter()
+logFile.write(pdftext)
 
+#textSplitter = extractedTextSplitter.ExtTextSplitter()
 #(bodyText, refText, figureText, starMethodText, suppText)  = textSplitter.splitSections(pdftext)
-#print(bodyText, refText, figureText, starMethodText, suppText)
+#logFile.write(bodyText, refText, figureText, starMethodText, suppText)
+
+logFile.close()
 
