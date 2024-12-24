@@ -62,11 +62,11 @@ else
 fi
 
 #
-# clean out logs.*, input.* after 20 days
+# clean out logs.*, input.*, output.* after 20 days
 #
 find ${FILEDIR}/logs.* -type d -mtime +20 -exec rm -rf {} \; >> ${LOG} 2>&1
-find ${FILEDIR}/output.* -type d -mtime +20 -exec rm -rf {} \; >> ${LOG} 2>&1
 find ${FILEDIR}/input.* -type d -mtime +20 -exec rm -rf {} \; >> ${LOG} 2>&1
+find ${FILEDIR}/output.* -type d -mtime +20 -exec rm -rf {} \; >> ${LOG} 2>&1
 
 #
 # copy the ${LOGDIR} to a separate archive
