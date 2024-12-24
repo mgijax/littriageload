@@ -23,6 +23,8 @@ pdfFile = '1s20S2589004221005058main.pdf'
 pdf = PdfParser.PdfParser(os.path.join(pdfPath, pdfFile))
 pdftext = pdf.getText();
 logFile.write(pdftext)
+doiid = pdf.getFirstDoiID()
+logFile.write(doiid + "\n")
 
 #textSplitter = extractedTextSplitter.ExtTextSplitter()
 #(bodyText, refText, figureText, starMethodText, suppText)  = textSplitter.splitSections(pdftext)

@@ -62,10 +62,11 @@ else
 fi
 
 #
-# clean out logs.*, input.* after 30 days
+# clean out logs.*, input.* after 20 days
 #
-find ${FILEDIR}/logs.* -type d -mtime +30 -exec rm -rf {} \; >> ${LOG} 2>&1
-find ${FILEDIR}/input.* -type d -mtime +14 -exec rm -rf {} \; >> ${LOG} 2>&1
+find ${FILEDIR}/logs.* -type d -mtime +20 -exec rm -rf {} \; >> ${LOG} 2>&1
+find ${FILEDIR}/output.* -type d -mtime +20 -exec rm -rf {} \; >> ${LOG} 2>&1
+find ${FILEDIR}/input.* -type d -mtime +20 -exec rm -rf {} \; >> ${LOG} 2>&1
 
 #
 # copy the ${LOGDIR} to a separate archive
@@ -85,19 +86,19 @@ preloadNoArchive ${OUTPUTDIR}
 # note: this will not remove old/obsolete input directories
 #       archive obsolete curator directories manually
 #
-#cd ${PUBLISHEDDIR}
-#for i in *
-#do
-#mkdir -p ${INPUTDIR}/${i}
-#mkdir -p ${NEEDSREVIEWTRIAGEDIR}/${i}
-#done
-#date >> ${LOG}
-#echo "---------------------" >> ${LOG} 2>&1
-#echo "input directory" >> ${LOG} 2>&1
-#ls -l ${INPUTDIR_DIAG} >> ${LOG} 2>&1
-#echo "---------------------" >> ${LOG} 2>&1
-#echo "needs review directory" >> ${LOG} 2>&1
-#ls -l ${NEEDSREVIEWTRIAGEDIR} >> ${LOG} 2>&1
+cd ${PUBLISHEDDIR}
+for i in *
+do
+mkdir -p ${INPUTDIR}/${i}
+mkdir -p ${NEEDSREVIEWTRIAGEDIR}/${i}
+done
+date >> ${LOG}
+echo "---------------------" >> ${LOG} 2>&1
+echo "input directory" >> ${LOG} 2>&1
+ls -l ${INPUTDIR_DIAG} >> ${LOG} 2>&1
+echo "---------------------" >> ${LOG} 2>&1
+echo "needs review directory" >> ${LOG} 2>&1
+ls -l ${NEEDSREVIEWTRIAGEDIR} >> ${LOG} 2>&1
 
 #
 # run findNLMrefres.sh to find references that are mising DOI ids
@@ -156,6 +157,7 @@ ls -l ${PUBLISHEDDIR}/* >> ${LOG} 2>&1
 # copy the ${INPUTDIR} to a separate archive
 # this will be used if help restart a load
 # make sure this happens *before* next step
+# 11/26/2024 : replacing "cp -r" with tar
 #cp -r ${INPUTDIR} ${INPUTDIR}.${timestamp} >> ${LOG} 2>&1
 #
 timestamp=`date '+%Y%m%d.%H%M'`
@@ -178,6 +180,16 @@ echo "Run littriageload.py"  >> ${LOG_DIAG} 2>&1
 ${PYTHON} ${LITTRIAGELOAD}/bin/littriageload.py >> ${LOG_DIAG} 2>&1
 STAT=$?
 checkStatus ${STAT} "${LITTRIAGELOAD}/bin/littriageload.py" >> ${LOG_DIAG} 2>&1
+
+#
+# 11/26/2024
+# update GXD HT : add J:, set Status
+# commented out/not being used at the moment
+# if these become a problem for Connie, then turn this on/un-comment
+#
+#echo "Running updateGXDHT.py" | tee -a ${LOG_DIAG}
+#${PYTHON} updateGXDHT.py  >> ${LOG_DIAG} 2>&1
+#checkStatus ${STAT} "${LITTRIAGELOAD}/bin/updateGXDHT.py"
 
 # update cache
 date >> ${LOG_DIAG} 2>&1
