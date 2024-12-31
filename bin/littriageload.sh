@@ -30,7 +30,32 @@ fi
 # Check that PUBLISHEDDIR directory exists
 if [ ! -d ${PUBLISHEDDIR} ]
 then
-    echo "Missing _New_Newcurrent directory: ${PUBLISHEDDIR}"
+    echo "_New_Newcurrent directory is missing: ${PUBLISHEDDIR}"
+    exit 1
+fi
+
+# Check that PUBLISHEDDIR directory is not empty
+if [ "$(ls -A ${PUBLISHEDDIR})" ]
+then
+    echo "_New_Newcurrent directory is not empty: ${PUBLISHEDDIR}"
+else
+    echo "_New_Newcurrent directory is empty: ${PUBLISHEDDIR}"
+    exit 1
+fi
+
+# Check that NEEDSREVIEWTRIAGEDIR directory exists
+if [ ! -d ${NEEDSREVIEWTRIAGEDIR} ]
+then
+    echo "needs_review directory is missing: ${NEEDSREVIEWTRIAGEDIR}"
+    exit 1
+fi
+
+# Check that NEEDSREVIEWTRIAGEDIR directory is not empty
+if [ "$(ls -A ${NEEDSREVIEWTRIAGEDIR})" ]
+then
+    echo "needs_review directory is not empty: ${NEEDSREVIEWTRIAGEDIR}"
+else
+    echo "needs_review directory is empty: ${NEEDSREVIEWTRIAGEDIR}"
     exit 1
 fi
 
