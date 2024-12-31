@@ -1,8 +1,10 @@
+TAG: littriageload-6-0-25-2
 TAG: littriageload-6-0-25-1
 DATE: 12/31/2024
 STAFF: lec
 #       modified:   littriageload.sh
 wts2-1597/e4g-108/Lit Triage : check needs_review & _New_NewCurrent
+turned off call to findNLMrefresh.sh
 
 TAG: littriageload-6-0-24-5
 DATE: 12/20/2024

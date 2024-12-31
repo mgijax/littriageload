@@ -131,9 +131,12 @@ ls -l ${NEEDSREVIEWTRIAGEDIR} >> ${LOG} 2>&1
 # into the ${LITTRIAGE_NEWNEW}/littriage_NLM_refresh directory
 # turn off if not on production server
 #
-date >> ${LOG}
-echo "running findNLMrefresh.sh..." >> ${LOG} 2>&1
-${LITTRIAGELOAD}/bin/findNLMrefresh.sh >> ${LOG} 2>&1
+# 12/21/2024 : turn off by default; not really needed anymore
+# as the doi ids are picked up along with the pubmedid from EUtils
+#
+#date >> ${LOG}
+#echo "running findNLMrefresh.sh..." >> ${LOG} 2>&1
+#${LITTRIAGELOAD}/bin/findNLMrefresh.sh >> ${LOG} 2>&1
 
 # move needs_review files to INPUT/user
 #date >> ${LOG} 2>&1
