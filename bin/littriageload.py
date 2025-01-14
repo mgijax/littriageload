@@ -215,7 +215,7 @@ mgiTypeKey = 1
 mgiPrefix = 'MGI:'
 referenceTypeKey = 31576687 	# Peer Reviewed Article
 newCodedKey = 71027551;
-statusIndexedKey = 31576673;      # Indexed (workflow_status/_vocab_key = 128)
+statusChosenKey = 31576671;
 statusFullCodedKey = 31576674		# Full-coded (workflow_status/_vocab_key = 128)
 miceInRefOnlyKey = 49170000	# MGI:Mice in reference only
 
@@ -1761,7 +1761,7 @@ def processPDFs():
                     statusList.append(statusRow)
                 elif userPath in (userGXDHT) and groupKey == 114000000:
                     statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s' \
-                        % (statusKey, refKey, groupKey, statusIndexedKey, isCurrent, userKey, userKey, loaddate, loaddate)
+                        % (statusKey, refKey, groupKey, statusChosenKey, isCurrent, userKey, userKey, loaddate, loaddate)
                     statusList.append(statusRow)
                 else:
                     statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s' \
