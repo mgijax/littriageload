@@ -214,9 +214,9 @@ objDOI = 'doi'
 mgiTypeKey = 1
 mgiPrefix = 'MGI:'
 referenceTypeKey = 31576687 	# Peer Reviewed Article
-newCodedKey = 71027551;
-statusChosenKey = 31576671;
-statusFullCodedKey = 31576674		# Full-coded (workflow_status/_vocab_key = 128)
+newCodedKey = 71027551
+statusChosenKey = 31576671      # Chosen (workflow_status/_vocab_key = 128)
+statusFullCodedKey = 31576674	# Full-coded (workflow_status/_vocab_key = 128)
 miceInRefOnlyKey = 49170000	# MGI:Mice in reference only
 
 # default isDiscard = not specified
