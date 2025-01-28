@@ -77,7 +77,7 @@ for line in inFile.readlines():
                         where _refs_key = %s
                         and isCurrent = 1
                         and _group_key = 114000000
-                        and _status_key = 31576673
+                        and _status_key = 31576671
                         and _createdby_key = 1667
                         ''' % (refKey, refKey), 'auto')
                 for r in gresult:
