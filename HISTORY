@@ -5,6 +5,7 @@ STAFF: lec
 #       modified:   littriageload.py
 wts2-1603/e4g-117/modify so papers imported via the GXDHT littriage load folder assigned status GXDHT Chosen
 littriage_gxdht : change Indexed -> Chosen
+updateRelevance.py
 
 TAG: littriageload-6-0-25-2
 TAG: littriageload-6-0-25-1
