@@ -470,13 +470,6 @@ def processPRO():
         outputFile.flush()
         outputFile.close()
 
-        # copy log file to QC/pro folder
-        try:
-                archiveFile = os.getenv('QCREPORTDIR') + '/archive/pro/' + secondaryFileName + '.' + mgi_utils.date('%Y%m%d.%H%M')
-                shutil.copy(logFileName, archiveFile);
-        except:
-                pass
-
         return 0
 
 def processGXD():
