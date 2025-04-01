@@ -1,3 +1,10 @@
+TAG: littriageload-6-0-25-5
+DATE: 04/01/2025
+STAFF: lec
+per Cindy: PRO post reports no longer needed
+processSecondary.sh:./secondaryReports.csh >> ${LOG} 2>&1
+secondaryReports.csh:# secondaryReports.csh
+
 TAG: littriageload-6-0-25-4
 TAG: littriageload-6-0-25-3
 DATE: 01/14/2025, 01/28/2025
