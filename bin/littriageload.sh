@@ -139,9 +139,9 @@ ls -l ${NEEDSREVIEWTRIAGEDIR} >> ${LOG} 2>&1
 #${LITTRIAGELOAD}/bin/findNLMrefresh.sh >> ${LOG} 2>&1
 
 # move needs_review files to INPUT/user
-date >> ${LOG} 2>&1
-echo "running restore_needsreview_folder.sh..." >> ${LOG} 2>&1
-${LITTRIAGELOAD}/bin/restore_needsreview_folder.sh >> ${LOG} 2>&1
+#date >> ${LOG} 2>&1
+#echo "running restore_needsreview_folder.sh..." >> ${LOG} 2>&1
+#${LITTRIAGELOAD}/bin/restore_needsreview_folder.sh >> ${LOG} 2>&1
 
 #
 # rename PUBLISHEDDIR/user pdf files that contain terms that will 
