@@ -87,11 +87,11 @@ else
 fi
 
 #
-# clean out logs.*, input.*, output.* after 35 days
+# clean out logs.*, input.*, output.* after 20 days
 #
-find ${FILEDIR}/logs.* -type d -mtime +35 -exec rm -rf {} \; >> ${LOG} 2>&1
-find ${FILEDIR}/input.* -type d -mtime +35 -exec rm -rf {} \; >> ${LOG} 2>&1
-find ${FILEDIR}/output.* -type d -mtime +35 -exec rm -rf {} \; >> ${LOG} 2>&1
+find ${FILEDIR}/logs.* -type d -mtime +20 -exec rm -rf {} \; >> ${LOG} 2>&1
+find ${FILEDIR}/input.* -type d -mtime +20 -exec rm -rf {} \; >> ${LOG} 2>&1
+find ${FILEDIR}/output.* -type d -mtime +20 -exec rm -rf {} \; >> ${LOG} 2>&1
 
 #
 # copy the ${LOGDIR} to a separate archive
@@ -227,18 +227,18 @@ STAT=$?
 checkStatus ${STAT} "${MGICACHELOAD}/bibcitation.csh" >> ${LOG_DIAG} 2>&1
 
 # relevance classifier
-date >> ${LOG_DIAG} 2>&1
-echo "process relevance classifier" >> ${LOG_DIAG} 2>&1
-${LITTRIAGELOAD}/bin/processRelevance.sh >> ${LOG_DIAG} 2>&1
-STAT=$?
-checkStatus ${STAT} "${LITTRIAGELOAD}/bin/processRelevance.csh" >> ${LOG_DIAG} 2>&1
+#date >> ${LOG_DIAG} 2>&1
+#echo "process relevance classifier" >> ${LOG_DIAG} 2>&1
+#${LITTRIAGELOAD}/bin/processRelevance.sh >> ${LOG_DIAG} 2>&1
+#STAT=$?
+#checkStatus ${STAT} "${LITTRIAGELOAD}/bin/processRelevance.csh" >> ${LOG_DIAG} 2>&1
 
 # secondary triage
-date >> ${LOG_DIAG} 2>&1
-echo "process secondary triage" >> ${LOG_DIAG} 2>&1
-${LITTRIAGELOAD}/bin/processSecondary.sh >> ${LOG_DIAG} 2>&1
-STAT=$?
-checkStatus ${STAT} "${LITTRIAGELOAD}/bin/processSecondary.csh" >> ${LOG_DIAG} 2>&1
+#date >> ${LOG_DIAG} 2>&1
+#echo "process secondary triage" >> ${LOG_DIAG} 2>&1
+#${LITTRIAGELOAD}/bin/processSecondary.sh >> ${LOG_DIAG} 2>&1
+#STAT=$?
+#checkStatus ${STAT} "${LITTRIAGELOAD}/bin/processSecondary.csh" >> ${LOG_DIAG} 2>&1
 
 # log OUTPUTDIR
 cp -r ${OUTPUTDIR} ${OUTPUTDIR}.${timestamp} >> ${LOG} 2>&1
