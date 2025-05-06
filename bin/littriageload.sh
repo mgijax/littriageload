@@ -182,19 +182,14 @@ echo "${PUBLISHEDDIR} listing : NOT MOVED TO INPUT DIRECTORY" >> ${LOG} 2>&1
 ls -l ${PUBLISHEDDIR}/* >> ${LOG} 2>&1
 
 #
-# copy the ${INPUTDIR} to a separate archive
+# mv the ${INPUTDIR} to date-stamped archive
+# create new ${INPUTDIR} folder using ${INPUTDIR}.default
 # this will be used if help restart a load
 # make sure this happens *before* next step
-# 11/26/2024 : replacing "cp -r" with tar
-#cp -r ${INPUTDIR} ${INPUTDIR}.${timestamp} >> ${LOG} 2>&1
 #
 timestamp=`date '+%Y%m%d.%H%M'`
-cd ${INPUTDIR}
-tar -cvf ${INPUTDIR}.${timestamp}.tar . >> ${LOG} 2>&1
-mkdir ${INPUTDIR}.${timestamp} >> ${LOG} 2>&1
-cd ${INPUTDIR}.${timestamp}
-tar -xvf ${INPUTDIR}.${timestamp}.tar . >> ${LOG} 2>&1
-rm -rf ${LASTINPUTDIR} ${INPUTDIR}.${timestamp}.tar >> ${LOG} 2>&1
+cp -r ${INPUTDIR} ${INPUTDIR}.${timestamp} >> ${LOG} 2>&1
+rm -rf ${LASTINPUTDIR} >> ${LOG} 2>&1
 ln -s ${INPUTDIR}.${timestamp} ${LASTINPUTDIR} >> ${LOG} 2>&1
 
 cd ${LITTRIAGELOAD}
