@@ -97,7 +97,8 @@ find ${FILEDIR}/output.* -type d -mtime +35 -exec rm -rf {} \; >> ${LOG} 2>&1
 # copy the ${LOGDIR} to a separate archive
 # make sure this happens *before* next step
 #
-cp -r ${LOGDIR} ${LOGDIR}.`date '+%Y%m%d.%H%M'` >> ${LOG} 2>&1
+timestamp=`date '+%Y%m%d.%H%M'`
+cp -r ${LOGDIR} ${LOGDIR}.${timestamp} >> ${LOG} 2>&1
 
 #
 # createArchive including OUTPUTDIR, INPUTDIR, etc.
@@ -167,13 +168,7 @@ done
 date >> ${LOG}
 echo "---------------------" >> ${LOG} 2>&1
 echo "Move ${PUBLISHEDDIR} files to ${INPUTDIR}" >> ${LOG} 2>&1
-cd ${PUBLISHEDDIR}
-for i in `find . -maxdepth 2 -iname "[a-zA-Z0-9]*.pdf"`
-do
-echo "cp/rm -f ${i} ${INPUTDIR}/${i}" >> ${LOG} 2>&1
-cp -f ${i} ${INPUTDIR}/${i} >> ${LOG} 2>&1
-rm -rf ${i} >> ${LOG} 2>&1
-done
+rsync -avz --exclude=".*" --remove-source-files ${PUBLISHEDDIR}/* ${INPUTDIR} >> ${LOG} 2>&1
 
 # results of cp/mv
 date >> ${LOG} 2>&1
@@ -187,7 +182,6 @@ ls -l ${PUBLISHEDDIR}/* >> ${LOG} 2>&1
 # this will be used if help restart a load
 # make sure this happens *before* next step
 #
-timestamp=`date '+%Y%m%d.%H%M'`
 cp -r ${INPUTDIR} ${INPUTDIR}.${timestamp} >> ${LOG} 2>&1
 rm -rf ${LASTINPUTDIR} >> ${LOG} 2>&1
 ln -s ${INPUTDIR}.${timestamp} ${LASTINPUTDIR} >> ${LOG} 2>&1
