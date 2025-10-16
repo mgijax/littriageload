@@ -47,9 +47,8 @@ for pid in pubmedids:
         print(pubMedRef.getDoiID())
         print(pubMedRef.getPubMedID(), pubMedRef.getTitle() ,pubMedRef.getJournal() ,pubMedRef.getDate() ,pubMedRef.getYear() ,pubMedRef.getPublicationType())
     print()
-
-    #apicall = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=%s&retmode=text&rettype=medline&api_key=93420e6dcf419d7a62e18570657    2e08K" % (pid)
-    #print(apicall)
+    apicall = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=%s&retmode=text&rettype=medline&api_key=93420e6fa0a8dcf419d7a62e185706572e08" % (pid)
+    print(apicall)
     #medLineRecord = gov.get(apicall)
     #print('api call done')
     #print(medLineRecord)

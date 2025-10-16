@@ -31,15 +31,6 @@
 # References: relevance status = "keep", GO status = "New"
 # Set all GO status = Not Routed
 #
-# PRO Criteria
-# References: relevance status = "keep", PROstatus = "New"
-# Is Reviewed = Not Routed
-# text to search: extracted text except reference section
-# text criteria: exclude list (vocab_key 170). (case insensitive)
-# text to look for: (case insensitive)
-# if number of text matches <= 3, then Status = Not Routed
-# if number of text matches >= 4, then Status = Routed
-#
 # logFile = 
 #       mgiid, pubmedid, confidence, term, totalMatchesTerm, subText
 #
@@ -167,7 +158,7 @@ def process(sql):
                 totalMatchesExcludedTerm = 0
                 matchExtractedText = 1
 
-                # if reference is reviewed and group in (AP, GXD, PRO), then set Status = Not Routed
+                # if reference is reviewed and group in (AP, GXD), then set Status = Not Routed
                 if isReviewed == 1 and groupKey in (31576664,31576665,78678148):
                         matchExtractedText = 0
 
@@ -231,11 +222,6 @@ def process(sql):
 
                 # if group in (Tumor) and total match <= 9
                 if groupKey == 31576667 and totalMatchesTerm <= 9:
-                        termKey = notroutedKey
-                        term = 'Not Routed'
-
-                # if group in (PRO) and total match <= 3
-                if groupKey == 78678148 and totalMatchesTerm <= 3:
                         termKey = notroutedKey
                         term = 'Not Routed'
 
@@ -427,43 +413,6 @@ def processGO():
         searchTerms = [] 
         excludedTerms = []
         process((sql + orderBy) % (31576666))
-
-        logFile.flush()
-        logFile.close()
-        outputFile.flush()
-        outputFile.close()
-
-        return 0
-
-def processPRO():
-        global statusFileName, statusFile
-        global logFileName, logFile
-        global outputFileName, outputFile
-        global searchTerms
-        global excludedTerms
-        global bcpCmd
-
-        statusFileName = outputDir + '/' + statusTable + '.PRO.bcp'
-        statusFile = open(statusFileName, 'w')
-        secondaryFileName = 'secondary.PRO.log'
-        logFileName = logDir + '/' + secondaryFileName
-        logFile = open(logFileName, 'w')
-        reportlib.header(logFile)
-        outputFileName = outputDir + '/PRO.txt'
-        outputFile = open(outputFileName, 'w')
-        bcpCmd.append('%s %s "/" %s %s' % (bcpI, statusTable, statusFileName, bcpII))
-
-        results = db.sql('select lower(term) as term from voc_term where _vocab_key = 169 order by term', 'auto')
-        for r in results:
-                searchTerms.append(r['term'])
-        #print(searchTerms)
-
-        results = db.sql('select lower(term) as term from voc_term where _vocab_key = 170 order by term', 'auto')
-        for r in results:
-                excludedTerms.append(r['term'])
-        #print(excludedTerms)
-
-        process((sql + orderBy) % (78678148))
 
         logFile.flush()
         logFile.close()
@@ -873,10 +822,6 @@ if processTumor() != 0:
 
 #print('processGO')
 if processGO() != 0:
-    sys.exit(1)
-
-#print('processPRO')
-if processPRO() != 0:
     sys.exit(1)
 
 #print('processGXD')

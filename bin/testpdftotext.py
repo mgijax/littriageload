@@ -19,7 +19,7 @@ os.system('rm -rf textpdftotext.log')
 logFile = open('textpdftotext.log', 'w')
 
 pdfPath = os.getenv('DATALOADSOUTPUT') + '/mgi/littriageload/input.last/' + 'smb'
-pdfFile = '1s20S2589004221005058main.pdf'
+pdfFile = 'MID_40446798.pdf'
 pdf = PdfParser.PdfParser(os.path.join(pdfPath, pdfFile))
 pdftext = pdf.getText();
 logFile.write(pdftext)
@@ -28,7 +28,11 @@ logFile.write(doiid + "\n")
 
 #textSplitter = extractedTextSplitter.ExtTextSplitter()
 #(bodyText, refText, figureText, starMethodText, suppText)  = textSplitter.splitSections(pdftext)
-#logFile.write(bodyText, refText, figureText, starMethodText, suppText)
+#logFile.write('bodyTest:%s\n' % bodyText)
+#logFile.write('###\nrefText:%s\n' % refText)
+#logFile.write('###\nfigureText:%s\n' % figureText)
+#logFile.write('###\nstartText:%s\n' % starMethodText)
+#logFile.write('###\nsuppText:%s\n' % suppText)
 
 logFile.close()
 

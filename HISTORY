@@ -1,3 +1,15 @@
+TAG: littriageload-6-0-25-13
+DATE: 10/16/2025
+STAFF: lec
+wts2-1743/sprt-94/Remove PRO lit triage workflow"
+        deleted:    PRO_extracted_text
+        deleted:    PRO_ignored_text
+        deleted:    secondaryReports.csh
+        modified:   processSecondary.sh
+        modified:   secondary.py
+        modified:   testeutilsapi.py
+        modified:   testpdftotext.py
+
 TAG: littriageload-6-0-25-12
 TAG: littriageload-6-0-25-11
 DATE: 05/06/2025
