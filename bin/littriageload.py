@@ -1355,6 +1355,9 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
         title = results[0]['title']
         doiId = results[0]['doiID']
 
+        if title == None:
+            title = 'None'
+
         if pubMedRef.getJournal().lower() != journal.lower() \
             or pubMedRef.getTitle().lower() != title.lower() \
             or (doiId != None and pubMedRef.getDoiID() != doiId):
