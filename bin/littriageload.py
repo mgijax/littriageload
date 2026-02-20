@@ -58,7 +58,7 @@
 #
 #	   split text into sections
 #
-#          if not (userSupplement, userPDF, userGO, userGXDHT, userNLM, userDiscard):
+#          if not (userSupplement, userPDF, userGO, userNLM, userDiscard):
 #		run mice check
 #
 #	   supplmental check
@@ -123,7 +123,6 @@ textSplitter = ''
 userSupplement = 'littriage_create_supplement'
 userPDF = 'littriage_update_pdf'
 userGO = 'littriage_go'
-userGXDHT = 'littriage_gxdht'
 userNLM = 'littriage_NLM_refresh'
 userDiscard = 'littriage_discard'
 
@@ -140,7 +139,6 @@ count_doipubmedadded = 0
 count_mismatchedtitles = 0
 count_lowextractedtext = 0
 count_userGO = 0
-count_userGXDHT = 0
 
 diag = ''
 diagFile = ''
@@ -840,8 +838,8 @@ def bcpFiles():
     db.commit()
 
     # update the max accession ID value for J:
-    if count_userGO or count_userGXDHT:
-        count_acc = count_userGO + count_userGXDHT
+    if count_userGO:
+        count_acc = count_userGO
         db.sql('select * from ACC_setMax (%d, \'J:\')' % (count_acc), None)
         db.commit()
 
@@ -1356,7 +1354,7 @@ def level2SanityChecks(userPath, objType, objId, pdfFile, pdfPath, needsReviewPa
         doiId = results[0]['doiID']
 
         if title == None:
-            title = 'None'
+            title = '[Not Available].'
 
         if pubMedRef.getJournal().lower() != journal.lower() \
             or pubMedRef.getTitle().lower() != title.lower() \
@@ -1474,7 +1472,6 @@ def processPDFs():
     global count_processPDFs
     global count_needsreview
     global count_userGO
-    global count_userGXDHT
     global count_userPDF
     global count_userNLM
     global count_duplicate
@@ -1553,7 +1550,7 @@ def processPDFs():
         # only interested in running checkMice for curator folders, etc.
         # if non-refText section checkMice = false, then isDiscard = relevanceDiscardKey
         #
-        if userPath not in (userSupplement, userPDF, userGO, userGXDHT, userNLM, userDiscard):
+        if userPath not in (userSupplement, userPDF, userGO, userNLM, userDiscard):
             if bodyText.lower().find(checkMice) < 0 \
                 and figureText.lower().find(checkMice) < 0 \
                 and suppText.lower().find(checkMice) < 0 \
@@ -1567,7 +1564,7 @@ def processPDFs():
         # ignore 'bonferroni correction'
         checkErratum = 1
         isErratum = 0
-        if userPath not in (userSupplement, userPDF, userGO, userGXDHT, userNLM, userDiscard) and objType not in ('pm'):
+        if userPath not in (userSupplement, userPDF, userGO, userNLM, userDiscard) and objType not in ('pm'):
             diagFile.write('ERRATUM:searching:%s, %s, %s\n' % (objId, userPath, pdfFile))
             for e in erratumExcludeList:
                 if bodyText.lower().find(e) >= 0:
@@ -1762,10 +1759,6 @@ def processPDFs():
                     statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s' \
                         % (statusKey, refKey, groupKey, statusFullCodedKey, isCurrent, userKey, userKey, loaddate, loaddate)
                     statusList.append(statusRow)
-                elif userPath in (userGXDHT) and groupKey == 114000000:
-                    statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s' \
-                        % (statusKey, refKey, groupKey, statusChosenKey, isCurrent, userKey, userKey, loaddate, loaddate)
-                    statusList.append(statusRow)
                 else:
                     statusRow = '%s|%s|%s|%s|%s|%s|%s|%s|%s' \
                         % (statusKey, refKey, groupKey, newCodedKey, isCurrent, userKey, userKey, loaddate, loaddate)
@@ -1871,7 +1864,7 @@ def processPDFs():
             #
             # J:xxxx
             #
-            if userPath in (userGO, userGXDHT):
+            if userPath in (userGO):
                 accID = 'J:' + str(jnumKey)
                 prefixPart = 'J:'
                 numericPart = jnumKey
@@ -1884,8 +1877,6 @@ def processPDFs():
                 jnumKey += 1
                 if userPath in (userGO):
                     count_userGO += 1
-                elif userPath in (userGXDHT):
-                    count_userGXDHT += 1
 
             #
             # if splitter does not find reference section
@@ -2181,7 +2172,6 @@ def writeErrors():
     global count_processPDFs
     global count_needsreview
     global count_userGO
-    global count_userGXDHT
     global count_userPDF
     global count_userNLM
     global count_duplicate
@@ -2221,7 +2211,6 @@ def writeErrors():
     allCounts = allCounts + 'Records with Updated PDF\'s: ' + str(count_userPDF) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Updated NLM information: ' + str(count_userNLM) + '<BR>\n\n'
     allCounts = allCounts + 'Records with GO information: ' + str(count_userGO) + '<BR>\n\n'
-    allCounts = allCounts + 'Records with GXD-HT information: ' + str(count_userGXDHT) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Duplicates: ' + str(count_duplicate) + '<BR>\n\n'
     allCounts = allCounts + 'Records with DOI or Pubmed Ids added: ' + str(count_doipubmedadded) + '<BR>\n\n'
     allCounts = allCounts + 'Records with Mismatched titles: ' + str(count_mismatchedtitles) + '<BR>\n\n'
