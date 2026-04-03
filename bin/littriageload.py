@@ -1564,7 +1564,7 @@ def processPDFs():
         # ignore 'bonferroni correction'
         checkErratum = 1
         isErratum = 0
-        if userPath not in (userSupplement, userPDF, userGO, userNLM, userDiscard) and objType not in ('pm'):
+        if userPath not in (userSupplement, userPDF, userGO, userNLM, userDiscard):
             diagFile.write('ERRATUM:searching:%s, %s, %s\n' % (objId, userPath, pdfFile))
             for e in erratumExcludeList:
                 if bodyText.lower().find(e) >= 0:
