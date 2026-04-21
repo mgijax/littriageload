@@ -216,6 +216,7 @@ newCodedKey = 71027551
 statusChosenKey = 31576671      # Chosen (workflow_status/_vocab_key = 128)
 statusFullCodedKey = 31576674	# Full-coded (workflow_status/_vocab_key = 128)
 miceInRefOnlyKey = 49170000	# MGI:Mice in reference only
+possibleCorrectionKey = 115722477   # MGI:Possible_Correction
 
 # default isDiscard = not specified
 relevanceVersion = ''
@@ -1575,13 +1576,6 @@ def processPDFs():
                         erratumFind = bodyText.lower().find(e)
                         if erratumFind >= 0 and erratumFind <= erratumPosition:
                                 isErratum = 1
-            # continue to next pdf
-            if isErratum == 1:
-                diagFile.write('ERRATUM:found/included:%s, %s, %s, %s\n' % (e, objId, userPath, pdfFile))
-                level2error5 += linkOut % (needsReviewPath + '/' + pdfFile, needsReviewPath + '/' + pdfFile) + '<BR>\n'
-                shutil.move(os.path.join(pdfPath, pdfFile), os.path.join(needsReviewPath, pdfFile))
-                count_needsreview += 1
-                continue
         else:
             diagFile.write('ERRATUM:skipping:%s, %s, %s\n' % (objId, userPath, pdfFile))
 
@@ -1711,7 +1705,7 @@ def processPDFs():
                 isReviewArticle = 0
 
             # TR12958/userDiscard folder
-            if objType in (userDiscard):
+            if objType in (userDiscard) or isErratum == 1:
                 isDiscard = relevanceDiscardKey
             #else:
             #    isDiscard = relevanceNotSpecKey
@@ -1804,6 +1798,14 @@ def processPDFs():
             if isMice == 1:
                 tagRow = '%s|%s|%s|%s|%s|%s|%s' \
                         %(tagKey, refKey, miceInRefOnlyKey, userKey, userKey, loaddate, loaddate)
+                tagList.append(tagRow)
+                tagKey += 1
+
+            #
+            # bib_workflow_tag/possible correction
+            if isErratum == 1:
+                tagRow = '%s|%s|%s|%s|%s|%s|%s' \
+                        %(tagKey, refKey, possibleCorrectionKey, userKey, userKey, loaddate, loaddate)
                 tagList.append(tagRow)
                 tagKey += 1
 
