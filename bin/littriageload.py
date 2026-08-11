@@ -125,6 +125,7 @@ userPDF = 'littriage_update_pdf'
 userGO = 'littriage_go'
 userNLM = 'littriage_NLM_refresh'
 userDiscard = 'littriage_discard'
+userPDFDownload = 'pdfdownload'
 
 # littriageload user
 userLTKey = '1569'      
@@ -1020,8 +1021,8 @@ def level1SanityChecks():
                         if pdfFile not in nodupFileName:
                                 nodupFileName.append(pdfFile)
                         else:
-                                # if duplicate userPDF/userNLM, then remove the duplicate
-                                if userPath in (userPDF, userNLM):
+                                # if duplicate userPDF/userNLM/userPDFDownload, then remove the duplicate
+                                if userPath in (userPDF, userNLM, userPDFDownload):
                                         os.remove(os.path.join(pdfPath, pdfFile))
                                 else:
                                         dupFileName.append(pdfFile)
