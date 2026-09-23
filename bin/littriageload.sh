@@ -229,6 +229,13 @@ ${LITTRIAGELOAD}/bin/processSecondary.sh >> ${LOG_DIAG} 2>&1
 STAT=$?
 checkStatus ${STAT} "${LITTRIAGELOAD}/bin/processSecondary.csh" >> ${LOG_DIAG} 2>&1
 
+# move all "review" reference records with discard relevance to rejected status for AP group
+date >> ${LOG_DIAG} 2>&1
+echo "process AP Workflow Status Rejected" >> ${LOG_DIAG} 2>&1
+cat - <<EOSQL | ${PG_DBUTILS}/bin/doisql.csh $0 >> ${LOG} 2>&1
+select BIB_updateWFStatusAPRejected();
+EOSQL
+
 # log OUTPUTDIR
 cp -r ${OUTPUTDIR} ${OUTPUTDIR}.${timestamp} >> ${LOG} 2>&1
 
