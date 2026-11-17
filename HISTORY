@@ -1,3 +1,9 @@
+TAG: littriage-6-0-29-3
+DATE: 11/17/2026
+STAFF: lec
+doi ids : check for None
+        modified:   bin/littriageload.py
+
 TAG: littriage-6-0-29-2
 DATE: 09/23/2026
 STAFF: lec

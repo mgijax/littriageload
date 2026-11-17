@@ -1661,6 +1661,8 @@ def processPDFs():
                 numericPart = accID
                 logicalDBKey = 29
             else: # objId = doiid
+                if objId == None: # do nothing
+                    continue
                 accID = objId
                 prefixPart = accID
                 numericPart = ''
@@ -1840,7 +1842,7 @@ def processPDFs():
             #
             # doiID only
             #
-            if doiID != '':
+            if doiID != '' and doiID != None:
                 accID = doiID
                 prefixPart = accID
                 numericPart = ''
@@ -1852,7 +1854,7 @@ def processPDFs():
                 accList.append(accRow)
                 accKey += 1
 
-            elif objType in (objDOI, userDiscard):
+            elif objType in (objDOI, userDiscard) and objId != None:
                 accID = objId
                 prefixPart = accID
                 numericPart = ''
